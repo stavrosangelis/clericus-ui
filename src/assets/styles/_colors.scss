@@ -1,0 +1,11 @@
+$dark-grey: #24302a;
+$light-grey: #EAECEF;
+$red: #FA5554;
+$crem: #F4F3F0;
+$dark-brown:#252E31;
+$link: #3c6651;
+$link-lighter: lighten( $link, 15% );
+$link-darker: darken( $link, 15% );
+
+$dark-grey-hover: lighten( $dark-grey, 15% );
+$footer-grey: lighten( $dark-grey, 10% );
