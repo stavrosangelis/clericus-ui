@@ -3,17 +3,13 @@ import {
   Button,
   Input, InputGroup, InputGroupAddon,
   UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem,
-  Collapse
+  //Collapse
 } from 'reactstrap';
 import MainPagination from './pagination';
 
 export default class PageActions extends Component {
   constructor(props) {
     super(props);
-    let advancedSearchElement = null;
-    if (typeof this.props.searchElements!=="undefined") {
-      advancedSearchElement = this.props.searchElements[0].element;
-    }
     this.state = {
       paginationItems: [],
     };
@@ -47,7 +43,7 @@ export default class PageActions extends Component {
     if (this.props.limit===500) {
       limitActive3 = "active";
     }
-    
+
     return (
       <div className="row">
       <div className="col-12">

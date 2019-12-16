@@ -1,4 +1,6 @@
 import Home from '../views/home';
+import Classpieces from '../views/classpieces';
+import Classpiece from '../views/classpiece';
 import People from '../views/people';
 import Person from '../views/person';
 
@@ -9,9 +11,19 @@ var routes = [
     name: "Home",
   },
   {
-    path: "/browse",
+    path: "/classpieces",
+    component: Classpieces,
+    name: "classpieces",
+  },
+  {
+    path: "/classpiece/:_id",
+    component: Classpiece,
+    name: "classpiece",
+  },
+  {
+    path: "/people",
     component: People,
-    name: "Browse",
+    name: "people",
   },
   {
     path: "/person/:_id",

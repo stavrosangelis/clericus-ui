@@ -5,6 +5,7 @@ import {loadProgressBar} from 'axios-progress-bar';
 import 'axios-progress-bar/dist/nprogress.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './assets/fonts/roboto/css/roboto.css';
+import './assets/fonts/helvetica-neue/style.css';
 import './assets/fonts/font-awesome/css/font-awesome.min.css';
 import "./assets/fonts/pe-icon-7/css/pe-icon-7-stroke.css";
 import './App.scss';
@@ -16,12 +17,12 @@ import mainRoutes from "./routes/";
 
 import {connect} from "react-redux";
 import {
-  loadOrganisations
+  loadOrganisations,
 } from "./redux/actions";
 
 function mapDispatchToProps(dispatch) {
   return {
-    loadOrganisations: () => dispatch(loadOrganisations())
+    loadOrganisations: () => dispatch(loadOrganisations()),
   }
 }
 
@@ -50,7 +51,7 @@ class App extends Component{
         <div className="app-body">
           <Topbar />
           <Header />
-          <div className="content-container">
+          <div className="content-container" style={{paddingBottom: '0'}}>
             <Switch>
               {routes}
             </Switch>

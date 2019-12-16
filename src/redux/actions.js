@@ -30,6 +30,27 @@ export function setPaginationParams(type,params) {
   }
 }
 
+export function loadGenericStats() {
+  return (dispatch,getState) => {
+    axios({
+      method: 'get',
+      url: process.env.REACT_APP_APIPATH+'generic-stats',
+      crossDomain: true,
+    })
+	  .then(function (response) {
+      let payload = {
+        genericStats: response.data.data,
+      }
+      dispatch({
+        type: "GENERIC_UPDATE",
+        payload: payload
+      });
+	  })
+	  .catch(function (error) {
+	  });
+  }
+}
+
 export function loadOrganisations() {
   return (dispatch,getState) => {
     let params = {

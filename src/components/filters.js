@@ -1,15 +1,11 @@
 import React from 'react';
 import {
   Spinner,
-  ListGroup, ListGroupItem,
-  FormGroup, Label, Input
+  FormGroup, Label, Input,
+  Card, CardBody
 } from 'reactstrap';
 
 import {connect} from "react-redux";
-import {
-  loadOrganisations
-} from "../redux/actions";
-
 const mapStateToProps = state => {
   return {
     loadingOrganisations: state.loadingOrganisations,
@@ -20,24 +16,6 @@ const mapStateToProps = state => {
 class Filters extends React.Component {
   constructor(props) {
     super(props);
-
-    this.state = {
-      loadingOrganisations: true,
-      organisations: [],
-
-      loadingClasspieces: true,
-      classpieces: [],
-
-      loadingEvents: true,
-      events: [],
-
-      loadingSpatial: true,
-      spatial: [],
-
-      loadingTemporal: true,
-      temporal: []
-    };
-
     this.organisationsFilters = this.organisationsFilters.bind(this);
   }
 
@@ -58,14 +36,29 @@ class Filters extends React.Component {
 
   render() {
     let organisationItems = this.organisationsFilters();
-    let organisations = <div>
-      <h4>Organisations</h4>
-      <div className="filter-body">
-        {organisationItems}
-      </div>
-    </div>
+    let organisations = <div className="row">
+        <div className="col-12">
+          <div style={{padding: '40pt',textAlign: 'center'}}>
+            <Spinner type="grow" color="info" /> <i>loading...</i>
+          </div>
+        </div>
+      </div>;
+
+    if (!this.props.loadingOrganisations) {
+      organisations = <Card>
+        <CardBody>
+          <h4>Organisations</h4>
+          <div className="filter-body">
+            {organisationItems}
+          </div>
+        </CardBody>
+      </Card>;
+    }
     return(
-      <div>{organisations}</div>
+      <div>
+        <h4>Filters</h4>
+        {organisations}
+      </div>
     )
   }
 }

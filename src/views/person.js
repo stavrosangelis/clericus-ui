@@ -126,7 +126,7 @@ class Home extends Component {
     }
     label += " "+this.state.item.lastName;
     let breadcrumbsItems = [
-      {label: "People", icon: "pe-7s-users", active: false, path: "/browse"},
+      {label: "People", icon: "pe-7s-users", active: false, path: "/people"},
       {label: label, icon: "pe-7s-user", active: true, path: ""},
     ];
     return (
