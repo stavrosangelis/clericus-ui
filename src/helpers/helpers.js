@@ -16,8 +16,15 @@ export const getPersonThumbnailURL = (person) => {
 }
 
 export const getResourceThumbnailURL = (resource) => {
-  if (resource===null || typeof resource.paths==="undefined") {
+  if (resource===null || typeof resource.paths==="undefined" || resource.paths===null) {
     return null;
+  }
+  if(typeof resource.paths[0].path==="undefined") {
+    let parsedPaths = resource.paths.map(path=>{
+      let newPath = JSON.parse(path);
+      return newPath;
+    });
+    resource.paths = parsedPaths;
   }
   let thumbnail = resource.paths.filter((item)=>{return (item.pathType==="thumbnail")});
   let thumbnailPath = null;
@@ -27,7 +34,7 @@ export const getResourceThumbnailURL = (resource) => {
   return thumbnailPath;
 }
 
-export const getResourceFullsizelURL = (resource) => {
+export const getResourceFullsizeURL = (resource) => {
   if (resource===null || typeof resource.paths==="undefined") {
     return null;
   }

@@ -5,8 +5,8 @@ import {
   Card, CardBody,
 } from 'reactstrap';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getResourceThumbnailURL} from '../helpers/helpers';
-import Viewer from '../components/classpiece-viewer.js';
+import {getResourceThumbnailURL, getResourceFullsizeURL} from '../helpers/helpers';
+import Viewer from '../components/image-viewer.js';
 
 class Classpiece extends Component {
   constructor(props) {
@@ -25,34 +25,34 @@ class Classpiece extends Component {
     this.toggleViewer = this.toggleViewer.bind(this);
   }
 
-  load() {
+  async load() {
     let _id = this.props.match.params._id;
     if (typeof _id==="undefined" || _id===null || _id==="") {
       return false;
     }
     this.setState({
       loading: true
-    })
-    let context = this;
+    });
     let params = {
       _id: _id,
     };
-    let url = process.env.REACT_APP_APIPATH+'resource';
-    axios({
+    let url = process.env.REACT_APP_APIPATH+'classpiece';
+    let responseData = await axios({
       method: 'get',
       url: url,
       crossDomain: true,
       params: params
     })
 	  .then(function (response) {
-      let responseData = response.data.data;
-      context.setState({
-        loading: false,
-        item: responseData
-      });
+      return response.data.data;
 	  })
 	  .catch(function (error) {
 	  });
+
+    this.setState({
+      loading: false,
+      item: responseData
+    });
   }
 
   renderItem() {
@@ -71,8 +71,8 @@ class Classpiece extends Component {
       descriptionRow = <tr key={0}><th>Description: </th><td>{item.description}</td></tr>;
     }
     let metadataRow = [];
-    if(item.metadata.length>0) {
-      metadataRow = <tr key={1}><th>Metadata: </th><td>{this.parseMetadata(item.metadata[0].image)}</td></tr>;
+    if(Object.keys(item.metadata).length>0) {
+      metadataRow = <tr key={1}><th>Metadata: </th><td>{this.parseMetadata(item.metadata.image)}</td></tr>;
     }
     meta.push(descriptionRow,metadataRow);
     let metaTable = <table className="table table-borderless"><tbody>{meta}</tbody></table>
@@ -146,7 +146,7 @@ class Classpiece extends Component {
     });
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this.load();
   }
 
@@ -171,20 +171,29 @@ class Classpiece extends Component {
         </div>
       </div>
     }
-    let label = this.state.item.label;
+    let resource = this.state.item;
+    let label = resource.label;
     let breadcrumbsItems = [
       {label: "Classpieces", icon: "pe-7s-photo", active: false, path: "/classpieces"},
       {label: label, icon: "pe-7s-photo", active: true, path: ""},
     ];
+    let imgViewer = [];
+    let fullsizePath = getResourceFullsizeURL(resource);
+    if (fullsizePath!==null && resource.resourceType==="image") {
+      let fullsizePath = getResourceFullsizeURL(resource);
+      imgViewer = <Viewer
+        visible={this.state.viewerVisible}
+        path={fullsizePath}
+        label={label}
+        toggle={this.toggleViewer}
+        item={resource}
+      />
+    }
     return (
       <div className="container">
         <Breadcrumbs items={breadcrumbsItems} />
         {content}
-        <Viewer
-          item={this.state.item}
-          visible={this.state.viewerVisible}
-          toggle={this.toggleViewer}
-          />
+        {imgViewer}
       </div>
     )
 

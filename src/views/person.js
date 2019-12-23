@@ -94,7 +94,7 @@ class Home extends Component {
     return output;
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this.load();
   }
 
