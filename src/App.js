@@ -18,11 +18,13 @@ import mainRoutes from "./routes/";
 import {connect} from "react-redux";
 import {
   loadOrganisations,
+  loadEvents,
 } from "./redux/actions";
 
 function mapDispatchToProps(dispatch) {
   return {
     loadOrganisations: () => dispatch(loadOrganisations()),
+    loadEvents: () => dispatch(loadEvents()),
   }
 }
 
@@ -31,6 +33,7 @@ class App extends Component{
   componentDidMount() {
     loadProgressBar();
     this.props.loadOrganisations();
+    this.props.loadEvents();
   }
 
   render() {

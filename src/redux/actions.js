@@ -77,6 +77,32 @@ export function loadOrganisations() {
   }
 }
 
+export function loadEvents() {
+  return (dispatch,getState) => {
+    let params = {
+      limit: 1000000
+    }
+    axios({
+      method: 'get',
+      url: process.env.REACT_APP_APIPATH+'events',
+      crossDomain: true,
+      params: params
+    })
+    .then(function (response) {
+      let payload = {
+        loadingEvents: false,
+        events: response.data.data.data,
+      }
+      dispatch({
+        type: "GENERIC_UPDATE",
+        payload: payload
+      });
+    })
+    .catch(function (error) {
+    });
+  }
+}
+
 export function loadClasspieces() {
   return (dispatch,getState) => {
     let params = {

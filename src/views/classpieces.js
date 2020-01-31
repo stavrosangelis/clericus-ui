@@ -8,6 +8,7 @@ import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
 import {getResourceThumbnailURL} from '../helpers/helpers';
 import PageActions from '../components/page-actions';
+import Filters from '../components/filters';
 
 import {connect} from "react-redux";
 import {
@@ -241,7 +242,10 @@ class Classpieces extends Component {
       }
       content = <div>
         <div className="row">
-          <div className="col-xs-12">
+          <div className="col-xs-12 col-sm-4">
+            <Filters />
+          </div>
+          <div className="col-xs-12 col-sm-8">
             <h2>{heading}</h2>
             {pageActions}
             <div className="row">
