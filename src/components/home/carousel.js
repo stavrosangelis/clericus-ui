@@ -75,14 +75,14 @@ class HomeSlider extends Component {
           onExited={this.onExited}
           key={item.key}
         >
-          <img src={item.src} alt={item.altText} />
+          <img src={item.src} alt={item.altText} style={{width:'100%',height:'600px'}}/>
           <CarouselCaption captionText={item.caption} captionHeader={item.caption} />
         </CarouselItem>
       );
     });
 
     return (
-      <div className="container carousel-container">
+      <div className="carousel-container">
         <Carousel
           activeIndex={activeIndex}
           next={this.next}

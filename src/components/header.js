@@ -1,4 +1,7 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
+import ScrollEvent from 'react-onscroll';
+
 import {
   Collapse,
   Navbar,
@@ -15,6 +18,9 @@ export default class Header extends React.Component {
   constructor(props) {
     super(props);
     this.toggle = this.toggle.bind(this);
+    this.handleScrollCallback = this.handleScrollCallback.bind(this);
+    this.myRef = React.createRef();
+    
     this.state = {
       isOpen: false
     };
@@ -26,9 +32,20 @@ export default class Header extends React.Component {
     });
   }
 
+  handleScrollCallback() {
+    if (window.pageYOffset > this.myRef.current.offsetTop) {
+      document.getElementById("headerNavbar").classList.add("headerNavbar-container");
+    } else {
+      if(document.getElementById("headerNavbar").classList.contains("headerNavbar-container"))
+        document.getElementById("headerNavbar").classList.remove("headerNavbar-container");
+    }
+
+  }
+  
   render() {
     return (
-      <div className="container-fluid header main-nav">
+      <div id="headerNavbar" ref={this.myRef}  className="container-fluid header main-nav">
+        <ScrollEvent handleScrollCallback={this.handleScrollCallback} />
         <div className="container">
           <Navbar expand="md">
             <Link to="/" href="/" className="logo-container">
