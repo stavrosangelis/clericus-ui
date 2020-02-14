@@ -20,6 +20,8 @@ function mapDispatchToProps(dispatch) {
 
 
 class SectionNumbers extends Component {
+  _isMounted = false;
+  
   constructor(props) {
     super(props);
     this.state = {
@@ -49,10 +51,12 @@ class SectionNumbers extends Component {
     intervals.push(interval)
     let index = intervals.indexOf(interval);
     let intervalStateName = stateName+"IntervalIndex";
-    this.setState({
-      intervals: intervals,
-      [intervalStateName]: index
-    })
+    if (this._isMounted) {
+      this.setState({
+        intervals: intervals,
+        [intervalStateName]: index
+      })
+    }
     if (i===statsValue) {
       clearInterval(interval);
     }
@@ -63,12 +67,16 @@ class SectionNumbers extends Component {
     if (number<statsValue) {
       number++;
     }
-    this.setState({
-      [stateName]: number
-    })
+    if (this._isMounted) {
+      this.setState({
+        [stateName]: number
+      })
+    }
   }
 
   componentDidMount() {
+    this._isMounted = true;
+    
     this.props.loadGenericStats();
     if (this.props.genericStats!==null) {
       this.count();
@@ -96,6 +104,10 @@ class SectionNumbers extends Component {
         clearInterval(interval);
       }
     }
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
   }
 
   render() {

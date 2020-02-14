@@ -33,6 +33,10 @@ h1, h2, h3, h4, h5 {
   background-color: $dark-brown;
   height: 30px;
 }
+.top-bar ul{
+  margin: 0;
+  padding: 0;
+}
 .top-bar .top-bar-list > li {
   display: inline-block;
   list-style-type: none;
@@ -88,15 +92,18 @@ h1, h2, h3, h4, h5 {
 .main-nav .navbar-toggler-icon {
   line-height: 1.5em;
 }
+.main-nav .navbar-toggler-nopaddind {
+  padding: 0;
+}
 
 .content-container {
   background-color: $crem;
-  padding: 40px 0;
+  //padding: 40px 0;
 }
 
 .carousel-container {
   padding: 0 !important;
-  margin-top: -40px;
+  //margin-top: -40px;
   border-bottom: 1px solid $light-grey;
 }
 
@@ -734,53 +741,54 @@ section {
   font-family: "HelveticaNeue","Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 
+.about-container{
+  width:100%; 
+  display:inline-block !important; 
+  display:inline;
+}
+
 .waveShapeMiddle {
-  height: 500px;
+  height: auto;
   width: 100%;
   overflow: hidden;
   background-color: $dark_blue;
-  opacity: 0.9;  
+  opacity: 0.9;
 }
 
 .about-video-container { 
-  position:relative; 
+  position:relative;
+  height: auto;
 }
 .about-video-container video {
-  position:relative;
-  z-index:0;
+  position:absolute;
   right: 0;
   bottom: 0;
   min-width: 100%;
-  min-height: 50%;
+  max-width: 100%;
   width: auto;
   object-fit: cover;
   z-index:-1;
   /*to edit the opacity effect change the percentage below */
   filter:opacity(5%);
 }
-.about-video-container .waveShape_overlay_left {
-  position:absolute;
-  top:30%;
-  left:5%;
+.about-video-container .waveShape_overlay {
+  margin-left:5%;
+  position:relative;
   z-index:1;
   color: $white;
-  max-width:40%;
-  right:60%;
+  width: 90%;
+  height: 90%;
 }
-.about-video-container .waveShape_overlay_right {
-  position:absolute;
-  top:30%;
-  left:40%;
-  right:1%;
-  z-index:1;
-  color: $white;
-  max-width:60%;
+
+.about-video-container .waveShape_overlay .content{
+  margin-top:2%;
 }
-.about-video-container .waveShape_overlay_right .cardTitle{
+
+.about-video-container .waveShape_overlay .cardTitle{
   color: $black;
   font-weight: bold;
 }
-.about-video-container .waveShape_overlay_right .cardText{
+.about-video-container .waveShape_overlay .cardText{
   color: $black;
 }
 
@@ -790,4 +798,56 @@ section {
   opacity: 0.8;
   font-size: 12px;
   z-index:999999999999999999;
+}
+
+
+.highlight_section{
+  height: auto;
+  width: 100%;
+  overflow: hidden;
+  background-color: #0d0d0d;
+  opacity: 0.9;
+  margin-bottom:15px;
+}
+
+.highlight-photo-container { 
+  position:relative;
+  height: auto;
+}
+.highlight-photo-container img {
+  position:absolute;
+  right: 0;
+  bottom: 0;
+  min-width: 100%;
+  max-width: 100%;
+  width: auto;
+  object-fit: cover;
+  z-index:-1;
+  /*to edit the opacity effect change the percentage below */
+  filter:opacity(5%);
+}
+.highlight-photo-container .highlight_overlay {
+  margin-left:5%;
+  position:relative;
+  z-index:1;
+  color: $white;
+  width: 90%;
+  height: 90%;
+}
+.highlight-photo-container .highlight_overlay .content{
+  margin-top:2%;
+  margin-bottom: 2%;
+}
+.highlight-photo-container .highlight_overlay .cardTitle{
+  color: $black;
+  font-weight: bold;
+}
+.highlight-photo-container .highlight_overlay .cardText{
+  color: $black;
+}
+
+@media only screen and (min-width: 900px) {
+  .about-container svg{
+    height: 100px;
+  }
 }

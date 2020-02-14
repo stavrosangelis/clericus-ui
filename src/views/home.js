@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import HomeSlider from '../components/home/carousel';
 import SectionNumbers from '../components/home/section-numbers';
 import About from '../components/home/about';
+import HighLight from '../components/home/highlight';
 
 class Home extends Component {
   render() {
@@ -14,26 +15,13 @@ class Home extends Component {
       margin: "1%",
     }
     
-    let style_Block = {
-      width: "100%",
-      height: "500px",
-      overflow: "hidden",
-      backgroundColor: "#261a0d",
-      opacity: "0.9",
-      marginBottom: "1%",
-    }
-    
     return (
       <div className="container-fluid">
         <HomeSlider />
         
         <About />
         
-        <div className="row">
-          <div className="col">
-            <div style={style_Block}></div>
-          </div>
-        </div>
+        <HighLight />
 
         <div className="row">
           <div className="col-xs-12 col-sm-6">

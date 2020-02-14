@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import ScrollEvent from 'react-onscroll';
 
 import {
@@ -21,6 +20,8 @@ export default class Header extends React.Component {
     this.handleScrollCallback = this.handleScrollCallback.bind(this);
     this.myRef = React.createRef();
     
+    this.oldOffsetTop = 0;
+    
     this.state = {
       isOpen: false
     };
@@ -33,7 +34,11 @@ export default class Header extends React.Component {
   }
 
   handleScrollCallback() {
-    if (window.pageYOffset > this.myRef.current.offsetTop) {
+    if((this.myRef.current.offsetTop > 0)&&
+       (this.oldOffsetTop !== this.myRef.current.offsetTop)){
+      this.oldOffsetTop = this.myRef.current.offsetTop;
+    }
+    if (window.pageYOffset > this.oldOffsetTop) {
       document.getElementById("headerNavbar").classList.add("headerNavbar-container");
     } else {
       if(document.getElementById("headerNavbar").classList.contains("headerNavbar-container"))
@@ -63,7 +68,7 @@ export default class Header extends React.Component {
                 </div>
 
             </Link>
-            <button type="button" className="navbar-toggler" onClick={this.toggle}>
+            <button type="button" className="navbar-toggler navbar-toggler-nopaddind" onClick={this.toggle}>
               <span className="navbar-toggler-icon">
                   <i className="fa fa-navicon"></i>
               </span>
