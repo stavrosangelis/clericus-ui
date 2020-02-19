@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Carousel,
   CarouselItem,
@@ -6,96 +6,97 @@ import {
   CarouselIndicators,
   CarouselCaption
 } from 'reactstrap';
+import axios from 'axios';
 
 import defaultImg from '../../assets/images/carousel-default.png';
-const items = [
-  {
-    src: defaultImg,
-    altText: 'Slide 1',
-    caption: 'Slide 1',
-    key: 0,
-  },
-  {
-    src: defaultImg,
-    altText: 'Slide 2',
-    caption: 'Slide 2',
-    key: 1,
-  },
-  {
-    src: defaultImg,
-    altText: 'Slide 3',
-    caption: 'Slide 3',
-    key: 2,
-  }
-];
 
-class HomeSlider extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { activeIndex: 0 };
-    this.next = this.next.bind(this);
-    this.previous = this.previous.bind(this);
-    this.goToIndex = this.goToIndex.bind(this);
-    this.onExiting = this.onExiting.bind(this);
-    this.onExited = this.onExited.bind(this);
-  }
+const APIPath = process.env.REACT_APP_APIPATH;
 
-  onExiting() {
-    this.animating = true;
-  }
+const HomeSlider = (props) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [animating, setAnimating] = useState(false);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState([]);
 
-  onExited() {
-    this.animating = false;
+  useEffect(()=> {
+    const load = async() => {
+      setLoading(false);
+      let responseData = await axios({
+        method: 'get',
+        url: APIPath+'slideshow-items',
+        crossDomain: true,
+      })
+      .then(function (response) {
+        return response.data.data;
+      })
+      .catch(function (error) {
+      });
+      setItems(responseData.data);
+    }
+    if (loading) {
+      load();
+    }
+  },[loading]);
+
+  const next = () => {
+    if (animating) return;
+    const nextIndex = activeIndex === items.length - 1 ? 0 : activeIndex + 1;
+    setActiveIndex(nextIndex);
   }
 
-  next() {
-    if (this.animating) return;
-    const nextIndex = this.state.activeIndex === items.length - 1 ? 0 : this.state.activeIndex + 1;
-    this.setState({ activeIndex: nextIndex });
+  const previous = () => {
+    if (animating) return;
+    const nextIndex = activeIndex === 0 ? items.length - 1 : activeIndex - 1;
+    setActiveIndex(nextIndex);
   }
 
-  previous() {
-    if (this.animating) return;
-    const nextIndex = this.state.activeIndex === 0 ? items.length - 1 : this.state.activeIndex - 1;
-    this.setState({ activeIndex: nextIndex });
+  const goToIndex = (newIndex) => {
+    if (animating) return;
+    setActiveIndex(newIndex);
   }
 
-  goToIndex(newIndex) {
-    if (this.animating) return;
-    this.setState({ activeIndex: newIndex });
-  }
-
-  render() {
-    const { activeIndex } = this.state;
-
-    const slides = items.map((item) => {
-      return (
-        <CarouselItem
-          onExiting={this.onExiting}
-          onExited={this.onExited}
-          key={item.key}
-        >
-          <img src={item.src} alt={item.altText} style={{width:'100%',height:'600px'}}/>
-          <CarouselCaption captionText={item.caption} captionHeader={item.caption} />
-        </CarouselItem>
-      );
-    });
-
-    return (
-      <div className="carousel-container">
-        <Carousel
-          activeIndex={activeIndex}
-          next={this.next}
-          previous={this.previous}
-        >
-          <CarouselIndicators items={items} activeIndex={activeIndex} onClickHandler={this.goToIndex} />
-          {slides}
-          <CarouselControl direction="prev" directionText="Previous" onClickHandler={this.previous} />
-          <CarouselControl direction="next" directionText="Next" onClickHandler={this.next} />
-        </Carousel>
-      </div>
+  const slides = [];
+  let itemsLength = items.length;
+  for (let i=0;i<itemsLength;i++) {
+    let item = items[i];
+    let fullImg = item.imageDetails.paths.find(p=>p.pathType==="source").path;
+    let carouselImgStyle = {
+      backgroundImage: `url(${fullImg})`,
+      backgroundSize: 'cover',
+    }
+    let caption = [];
+    if (item.caption!=="") {
+      caption.push(<span key={0}>{item.caption}</span>);
+    }
+    if (item.url!=="") {
+      caption.push(<a key={1} href={item.url} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-sm carousel-caption-link">More...</a>);
+    }
+    slides.push(
+      <CarouselItem
+        onExiting={() => setAnimating(true)}
+        onExited={() => setAnimating(false)}
+        key={item._id}
+      >
+        <div className="carousel-img" style={carouselImgStyle}></div>
+        <img height={460} alt={item.label} src={defaultImg}/>
+        <CarouselCaption captionText={caption} captionHeader={item.label} />
+      </CarouselItem>
     );
   }
+
+  return (
+    <Carousel
+      activeIndex={activeIndex}
+      next={next}
+      previous={previous}
+      pause="hover"
+    >
+      <CarouselIndicators items={items} activeIndex={activeIndex} onClickHandler={goToIndex} />
+      {slides}
+      <CarouselControl direction="prev" directionText="Previous" onClickHandler={previous} />
+      <CarouselControl direction="next" directionText="Next" onClickHandler={next} />
+    </Carousel>
+  )
 }
 
 
