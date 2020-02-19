@@ -128,3 +128,64 @@ export function loadClasspieces() {
 	  });
   }
 }
+
+export function updateFilters(type,params) {
+  return (dispatch,getState) => {
+    let payload = null;
+    if (type==="resources") {
+      payload = {
+        classpiecesFilters: {
+          events: params.events,
+          organisations: params.organisations,
+        }
+      };
+    }
+    /*
+    if (type==="people") {
+      payload = {
+        peoplePagination: {
+          limit:params.limit,
+          page:params.page,
+        }
+      };
+    }
+    */
+    if (payload===null) {
+      return false;
+    }
+    dispatch({
+      type: "GENERIC_UPDATE",
+      payload: payload
+    });
+  }
+  
+}
+
+export function setClasspiecesRelationshipParams(type,params) {
+  return (dispatch,getState) => {
+    let payload = null;
+    if (type==="resources") {
+      payload = {
+        classpiecesRelationship: params
+      };
+    }
+    /*
+    if (type==="people") {
+      payload = {
+        peoplePagination: {
+          limit:params.limit,
+          page:params.page,
+        }
+      };
+    }
+    */
+    if (payload===null) {
+      return false;
+    }
+    dispatch({
+      type: "GENERIC_UPDATE",
+      payload: payload
+    });
+  }
+  
+}

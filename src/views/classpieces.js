@@ -12,19 +12,22 @@ import Filters from '../components/filters';
 
 import {connect} from "react-redux";
 import {
-  setPaginationParams
+  setPaginationParams,
+  setClasspiecesRelationshipParams
 } from "../redux/actions";
 
 const mapStateToProps = state => {
   return {
     resourceSystemTypes: state.resourceSystemTypes,
     classpiecesPagination: state.classpiecesPagination,
+    classpiecesFilters: state.classpiecesFilters,
    };
 };
 
 function mapDispatchToProps(dispatch) {
   return {
-    setPaginationParams: (type,params) => dispatch(setPaginationParams(type,params))
+    setPaginationParams: (type,params) => dispatch(setPaginationParams(type,params)),
+    setClasspiecesRelationshipParams: (type,params) => dispatch(setClasspiecesRelationshipParams(type,params))
   }
 }
 
@@ -61,7 +64,9 @@ class Classpieces extends Component {
     let context = this;
     let params = {
       page: this.state.page,
-      limit: this.state.limit
+      limit: this.state.limit,
+      events: this.props.classpiecesFilters.events,
+      organisations: this.props.classpiecesFilters.organisations,
     };
     let url = process.env.REACT_APP_APIPATH+'classpieces';
     axios({
@@ -94,7 +99,37 @@ class Classpieces extends Component {
           totalPages: responseData.totalPages,
           items: classpieces
         });
+        
+        context.updateClasspiecesRelationship(classpieces);
       }
+	  })
+	  .catch(function (error) {
+	  });
+  }
+
+  updateClasspiecesRelationship(classpieces) {
+    let id_classpieces = classpieces.map(item =>{
+      return item._id;
+    })
+    
+    let params = {
+      _id: id_classpieces,
+    };
+    let url = process.env.REACT_APP_APIPATH+'classpieces-active-filters';
+    axios({
+      method: 'post',
+      url: url,
+      crossDomain: true,
+      params: params
+    })
+	  .then(function (response) {
+      let responseData = response.data.data;
+      
+      let payload = {
+        events: responseData.events,
+        organisations: responseData.organisations,
+      }
+      this.props.setClasspiecesRelationshipParams("resources",payload);
 	  })
 	  .catch(function (error) {
 	  });
@@ -243,7 +278,7 @@ class Classpieces extends Component {
       content = <div>
         <div className="row">
           <div className="col-xs-12 col-sm-4">
-            <Filters />
+            <Filters updateClasspieces={this.load}/>
           </div>
           <div className="col-xs-12 col-sm-8">
             <h2>{heading}</h2>

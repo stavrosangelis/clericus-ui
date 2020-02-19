@@ -6,8 +6,14 @@ import {
 } from 'reactstrap';
 
 import {connect} from "react-redux";
+import {
+  updateFilters
+} from "../redux/actions";
+
 const mapStateToProps = state => {
   return {
+    classpiecesFilters: state.classpiecesFilters,
+    
     loadingOrganisations: state.loadingOrganisations,
     organisations: state.organisations,
 		
@@ -16,11 +22,18 @@ const mapStateToProps = state => {
    };
 };
 
+function mapDispatchToProps(dispatch) {
+  return {
+    updateFilters: (type,params) => dispatch(updateFilters(type,params))
+  }
+}
+
 class Filters extends React.Component {
   constructor(props) {
     super(props);
     this.organisationsFilters = this.organisationsFilters.bind(this);
     this.eventsFilters = this.eventsFilters.bind(this);
+    this.toggleFilter = this.toggleFilter.bind(this);
   }
 
   organisationsFilters() {
@@ -29,7 +42,7 @@ class Filters extends React.Component {
       let organisation = this.props.organisations[i];
       let filterItem = <FormGroup key={organisation._id}>
             <Label>
-              <Input type="checkbox" name={organisation._id} />{' '}
+              <Input type="checkbox" name="organisations" id={organisation._id} onClick={this.toggleFilter} />{' '}
               <span>{organisation.label}</span>
             </Label>
           </FormGroup>
@@ -44,14 +57,35 @@ class Filters extends React.Component {
       let eventItem = this.props.events[i];
       let filterItem = <FormGroup key={eventItem._id}>
             <Label>
-              <Input type="checkbox" name={eventItem._id} />{' '}
+              <Input type="checkbox" name="events" id={eventItem._id} onClick={this.toggleFilter}/>{' '}
               <span>{eventItem.label}</span>
             </Label>
           </FormGroup>
       output.push(filterItem);
     }
-		console.log(output)
     return output;
+  }
+  
+  toggleFilter(e) {
+    let target = e.target;
+    let name = target.name;
+    let _id = target.id;
+
+    let allFilters = Object.assign({}, this.props.classpiecesFilters);;
+    
+    if (allFilters[name].indexOf(_id)===-1) {
+      allFilters[name].push(_id);
+    }
+    else{
+      allFilters[name].splice(allFilters[name].indexOf(_id), 1);
+    }
+    
+    let payload = {
+      events:allFilters.events,
+      organisations: allFilters.organisations,
+    }
+    this.props.updateFilters("resources",payload);
+    this.props.updateClasspieces();
   }
 
   render() {
@@ -104,4 +138,4 @@ class Filters extends React.Component {
     )
   }
 }
-export default Filters = connect(mapStateToProps, null)(Filters);
+export default Filters = connect(mapStateToProps, mapDispatchToProps)(Filters);

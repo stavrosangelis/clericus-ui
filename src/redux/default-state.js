@@ -11,6 +11,16 @@ export const defaultState = {
     page:1
   },
 
+  classpiecesFilters: {
+    events: [],
+    organisations: [],
+  },
+  
+  classpiecesRelationship: {
+    events: [],
+    organisations: [],
+  },
+
   loadingOrganisations: true,
   organisations: [],
 
