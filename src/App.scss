@@ -885,3 +885,14 @@ section {
     height: 100px;
   }
 }
+
+.clear-filters {
+  font-size: 13px;
+  cursor: pointer;
+}
+.clear-filters:hover {
+  color: #666;
+}
+.clear-filters:active {
+  color: #222;
+}

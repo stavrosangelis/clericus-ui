@@ -161,12 +161,15 @@ export function updateFilters(type,params) {
   
 }
 
-export function setClasspiecesRelationshipParams(type,params) {
+export function setRelationshipParams(type,params) {
   return (dispatch,getState) => {
     let payload = null;
     if (type==="resources") {
       payload = {
-        classpiecesRelationship: params
+        classpiecesRelationship: {
+          events: params.events,
+          organisations: params.organisations,
+        }
       };
     }
     /*

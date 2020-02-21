@@ -15,18 +15,21 @@ import SearchForm from '../components/search-form';
 
 import {connect} from "react-redux";
 import {
-  setPaginationParams
+  setPaginationParams,
+  setRelationshipParams
 } from "../redux/actions";
 
 const mapStateToProps = state => {
   return {
     peoplePagination: state.peoplePagination,
+    peopleFilters: state.peopleFilters,
    };
 };
 
 function mapDispatchToProps(dispatch) {
   return {
-    setPaginationParams: (type,params) => dispatch(setPaginationParams(type,params))
+    setPaginationParams: (type,params) => dispatch(setPaginationParams(type,params)),
+    setRelationshipParams: (type,params) => dispatch(setRelationshipParams(type,params))
   }
 }
 
@@ -71,7 +74,9 @@ class People extends Component {
     let context = this;
     let params = {
       page: this.state.page,
-      limit: this.state.limit
+      limit: this.state.limit,
+      events: this.props.peopleFilters.events,
+      organisations: this.props.peopleFilters.organisations,
     };
     if (this.state.simpleSearchTerm!=="") {
       params.label = this.state.simpleSearchTerm;
@@ -120,7 +125,46 @@ class People extends Component {
           totalItems: responseData.totalItems,
           items: newPeople
         });
+        
+        //context.updatePeopleRelationship(newPeople);
       }
+	  })
+	  .catch(function (error) {
+	  });
+  }
+  
+  updatePeopleRelationship(people=null) {
+    if(people===null){
+      return false;
+    }
+    
+    let id_people = people.map(item =>{
+      return item._id;
+    })
+    
+    let context = this;
+    let params = {
+      _ids: id_people,
+    };
+    let url = process.env.REACT_APP_APIPATH+'people-active-filters';
+    axios({
+      method: 'post',
+      url: url,
+      crossDomain: true,
+      params: params
+    })
+	  .then(function (response) {
+      let responseData = response.data.data;
+      
+      let payload = {
+        events: responseData.events.map(item=>{return item._id}),
+        organisations: responseData.organisations.map(item=>{return item._id}),
+      }
+      
+      setTimeout(function() {
+        context.props.setRelationshipParams("people",payload);
+      },10)
+      
 	  })
 	  .catch(function (error) {
 	  });
@@ -449,7 +493,7 @@ class People extends Component {
       content = <div>
         <div className="row">
           <div className="col-xs-12 col-sm-4">
-            <Filters />
+            <Filters name="people" updatedata={this.load}/>
           </div>
           <div className="col-xs-12 col-sm-8">
             <h2>{heading}

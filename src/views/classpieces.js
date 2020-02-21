@@ -13,7 +13,7 @@ import Filters from '../components/filters';
 import {connect} from "react-redux";
 import {
   setPaginationParams,
-  setClasspiecesRelationshipParams
+  setRelationshipParams
 } from "../redux/actions";
 
 const mapStateToProps = state => {
@@ -27,7 +27,7 @@ const mapStateToProps = state => {
 function mapDispatchToProps(dispatch) {
   return {
     setPaginationParams: (type,params) => dispatch(setPaginationParams(type,params)),
-    setClasspiecesRelationshipParams: (type,params) => dispatch(setClasspiecesRelationshipParams(type,params))
+    setRelationshipParams: (type,params) => dispatch(setRelationshipParams(type,params))
   }
 }
 
@@ -55,6 +55,7 @@ class Classpieces extends Component {
     this.renderItems = this.renderItems.bind(this);
     this.renderItem = this.renderItem.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.updateClasspiecesRelationship = this.updateClasspiecesRelationship.bind(this);
   }
 
   load() {
@@ -107,29 +108,36 @@ class Classpieces extends Component {
 	  });
   }
 
-  updateClasspiecesRelationship(classpieces) {
+  updateClasspiecesRelationship(classpieces=null) {
+    if(classpieces===null){
+      return false;
+    }
+    
     let id_classpieces = classpieces.map(item =>{
       return item._id;
     })
     
+    let context = this;
     let params = {
-      _id: id_classpieces,
+      _ids: id_classpieces,
     };
     let url = process.env.REACT_APP_APIPATH+'classpieces-active-filters';
     axios({
       method: 'post',
       url: url,
       crossDomain: true,
-      params: params
+      data: params
     })
 	  .then(function (response) {
       let responseData = response.data.data;
       
       let payload = {
-        events: responseData.events,
-        organisations: responseData.organisations,
+        events: responseData.events.map(item=>{return item._id}),
+        organisations: responseData.organisations.map(item=>{return item._id}),
       }
-      this.props.setClasspiecesRelationshipParams("resources",payload);
+      
+      context.props.setRelationshipParams("resources",payload);
+      
 	  })
 	  .catch(function (error) {
 	  });
@@ -278,7 +286,7 @@ class Classpieces extends Component {
       content = <div>
         <div className="row">
           <div className="col-xs-12 col-sm-4">
-            <Filters updateClasspieces={this.load}/>
+            <Filters name="resources" updatedata={this.load}/>
           </div>
           <div className="col-xs-12 col-sm-8">
             <h2>{heading}</h2>

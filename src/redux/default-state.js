@@ -20,6 +20,16 @@ export const defaultState = {
     events: [],
     organisations: [],
   },
+  
+  peopleFilters: {
+    events: [],
+    organisations: [],
+  },
+  
+  peopleRelationship: {
+    events: [],
+    organisations: [],
+  },
 
   loadingOrganisations: true,
   organisations: [],
