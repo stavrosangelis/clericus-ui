@@ -44,14 +44,14 @@ class About extends Component {
                 </form>
               </Col>
               <Col className="content" xs="12" sm="4" md="4" lg="4">
-                <Card body>
+                <Card body className="card_shadow card_shift">
                   <CardTitle className="cardTitle">Special Title Treatment</CardTitle>
                   <CardText className="cardText">With supporting text below as a natural lead-in to additional content.</CardText>
                   <Button>Go somewhere</Button>
                 </Card>
               </Col>
               <Col className="content" xs="12" sm="4" md="4" lg="4">
-                <Card body>
+                <Card body className="card_shadow card_shift">
                   <CardTitle className="cardTitle">Special Title Treatment</CardTitle>
                   <CardText className="cardText">With supporting text below as a natural lead-in to additional content.</CardText>
                   <Button>Go somewhere</Button>
