@@ -1,4 +1,5 @@
 $dark-grey: #24302a;
+$darker-grey: darken( $dark-grey, 3% );
 $light-grey: #EAECEF;
 $dark-grey-hover: lighten( $dark-grey, 15% );
 
@@ -16,7 +17,7 @@ $dark-brown-hover: lighten( $dark-brown, 20% );
 $dark-brown-active: darken( $dark-brown, 20% );
 
 $green: #057f4a;
-$dark-green: darken( $green, 20% );
+$dark-green: darken( $green, 12% );
 $light-green: lighten( $green, 20% );
 
 $dark_blue: #00334d;

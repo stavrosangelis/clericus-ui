@@ -19,9 +19,9 @@ export default class Header extends React.Component {
     this.toggle = this.toggle.bind(this);
     this.handleScrollCallback = this.handleScrollCallback.bind(this);
     this.myRef = React.createRef();
-    
+
     this.oldOffsetTop = 0;
-    
+
     this.state = {
       isOpen: false
     };
@@ -46,7 +46,7 @@ export default class Header extends React.Component {
     }
 
   }
-  
+
   render() {
     return (
       <div id="headerNavbar" ref={this.myRef}  className="container-fluid header main-nav">

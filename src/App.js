@@ -8,10 +8,12 @@ import './assets/fonts/roboto/css/roboto.css';
 import './assets/fonts/helvetica-neue/style.css';
 import './assets/fonts/font-awesome/css/font-awesome.min.css';
 import "./assets/fonts/pe-icon-7/css/pe-icon-7-stroke.css";
+import "./assets/fonts/spartan/spartan.css";
 import './App.scss';
 
 import Topbar from './components/topbar';
 import Header from './components/header';
+import Footer from './components/footer';
 
 import mainRoutes from "./routes/";
 
@@ -59,6 +61,7 @@ class App extends Component{
               {routes}
             </Switch>
           </div>
+          <Footer />
         </div>
       </Router>
     );

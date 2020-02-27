@@ -21,7 +21,7 @@ function mapDispatchToProps(dispatch) {
 
 class SectionNumbers extends Component {
   _isMounted = false;
-  
+
   constructor(props) {
     super(props);
     this.state = {
@@ -76,11 +76,11 @@ class SectionNumbers extends Component {
 
   componentDidMount() {
     this._isMounted = true;
-    
+
     this.props.loadGenericStats();
     if (this.props.genericStats!==null) {
       this.count();
-    }    
+    }
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -118,14 +118,17 @@ class SectionNumbers extends Component {
         <div className="container section-numbers-content">
           <div className="row numbers-row">
             <div className="col-4">
+              <i className="pe-7s-users" />
               <label>{this.state.peopleCount}</label>
               <span>Total people</span>
             </div>
             <div className="col-4">
+              <i className="pe-7s-photo" />
               <label>{this.state.resourcesCount}</label>
               <span>Total resources</span>
             </div>
             <div className="col-4">
+              <i className="pe-7s-map-2" />
               <label>{this.state.diocesesCount}</label>
               <span>Total dioceses</span>
             </div>
