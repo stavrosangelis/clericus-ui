@@ -18,7 +18,7 @@ const About = props => {
       }
       let responseData = await axios({
         method: 'get',
-        url: APIPath+'articles',
+        url: APIPath+'content-articles',
         crossDomain: true,
         params: params
       })

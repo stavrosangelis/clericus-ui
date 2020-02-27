@@ -1,4 +1,5 @@
 import Home from '../views/home';
+import Article from '../views/article';
 import Classpieces from '../views/classpieces';
 import Classpiece from '../views/classpiece';
 import People from '../views/people';
@@ -9,6 +10,11 @@ var routes = [
     path: "/",
     component: Home,
     name: "Home",
+  },
+  {
+    path: "/article/:permalink",
+    component: Article,
+    name: "article",
   },
   {
     path: "/classpieces",
