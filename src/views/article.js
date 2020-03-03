@@ -26,7 +26,9 @@ const Article = props => {
       })
       .catch(function (error) {
       });
-      setArticle(responseData.data);
+      if (responseData.status) {
+        setArticle(responseData.data);
+      }
     }
     if (loading) {
       load();
@@ -48,7 +50,7 @@ const Article = props => {
 
   if (!loading && article!==null) {
     let categories = article.categories.map(c=> {
-      return {label: c.label, icon: "", active: false, path: `article-category/${c.permalink}`}
+      return {label: c.label, icon: "", active: false, path: `/article-category/${c.permalink}`}
     });
     breadcrumbsItems = [...categories, ...breadcrumbsItems];
     breadcrumbsItems.push({label: article.label, icon: "pe-7s-newspaper", active: true, path: ""});
@@ -74,7 +76,7 @@ const Article = props => {
             <Card>
               <CardBody>
                 <h3>{article.label}</h3>
-                <div className="news-item-date"><i className="pe-7s-clock" /> {date}</div>
+                <div className="news-item-date"><i className="pe-7s-user" /> {article.author} <i className="pe-7s-clock" /> {date}</div>
                 <img className="img-fluid article-thumbnail" alt={article.label} src={thumbPath} />
                 <div dangerouslySetInnerHTML={{__html: article.content}}></div>
               </CardBody>

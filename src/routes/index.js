@@ -1,5 +1,6 @@
 import Home from '../views/home';
 import Article from '../views/article';
+import Articles from '../views/articles';
 import Classpieces from '../views/classpieces';
 import Classpiece from '../views/classpiece';
 import People from '../views/people';
@@ -15,6 +16,11 @@ var routes = [
     path: "/article/:permalink",
     component: Article,
     name: "article",
+  },
+  {
+    path: "/article-category/:permalink",
+    component: Articles,
+    name: "article-category",
   },
   {
     path: "/classpieces",
