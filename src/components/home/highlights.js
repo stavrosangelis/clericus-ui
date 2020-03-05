@@ -52,12 +52,12 @@ const HighLights = props => {
       }
       let date = `${y}-${m}-${d}`;
       return <div className="col-12 col-sm-6 col-md-3 home-highlight-container" key={i}>
-        <Card className="home-highlight">
+        <Card className="home-highlight card_shadow card_shift">
           <CardBody>
             <div className="home-highlight-img" style={{backgroundImage: `url("${thumbnailPath}")`}}></div>
             <div className="home-highlight-text">
-              <h4><Link to={parseUrl} href={parseUrl}>{item.label}</Link></h4>
-              <div className="home-highlight-caption">
+              <h4><Link to={parseUrl} href={parseUrl} className="cardTitle">{item.label}</Link></h4>
+              <div className="home-highlight-caption cardText">
                 <i className="pe-7s-clock" /> {date}
               </div>
             </div>
@@ -68,7 +68,7 @@ const HighLights = props => {
   }
   return (
     <div>
-      <h3 className="section-title"><span><span>H</span>ighlights</span></h3>
+      <h3 className="section-title"><span className="article-title" style={{color: "#ffffff"}}>Highlights</span></h3>
       <div className="row">{classpieces}</div>
     </div>
   );

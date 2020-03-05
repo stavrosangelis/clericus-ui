@@ -29,16 +29,26 @@ const About = props => {
   },[loading]);
 
   let content = [];
+  let img = [];
   if (!loading && article!==null) {
     content = <div>
-      <h3>{article.label}</h3>
+      <h4 className="section-title"><span className="article-title" style={{color: "#c10230"}}>{article.label}</span></h4>
       <div dangerouslySetInnerHTML={{__html: article.teaser}}></div>
     </div>
+    let thumbPath = [];
+    let featuredImage = article.featuredImageDetails;
+    if (featuredImage!==null) {
+      thumbPath = featuredImage.paths.find(p=>p.pathType==="thumbnail").path;
+    }
+    img = <img className="img-fluid" alt={article.label} src={thumbPath} style={{marginTop: "15%"}}/>
   }
   return(
     <div className="row">
-      <div className="col-12">
+      <div className="col-xs-12 col-md-7 content-separator">
         {content}
+      </div>
+      <div className="col-xs-12 col-md-5">
+        {img}
       </div>
     </div>
   );
