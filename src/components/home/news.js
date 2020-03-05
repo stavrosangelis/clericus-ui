@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {Link} from 'react-router-dom';
 
@@ -7,7 +7,6 @@ const APIPath = process.env.REACT_APP_APIPATH;
 const About = props => {
   const [loading, setLoading] = useState(true);
   const [articles, setArticles] = useState([]);
-  const refNewsItems = useRef(null);
 
   useEffect(()=> {
     const load = async() => {
@@ -82,32 +81,15 @@ const About = props => {
       }
     }
     content = <div>
-      <h4 className="section-title news-separator"><span className="article-title">News</span></h4>
-      <div className="row news-item-wrapper">
-        <div id="news-major" className="col-12 col-sm-6 news-item-slide">{item1}</div>
+      <h4 className="section-title"><span><span>N</span>ews</span></h4>
+      <div className="row">
+        <div className="col-12 col-sm-6">{item1}</div>
         <div className="col-12 col-sm-6">{items}</div>
       </div>
     </div>
   }
-  
-  const handleScrollCallback = () => {
-	let length = articles.length;
-	if (!loading && length>0) {
-      if(refNewsItems.current.getBoundingClientRect().top <= document.documentElement.clientHeight/2) {
-        document.getElementById("news-major").style.left="0";
-      }
-    }
-  }
-  
-  useEffect(()=> {
-    window.addEventListener('scroll', handleScrollCallback);
-    return () => {
-      window.removeEventListener('scroll', handleScrollCallback);
-    }
-  });
-  
   return(
-    <div className="row" id="news-item" ref={refNewsItems}>
+    <div className="row">
       <div className="col-12">
         {content}
       </div>
