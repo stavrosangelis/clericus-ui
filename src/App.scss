@@ -78,9 +78,9 @@ h1, h2, h3, h4, h5 {
   text-decoration: none;
 }
 .main-nav .nav-item {
-  padding: 15px 10px 13px 10px;
+  padding: 0;
 }
-.main-nav .nav-item a{
+.main-nav .nav-item a {
   color: #444;
 }
 .main-nav .nav-item {
@@ -95,6 +95,56 @@ h1, h2, h3, h4, h5 {
 .main-nav .navbar-toggler-nopaddind {
   padding: 0;
 }
+.main-nav .nav-item > a {
+  padding: 15px;
+  display: block;
+  font-size: 14px;
+}
+
+.navbar-nav > li.dropdown:hover > ul.dropdown-menu {
+  display: block;
+}
+.navbar-nav > li.dropdown ul.dropdown-menu {
+  border-radius: 0;
+  border: 0 none;
+  padding: 0;
+}
+.navbar-nav > li.dropdown > ul.dropdown-menu > li.dropdown:hover > ul.dropdown-menu {
+  display: block;
+  top: 0;
+  left: 100%;
+}
+.navbar-nav > li.dropdown > ul a {
+  padding: 10px;
+}
+.navbar-nav > li.dropdown.right > ul.dropdown-menu {
+  right: 0;
+  left: auto;
+}
+.navbar-nav > li.dropdown.right > ul.dropdown-menu ul {
+  left: -158px !important;
+  right: auto;
+}
+.navbar-nav > li.dropdown > ul.dropdown-menu > li.dropdown.right ul {
+  left: -158px !important;
+  right: auto;
+}
+.navbar-nav > li.dropdown ul.dropdown-menu > li > a {
+  padding: 8px;
+}
+.navbar-nav > li.dropdown ul.dropdown-menu > li, .navbar-nav > li.dropdown ul.dropdown-menu > li:hover {
+  border: 0 none;
+}
+.navbar-nav > li.dropdown ul.dropdown-menu > li > a:hover {
+  border: 0 none;
+  background-color: #ddd;
+  width: calc(100% - 1px);
+}
+
+  /* fix for open state */
+.navbar-nav .open > .dropdown-menu {
+  display: none; }
+
 
 .content-container {
   background-color: $crem;

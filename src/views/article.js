@@ -55,9 +55,10 @@ const Article = props => {
     breadcrumbsItems = [...categories, ...breadcrumbsItems];
     breadcrumbsItems.push({label: article.label, icon: "pe-7s-newspaper", active: true, path: ""});
     let featuredImage = article.featuredImageDetails;
-    let thumbPath = [];
+    let thumbnail = [];
     if (featuredImage!==null) {
-      thumbPath = featuredImage.paths.find(p=>p.pathType==="thumbnail").path;
+      let thumbPath = featuredImage.paths.find(p=>p.pathType==="thumbnail").path;
+      thumbnail = <img className="img-fluid article-thumbnail" alt={article.label} src={thumbPath} />;
     }
     let newDate = new Date(article.updatedAt);
     let y = newDate.getFullYear();
@@ -77,7 +78,7 @@ const Article = props => {
               <CardBody>
                 <h3>{article.label}</h3>
                 <div className="news-item-date"><i className="pe-7s-user" /> {article.author} <i className="pe-7s-clock" /> {date}</div>
-                <img className="img-fluid article-thumbnail" alt={article.label} src={thumbPath} />
+                {thumbnail}
                 <div dangerouslySetInnerHTML={{__html: article.content}}></div>
               </CardBody>
             </Card>

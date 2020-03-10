@@ -4,14 +4,15 @@ import ScrollEvent from 'react-onscroll';
 import {
   Collapse,
   Navbar,
-  Nav,
+  /*Nav,
   NavItem
-  /*NavLink,
+  NavLink,
   UncontrolledDropdown,
   DropdownToggle,
   DropdownMenu,
   DropdownItem*/ } from 'reactstrap';
 import { Link } from 'react-router-dom';
+import TopMenu from "./top-menu.js";
 
 export default class Header extends React.Component {
   constructor(props) {
@@ -74,7 +75,8 @@ export default class Header extends React.Component {
               </span>
             </button>
             <Collapse isOpen={this.state.isOpen} navbar>
-              <Nav className="ml-auto" navbar>
+              <TopMenu />
+              {/*<Nav className="ml-auto" navbar>
                 <NavItem>
                   <Link to="/about" href="/about/">About</Link>
                 </NavItem>
@@ -84,7 +86,7 @@ export default class Header extends React.Component {
                 <NavItem>
                   <Link to="/people/" href="/people/">People</Link>
                 </NavItem>
-              </Nav>
+              </Nav>*/}
             </Collapse>
           </Navbar>
         </div>
