@@ -92,7 +92,7 @@ h1, h2, h3, h4, h5 {
 .main-nav .navbar-toggler-icon {
   line-height: 1.5em;
 }
-.main-nav .navbar-toggler-nopaddind {
+.main-nav .navbar-toggler-nopadding {
   padding: 0;
 }
 .main-nav .nav-item > a {
@@ -143,8 +143,53 @@ h1, h2, h3, h4, h5 {
 
   /* fix for open state */
 .navbar-nav .open > .dropdown-menu {
-  display: none; }
-
+  display: none;
+}
+.search-trigger > span {
+  padding: 14px 15px;
+  cursor: pointer;
+  display: block;
+}
+.search-trigger {
+  border-bottom: 2px solid #fff;
+}
+.search-trigger:hover {
+  border-bottom: 2px solid #24302a;
+}
+.generic-search-input {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  height: 0;
+  transition: 0.2s opacity;
+  z-index: 999999;
+}
+.generic-search-input.visible {
+  opacity: 0.8;
+  height: 50px;
+}
+.generic-search-input input {
+  width: 100%;
+  background-color: $darker-green;
+  color: #fff;
+  border: 1px solid #ddd;
+  line-height: 40px;
+  padding: 0 40px 0 15px;
+}
+.generic-search-input .search-submit {
+  position: absolute;
+  right: 5px;
+  top: 2px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  color: #f0f0f0;
+  line-height: 36px;
+  text-align: center;
+}
 
 .content-container {
   background-color: $crem;
