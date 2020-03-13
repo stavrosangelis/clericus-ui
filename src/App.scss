@@ -1131,3 +1131,103 @@ section {
 .category-children-categories-children {
   padding-left: 15px;
 }
+
+.btn-default {
+  color: #333;
+  background-color: #fff;
+  border-color: #ccc;
+}
+.btn-xs {
+  padding: 1px 5px;
+  font-size: 12px;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toggle-info-btn i {
+  transition: 0.3s all;
+}
+.toggle-info-btn i.closed {
+  transform: rotate(90deg);
+}
+.metadata-info-container {
+  transition: 0.3s all cubic-bezier(0, 1, 0.5, 1);
+  max-height: 100%;
+  border-bottom: 1px solid #eee;
+  margin-top: 15px;
+}
+.metadata-info-container.closed {
+  max-height: 36px;
+  overflow: hidden;
+}
+.people-info-container {
+  transition: 0.3s all linear-gradient;
+  max-height: 100%;
+}
+.people-info-container.closed {
+  max-height: 25px;
+  overflow: hidden;
+}
+.classpiece-details-container {
+  border-bottom: 1px solid #eee;
+  margin-top: 15px;
+}
+.classpiece-details-description {
+  margin-bottom: 20px;
+}
+.classpiece-details-table {
+  margin-bottom: 20px;
+  width: 100%;
+}
+.classpiece-details-table th {
+  font-weight: 400;
+}
+.classpiece-details-table th, .classpiece-details-table td {
+  vertical-align: top;
+  padding: 2px;
+  border-bottom: 1px solid #ededed;
+}
+.classpiece-details-table tr:last-child th, .classpiece-details-table tr:last-child td {
+  border-bottom: none;
+}
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  list-style-type: none;
+  margin: 0;
+}
+.tag-list-people {
+  justify-content: flex-end;
+  flex-direction: row-reverse;
+}
+.tag-list li {
+  margin: 0 5px 0 0;
+}
+.tag-list li a:link, .tag-list li a:visited{
+  color: #777;
+}
+.tag-list li a:hover, .tag-list li a:active{
+  background: #999999;
+  color: #ffffff;
+  text-decoration: none;
+}
+.tag-bg {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+  background: #e6e6e6;
+  border-radius: 4px;
+  flex: none;
+  text-align: center;
+  white-space: nowrap;
+}
+.tag-item {
+  max-width: none;
+  box-sizing: content-box;
+  padding: 2px 5px;
+  font-size: 12px;
+  line-height: 16px;
+}
+.tag-dot {
+  margin: 0 5px 10px 0;
+}

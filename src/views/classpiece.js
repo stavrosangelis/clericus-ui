@@ -15,7 +15,11 @@ class Classpiece extends Component {
     this.state = {
       loading: true,
       item: {},
-      viewerVisible: false
+      viewerVisible: false,
+      tableVisible: {
+        metadataDataVisible: false,
+        peopleDataVisible: false,
+      }
     }
 
     this.load = this.load.bind(this);
@@ -55,36 +59,126 @@ class Classpiece extends Component {
     });
   }
 
-  renderItem() {
-    let item = this.state.item;
+  toggleTable(e, dataType=null) {
+    let newState = Object.assign({}, this.state);    
+    if(dataType === "metadataData") {
+      newState.tableVisible.metadataDataVisible = !this.state.tableVisible.metadataDataVisible;
+    }else if(dataType === "peopleData") {
+      newState.tableVisible.peopleDataVisible = !this.state.tableVisible.peopleDataVisible;
+    }
+    this.setState(newState);
+  }
+
+  renderItem(stateData=null) {
+    let item = stateData.item;
     let label = item.label;
+    
+    //1. classpieceDetails
+    let detailsTableRows = [];
+    
+    //1.1 classpieceDetails - description
+    let descriptionRow = [];
+    if (typeof item.description!=="undefined" && item.description!==null && item.description!=="") {
+      descriptionRow = <tr key={"descriptionRow"}><td colSpan="2"><div className="classpiece-details-description">{item.description}</div></td></tr>;
+    }
+    detailsTableRows.push(descriptionRow);
+    
+    //1.2 classpieceDetails - events
+    let eventsRow = [];
+    if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
+      let eventsData = item.events.map(eachItem =>{
+        return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/classpieces"}>{eachItem.ref.label}</a></li>
+      })
+      eventsRow = <tr key={"eventsRow"}><th>Events</th><td><ul className="tag-list">{eventsData}</ul></td></tr>;
+    }
+    detailsTableRows.push(eventsRow);
+    
+    //1.3 classpieceDetails - organisations
+    let organisationsRow = [];
+    if (typeof item.organisations!=="undefined" && item.organisations!==null && item.organisations!=="") {
+      let organisationsData = item.organisations.map(eachItem =>{
+        return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/classpieces"}>{eachItem.ref.label}</a></li>
+      })
+      organisationsRow = <tr key={"organisationsRow"}><th>Organisations</th><td><ul className="tag-list">{organisationsData}</ul></td></tr>;
+    }
+    detailsTableRows.push(organisationsRow);
+    
+    //1.4 classpieceDetails - people
+    let peopleDataHiden = "";
+    if(!stateData.tableVisible.peopleDataVisible){
+      peopleDataHiden = " closed";
+    }
+    
+    let peopleRow = [];
+    if (typeof item.people!=="undefined" && item.people!==null && item.people!=="") {
+      let peopleDataExpand = [];
+      if(!stateData.tableVisible.peopleDataVisible){
+        peopleDataExpand = <li key={"dot"} ><a className="tag-bg tag-item" href="#" onClick={(e)=>{this.toggleTable(e,"peopleData")}}>...</a></li>;
+      }
+      let peopleData = item.people.map(eachItem=>{
+        return <li key={eachItem.ref._id}><a className="tag-bg tag-item" href={"/person/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
+      })
+      peopleRow = <tr key={"peopleRow"}>
+                    <th>People</th>
+                    <td>
+                      <div className={"people-info-container"+peopleDataHiden}>
+                        <div className="btn btn-default btn-xs pull-right toggle-info-btn" onClick={(e)=>{this.toggleTable(e,"peopleData")}}>
+                          <i className={"fa fa-angle-down"+peopleDataHiden}/>
+                        </div>
+                        <ul className="tag-list tag-list-people">
+                          {peopleDataExpand}{peopleData}
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>;
+    }
+    detailsTableRows.push(peopleRow);
+    
+    //1.5 classpieceDetails - classpieceDetails include description, events, organisations, and people
+    let classpieceDetails = <div className="classpiece-details-container"><table key={"classpieceDetails"} className="table table-borderless classpiece-details-table"><tbody>{detailsTableRows}</tbody></table></div>
+    
+    //2. thumbnailImage    
     let thumbnailImage = [];
     let thumbnailURL = getResourceThumbnailURL(item);
     if (thumbnailURL!==null) {
-      thumbnailImage = <div className="show-classpiece" onClick={()=>this.toggleViewer()}>
+      thumbnailImage = <div key={"thumbnailImage"} className="show-classpiece" onClick={()=>this.toggleViewer()}>
         <img src={thumbnailURL} className="people-thumbnail img-fluid img-thumbnail" alt={label} />
       </div>
     }
-    let meta = [];
-    let descriptionRow = [];
-    if (typeof item.description!=="undefined" && item.description!==null && item.description!=="") {
-      descriptionRow = <tr key={0}><th>Description: </th><td>{item.description}</td></tr>;
-    }
+    
+    //3. thumbmailMetadata
+    let thumbmailMetadata = [];
     let metadataRow = [];
-    if(Object.keys(item.metadata).length>0) {
-      metadataRow = <tr key={1}><th>Metadata: </th><td>{this.parseMetadata(item.metadata.image)}</td></tr>;
+    let metadataTitle = [];
+    let metadataData = [];
+    
+    let metadataDataHiden = "";
+    if(!stateData.tableVisible.metadataDataVisible){
+      metadataDataHiden = " closed";
     }
-    meta.push(descriptionRow,metadataRow);
-    let metaTable = <table className="table table-borderless"><tbody>{meta}</tbody></table>
+    
+    if(Object.keys(item.metadata).length>0) {
+      metadataTitle = <h5 key={"metadataTitle"}>Metadata: 
+        <div className="btn btn-default btn-xs pull-right toggle-info-btn" onClick={(e)=>{this.toggleTable(e,"metadataData")}}>
+          <i className={"fa fa-angle-down"+metadataDataHiden}/>
+        </div>
+      </h5>;
+      metadataData = <div key={"metadataData"}>{this.parseMetadata(item.metadata.image)}</div>;
+      metadataRow.push(metadataTitle,metadataData);
+    }
+    thumbmailMetadata = <div key={"thumbmailMetadata"} className={"metadata-info-container"+metadataDataHiden}>{metadataRow}</div>
+    
+    //All
     let output = <Card>
       <CardBody>
         <h3>{label}</h3>
         <div className="row">
-          <div className="col-xs-12 col-sm-6 col-md-4">
-            {thumbnailImage}
+          <div className="col-xs-12 col-sm-6 col-md-7 pull-left">
+            {classpieceDetails}
           </div>
-          <div className="col-xs-12 col-sm-6 col-md-8">
-            {metaTable}
+          <div className="col-xs-12 col-sm-6 col-md-5 pull-right">
+            {thumbnailImage}
+            {thumbmailMetadata}
           </div>
         </div>
       </CardBody>
@@ -162,7 +256,7 @@ class Classpiece extends Component {
     </div>
 
     if (!this.state.loading) {
-      let itemCard = this.renderItem();
+      let itemCard = this.renderItem(this.state);
       content = <div>
         <div className="row">
           <div className="col-12">
