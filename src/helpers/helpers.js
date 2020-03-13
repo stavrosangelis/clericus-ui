@@ -3,11 +3,14 @@ export const getPersonThumbnailURL = (person) => {
   if (person===null || typeof person.resources==="undefined" || person.resources.length===0) {
     return null;
   }
-  let thumbnailResource = person.resources.filter((item)=>{return (item.refLabel==="hasRepresentationObject")});
+  let thumbnailResource = person.resources.filter((item)=>{return (item.term.label==="hasRepresentationObject")});
   let thumbnailPath = null;
   if (typeof thumbnailResource[0]!=="undefined") {
     if (typeof thumbnailResource[0].ref.paths!=="undefined") {
       let thumbnailPaths = thumbnailResource[0].ref.paths;
+      if (typeof thumbnailPaths[0]==="string") {
+        thumbnailPaths = thumbnailPaths.map(p=>JSON.parse(p));
+      }
       let thumbnailPathFilter = thumbnailPaths.filter((item)=>{return (item.pathType==="thumbnail")});
       thumbnailPath = domain+"/"+thumbnailPathFilter[0].path;
     }

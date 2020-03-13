@@ -158,7 +158,7 @@ export function updateFilters(type,params) {
       payload: payload
     });
   }
-  
+
 }
 
 export function setRelationshipParams(type,params) {
@@ -172,16 +172,16 @@ export function setRelationshipParams(type,params) {
         }
       };
     }
-    /*
+
     if (type==="people") {
       payload = {
-        peoplePagination: {
-          limit:params.limit,
-          page:params.page,
+        peopleRelationship: {
+          events: params.events,
+          organisations: params.organisations,
         }
       };
     }
-    */
+
     if (payload===null) {
       return false;
     }
@@ -190,5 +190,5 @@ export function setRelationshipParams(type,params) {
       payload: payload
     });
   }
-  
+
 }

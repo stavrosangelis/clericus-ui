@@ -34,7 +34,7 @@ class Home extends Component {
     let params = {
       _id: _id,
     };
-    let url = process.env.REACT_APP_APIPATH+'person';
+    let url = process.env.REACT_APP_APIPATH+'ui-person';
     axios({
       method: 'get',
       url: url,

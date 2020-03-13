@@ -14,13 +14,13 @@ const mapStateToProps = state => {
   return {
     classpiecesFilters: state.classpiecesFilters,
     classpiecesRelationship: state.classpiecesRelationship,
-    
+
     peopleFilters: state.peopleFilters,
     peopleRelationship: state.peopleRelationship,
-    
+
     loadingOrganisations: state.loadingOrganisations,
     organisations: state.organisations,
-		
+
     loadingEvents: state.loadingEvents,
     events: state.events,
    };
@@ -53,7 +53,7 @@ class Filters extends React.Component {
     }
     return null;
   }
-  
+
   getRelationshipSet(name=null){
     if(name === "resources") {
       return this.props.classpiecesRelationship;
@@ -71,9 +71,11 @@ class Filters extends React.Component {
       disabled = "";
       checked="";
       let organisation = this.props.organisations[i];
+      let hidden = "";
       if(relatedOrganisations!==null) {
         if(relatedOrganisations.indexOf(organisation._id) === -1) {
           disabled = "disabled";
+          hidden = "hidden";
         }
       }
       if(preFilterSet!==null){
@@ -82,7 +84,7 @@ class Filters extends React.Component {
         }
       }
       let filterItem = <FormGroup key={organisation._id}>
-            <Label>
+            <Label className={hidden}>
               <Input type="checkbox" name="organisations" id={organisation._id} onClick={this.toggleFilter} onChange={()=>{}} disabled={disabled} checked={checked}/>{' '}
               <span>{organisation.label}</span>
             </Label>
@@ -91,7 +93,7 @@ class Filters extends React.Component {
     }
     return output;
   }
-	
+
   eventsFilters(relatedEvents=null) {
     let output = [];
     let disabled = "", checked = "";
@@ -100,9 +102,11 @@ class Filters extends React.Component {
       disabled = "";
       checked="";
       let eventItem = this.props.events[i];
+      let hidden = "";
       if(relatedEvents!==null) {
         if(relatedEvents.indexOf(eventItem._id) === -1) {
           disabled = "disabled";
+          hidden = "hidden";
         }
       }
       if(preFilterSet!==null){
@@ -111,7 +115,7 @@ class Filters extends React.Component {
         }
       }
       let filterItem = <FormGroup key={eventItem._id}>
-            <Label>
+            <Label className={hidden}>
               <Input type="checkbox" name="events" id={eventItem._id} onClick={this.toggleFilter} onChange={()=>{}} disabled={disabled} checked={checked}/>{' '}
               <span>{eventItem.label}</span>
             </Label>
@@ -120,7 +124,7 @@ class Filters extends React.Component {
     }
     return output;
   }
-  
+
   toggleFilter(e) {
     let target = e.target;
     let name = target.name;
@@ -134,7 +138,7 @@ class Filters extends React.Component {
     else{
       allFilters[name].splice(allFilters[name].indexOf(_id), 1);
     }
-    
+
     let payload = {
       events:allFilters.events,
       organisations: allFilters.organisations,
@@ -151,7 +155,7 @@ class Filters extends React.Component {
       context.props.updatedata();
     },10)
   }
-  
+
   clearAllFilters(e) {
     let payload = {
       events: [],
@@ -186,7 +190,7 @@ class Filters extends React.Component {
         </CardBody>
       </Card>;
     }
-		
+
     let eventsItems=this.eventsFilters(this.getRelationshipSet(this.name).events);;
     let events = <div className="row">
         <div className="col-12">
@@ -208,7 +212,7 @@ class Filters extends React.Component {
         </CardBody>
       </Card>;
     }
-		
+
     return(
       <div>
         <h4>Filters

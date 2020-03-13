@@ -87,7 +87,7 @@ class People extends Component {
         params[searchInput.select] = searchInput.input;
       }
     }
-    let url = process.env.REACT_APP_APIPATH+'people';
+    let url = process.env.REACT_APP_APIPATH+'ui-people';
     axios({
       method: 'get',
       url: url,
@@ -97,12 +97,6 @@ class People extends Component {
 	  .then(function (response) {
       let responseData = response.data.data;
       let people = responseData.data;
-      let newPeople = [];
-      for (let i=0;i<people.length; i++) {
-        let person = people[i];
-        person.checked = false;
-        newPeople.push(person);
-      }
       let currentPage = 1;
       if (responseData.currentPage>0) {
         currentPage = responseData.currentPage;
@@ -123,48 +117,48 @@ class People extends Component {
           page: responseData.currentPage,
           totalPages: responseData.totalPages,
           totalItems: responseData.totalItems,
-          items: newPeople
+          items: people
         });
-        
-        //context.updatePeopleRelationship(newPeople);
+
+        context.updatePeopleRelationship(people);
       }
 	  })
 	  .catch(function (error) {
 	  });
   }
-  
+
   updatePeopleRelationship(people=null) {
     if(people===null){
       return false;
     }
-    
+
     let id_people = people.map(item =>{
       return item._id;
-    })
+    });
     
     let context = this;
     let params = {
       _ids: id_people,
     };
-    let url = process.env.REACT_APP_APIPATH+'people-active-filters';
+    let url = process.env.REACT_APP_APIPATH+'ui-person-active-filters';
     axios({
       method: 'post',
       url: url,
       crossDomain: true,
-      params: params
+      data: params
     })
 	  .then(function (response) {
       let responseData = response.data.data;
-      
+
       let payload = {
         events: responseData.events.map(item=>{return item._id}),
         organisations: responseData.organisations.map(item=>{return item._id}),
       }
-      
+
       setTimeout(function() {
         context.props.setRelationshipParams("people",payload);
       },10)
-      
+
 	  })
 	  .catch(function (error) {
 	  });
@@ -249,7 +243,7 @@ class People extends Component {
           queryRow.term = searchInput.input;
           queryRow.boolean = searchInput.boolean;
           queryRows.push(queryRow);
-        }        
+        }
       }
       postData.query = queryRows;
     }
