@@ -3,9 +3,13 @@ import axios from 'axios';
 import {
   Spinner,
   Card, CardBody,
+  Button,
+  Form, Input, InputGroup, InputGroupAddon,
+  Collapse,
 } from 'reactstrap';
 import {Breadcrumbs} from '../components/breadcrumbs';
 import {getResourceThumbnailURL, getResourceFullsizeURL} from '../helpers/helpers';
+import {parseMetadata} from '../helpers/parse-metadata';
 import Viewer from '../components/image-viewer.js';
 
 class Classpiece extends Component {
@@ -16,17 +20,24 @@ class Classpiece extends Component {
       loading: true,
       item: {},
       viewerVisible: false,
+      searchVisible: false,
       tableVisible: {
         metadataDataVisible: false,
         peopleDataVisible: false,
-      }
+      },
+      simpleSearchSet: '',
+      simpleSearchTerm: '',
     }
 
     this.load = this.load.bind(this);
     this.renderItem = this.renderItem.bind(this);
-    this.parseMetadata = this.parseMetadata.bind(this);
-    this.parseMetadataItems = this.parseMetadataItems.bind(this);
     this.toggleViewer = this.toggleViewer.bind(this);
+    this.handleChange=this.handleChange.bind(this);
+    this.simpleSearch=this.simpleSearch.bind(this);
+    this.clearSearch=this.clearSearch.bind(this);
+    
+    this.renderClasspieceDetails=this.renderClasspieceDetails.bind(this);
+    this.renderThumbmailMetadata=this.renderThumbmailMetadata.bind(this);
   }
 
   async load() {
@@ -59,6 +70,31 @@ class Classpiece extends Component {
     });
   }
 
+  handleChange(e) {
+    let target = e.target;
+    let value = target.type === 'checkbox' ? target.checked : target.value;
+    let name = target.name;
+    this.setState({
+      [name]: value
+    });
+  }
+  
+  simpleSearch(e) {
+    e.preventDefault();
+    document.getElementById("simpleSearchTerm").blur();
+    this.setState({
+      simpleSearchSet: this.state.simpleSearchTerm
+    });
+  }
+  
+  clearSearch(e) {
+    this.setState({
+      simpleSearchSet: '',
+      simpleSearchTerm: ''
+      
+    });
+  }
+
   toggleTable(e, dataType=null) {
     let newState = Object.assign({}, this.state);    
     if(dataType === "metadataData") {
@@ -68,10 +104,25 @@ class Classpiece extends Component {
     }
     this.setState(newState);
   }
+  
+  toggleSearch() {
+    this.setState({
+      searchVisible: !this.state.searchVisible
+    })
+  }
+  
+  toggleViewer() {
+    this.setState({
+      viewerVisible: !this.state.viewerVisible
+    });
+  }
 
-  renderItem(stateData=null) {
+  componentDidMount() {
+    this.load();
+  }
+  
+  renderClasspieceDetails(stateData=null) {
     let item = stateData.item;
-    let label = item.label;
     
     //1. classpieceDetails
     let detailsTableRows = [];
@@ -104,27 +155,66 @@ class Classpiece extends Component {
     detailsTableRows.push(organisationsRow);
     
     //1.4 classpieceDetails - people
-    let peopleDataHiden = "";
+    let peopleDataHiden_container = "";
+    let peopleDataHiden_icon = "";
     if(!stateData.tableVisible.peopleDataVisible){
-      peopleDataHiden = " closed";
+      peopleDataHiden_container = " closed";
+      peopleDataHiden_icon = " closed";
+      if(stateData.searchVisible){
+        peopleDataHiden_container = " closedWithSearch";
+      }
     }
     
     let peopleRow = [];
     if (typeof item.people!=="undefined" && item.people!==null && item.people!=="") {
       let peopleDataExpand = [];
       if(!stateData.tableVisible.peopleDataVisible){
-        peopleDataExpand = <li key={"dot"} ><a className="tag-bg tag-item" href="#" onClick={(e)=>{this.toggleTable(e,"peopleData")}}>...</a></li>;
+        peopleDataExpand = <li key={"dot"} ><i className="tag-bg tag-item" onClick={(e)=>{this.toggleTable(e,"peopleData")}}>...</i></li>;
       }
+      
       let peopleData = item.people.map(eachItem=>{
-        return <li key={eachItem.ref._id}><a className="tag-bg tag-item" href={"/person/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
+        if(!eachItem.ref.label.includes(stateData.simpleSearchSet)){
+          return null;
+        }
+        return <li key={eachItem.ref._id} ><a className="tag-bg tag-item" href={"/person/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
       })
+      
       peopleRow = <tr key={"peopleRow"}>
                     <th>People</th>
                     <td>
-                      <div className={"people-info-container"+peopleDataHiden}>
-                        <div className="btn btn-default btn-xs pull-right toggle-info-btn" onClick={(e)=>{this.toggleTable(e,"peopleData")}}>
-                          <i className={"fa fa-angle-down"+peopleDataHiden}/>
+                      <div className={"people-info-container"+peopleDataHiden_container}>
+                        <div className="btn btn-default btn-xs pull-right toggle-info-btn pull-icon-middle" onClick={(e)=>{this.toggleTable(e,"peopleData")}}>
+                          <i className={"fa fa-angle-down"+peopleDataHiden_icon}/>
                         </div>
+                        
+                        <div className="tool-box pull-right classpiece-search">
+                          <div className="action-trigger" onClick={()=>this.toggleSearch()} id="search-tooltip">
+                            <i className="fa fa-search" />
+                          </div>
+                        </div>
+                        
+                        <Collapse isOpen={stateData.searchVisible}>
+                          <Form>
+                            <InputGroup size="sm" className="search-dropdown-inputgroup classpiece-people-search-input">
+                                <Input className="simple-search-input" list="data" type="text" id="simpleSearchTerm" name="simpleSearchTerm" onChange={this.handleChange} placeholder="Search..." value={this.state.simpleSearchTerm}/>
+                                  <datalist id="data">
+                                    {this.state.item.people.map((item, key) =>
+                                      <option key={key} value={item.ref.label} />
+                                    )}
+                                  </datalist>
+                                
+                                <InputGroupAddon addonType="append">
+                                  <Button size="sm" outline type="button" onClick={this.clearSearch} className="clear-search">
+                                    <i className="fa fa-times-circle" />
+                                  </Button>
+                                  <Button size="sm" type="submit" onClick={this.simpleSearch}>
+                                    <i className="fa fa-search" />
+                                  </Button>
+                              </InputGroupAddon>
+                            </InputGroup>
+                          </Form>
+                        </Collapse>
+                        
                         <ul className="tag-list tag-list-people">
                           {peopleDataExpand}{peopleData}
                         </ul>
@@ -135,18 +225,16 @@ class Classpiece extends Component {
     detailsTableRows.push(peopleRow);
     
     //1.5 classpieceDetails - classpieceDetails include description, events, organisations, and people
-    let classpieceDetails = <div className="classpiece-details-container"><table key={"classpieceDetails"} className="table table-borderless classpiece-details-table"><tbody>{detailsTableRows}</tbody></table></div>
+    return <div className="classpiece-details-container">
+            <table key={"classpieceDetails"} className="table table-borderless classpiece-details-table">
+              <tbody>{detailsTableRows}</tbody>
+            </table>
+          </div>
+  }
+  
+  renderThumbmailMetadata(stateData=null) {
+    let item = stateData.item;
     
-    //2. thumbnailImage    
-    let thumbnailImage = [];
-    let thumbnailURL = getResourceThumbnailURL(item);
-    if (thumbnailURL!==null) {
-      thumbnailImage = <div key={"thumbnailImage"} className="show-classpiece" onClick={()=>this.toggleViewer()}>
-        <img src={thumbnailURL} className="people-thumbnail img-fluid img-thumbnail" alt={label} />
-      </div>
-    }
-    
-    //3. thumbmailMetadata
     let thumbmailMetadata = [];
     let metadataRow = [];
     let metadataTitle = [];
@@ -163,20 +251,44 @@ class Classpiece extends Component {
           <i className={"fa fa-angle-down"+metadataDataHiden}/>
         </div>
       </h5>;
-      metadataData = <div key={"metadataData"}>{this.parseMetadata(item.metadata.image)}</div>;
+      metadataData = <div key={"metadataData"}>{parseMetadata(item.metadata.image)}</div>;
       metadataRow.push(metadataTitle,metadataData);
     }
+    
     thumbmailMetadata = <div key={"thumbmailMetadata"} className={"metadata-info-container"+metadataDataHiden}>{metadataRow}</div>
+    
+    return thumbmailMetadata;
+    
+  }
+  
+  renderItem(stateData=null) {
+    let item = stateData.item;
+    let label = item.label;
+    
+    //1 classpieceDetails - classpieceDetails include description, events, organisations, and people
+    let classpieceDetails = this.renderClasspieceDetails(stateData);
+    
+    //2. thumbnailImage    
+    let thumbnailImage = [];
+    let thumbnailURL = getResourceThumbnailURL(item);
+    if (thumbnailURL!==null) {
+      thumbnailImage = <div key={"thumbnailImage"} className="show-classpiece" onClick={()=>this.toggleViewer()}>
+        <img src={thumbnailURL} className="people-thumbnail img-fluid img-thumbnail" alt={label} />
+      </div>
+    }
+    
+    //3. thumbmailMetadata
+    let thumbmailMetadata = this.renderThumbmailMetadata(stateData);
     
     //All
     let output = <Card>
       <CardBody>
         <h3>{label}</h3>
         <div className="row">
-          <div className="col-xs-12 col-sm-6 col-md-7 pull-left">
+          <div className="col-xs-12 col-sm-6 col-md-7">
             {classpieceDetails}
           </div>
-          <div className="col-xs-12 col-sm-6 col-md-5 pull-right">
+          <div className="col-xs-12 col-sm-6 col-md-5">
             {thumbnailImage}
             {thumbmailMetadata}
           </div>
@@ -185,65 +297,7 @@ class Classpiece extends Component {
     </Card>
     return output;
   }
-
-  parseMetadata(metadata) {
-    if (metadata===null) {
-      return false;
-    }
-    let metadataOutput = [];
-    let i = 0;
-    for (let key in metadata) {
-      let metaItems = metadata[key];
-      let metadataOutputItems = [];
-      if (metaItems!==null && typeof metaItems.length==="undefined") {
-        metadataOutputItems = this.parseMetadataItems(metaItems);
-      }
-      else {
-        if (metaItems!==null) {
-          let newItems = this.parseMetadata(metaItems[0]);
-          metadataOutputItems.push(newItems)
-        }
-      }
-      metadataOutputItems = <div className="list-items">{metadataOutputItems}</div>;
-      let metaRow = <div key={i}>
-        <div className="metadata-title">{key}</div>
-        {metadataOutputItems}
-        </div>
-      metadataOutput.push(metaRow);
-      i++;
-    }
-    return metadataOutput;
-  }
-
-  parseMetadataItems(metaItems) {
-    let i=0;
-    let items = [];
-    for (let metaKey in metaItems) {
-      let value = metaItems[metaKey];
-      let newRow = [];
-      if (typeof value!=="object") {
-        newRow = <div key={i}><label>{metaKey}</label> : {metaItems[metaKey]}</div>
-      }
-      else {
-        let newRows = <div className="list-items">{this.parseMetadataItems(value)}</div>;
-        newRow = <div key={i}><div className="metadata-title">{metaKey}</div>{newRows}</div>
-      }
-      items.push(newRow);
-      i++
-    }
-    return items;
-  }
-
-  toggleViewer() {
-    this.setState({
-      viewerVisible: !this.state.viewerVisible
-    });
-  }
-
-  componentDidMount() {
-    this.load();
-  }
-
+  
   render() {
     let content = <div>
       <div className="row">

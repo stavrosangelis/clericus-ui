@@ -1167,6 +1167,10 @@ section {
   max-height: 25px;
   overflow: hidden;
 }
+.people-info-container.closedWithSearch {
+  max-height: 32px;
+  overflow: hidden;
+}
 .classpiece-details-container {
   border-bottom: 1px solid #eee;
   margin-top: 15px;
@@ -1177,14 +1181,22 @@ section {
 .classpiece-details-table {
   margin-bottom: 20px;
   width: 100%;
+  empty-cells: show;
 }
 .classpiece-details-table th {
-  font-weight: 400;
-}
-.classpiece-details-table th, .classpiece-details-table td {
   vertical-align: top;
   padding: 2px;
   border-bottom: 1px solid #ededed;
+  
+  font-weight: 400;
+  width: 15%;
+}
+.classpiece-details-table td {
+  vertical-align: top;
+  padding: 2px;
+  border-bottom: 1px solid #ededed;
+  
+  width: 85%;
 }
 .classpiece-details-table tr:last-child th, .classpiece-details-table tr:last-child td {
   border-bottom: none;
@@ -1194,13 +1206,23 @@ section {
   flex-wrap: wrap;
   list-style-type: none;
   margin: 0;
+  padding: 0;
 }
 .tag-list-people {
   justify-content: flex-end;
   flex-direction: row-reverse;
+  padding-top: 3px;
 }
 .tag-list li {
   margin: 0 5px 0 0;
+}
+@media screen and (max-width: 400px) {
+  .tag-list li  {
+    max-width: 40px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 .tag-list li a:link, .tag-list li a:visited{
   color: #777;
@@ -1211,23 +1233,29 @@ section {
   text-decoration: none;
 }
 .tag-bg {
-  overflow: hidden;
-  font-size: 12px;
-  font-weight: 400;
   cursor: pointer;
   background: #e6e6e6;
   border-radius: 4px;
   flex: none;
   text-align: center;
-  white-space: nowrap;
+  padding: 2px 5px;
 }
 .tag-item {
-  max-width: none;
   box-sizing: content-box;
-  padding: 2px 5px;
   font-size: 12px;
   line-height: 16px;
+  font-weight: 400;
 }
 .tag-dot {
   margin: 0 5px 10px 0;
+}
+.classpiece-people-search-input {
+  width: auto;
+  padding-right: 10px;
+}
+.pull-icon-middle {
+  margin-top: 3px;
+}
+.classpiece-search {
+  margin-right: 3px;
 }
