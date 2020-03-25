@@ -10,6 +10,9 @@ export const getPersonThumbnailURL = (person) => {
       let thumbnailPaths = thumbnailResource[0].ref.paths;
       if (typeof thumbnailPaths[0]==="string") {
         thumbnailPaths = thumbnailPaths.map(p=>JSON.parse(p));
+        if (typeof thumbnailPaths[0]==="string") {
+          thumbnailPaths = thumbnailPaths.map(path=>JSON.parse(path));
+        }
       }
       let thumbnailPathFilter = thumbnailPaths.filter((item)=>{return (item.pathType==="thumbnail")});
       thumbnailPath = domain+"/"+thumbnailPathFilter[0].path;
