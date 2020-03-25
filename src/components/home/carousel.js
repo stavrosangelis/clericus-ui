@@ -24,7 +24,7 @@ const HomeSlider = (props) => {
       setLoading(false);
       let responseData = await axios({
         method: 'get',
-        url: APIPath+'slideshow-items',
+        url: APIPath+'carousel',
         crossDomain: true,
       })
       .then(function (response) {

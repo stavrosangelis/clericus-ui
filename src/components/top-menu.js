@@ -31,7 +31,7 @@ const TopMenu = props => {
       if (item.link!=="") {
         url = item.link;
       }
-      if (item.type!=="link") {
+      if (item.type!=="link" && item.type!=="home") {
         url = `/${item.type}/${item.link}`;
       }
       if (url.charAt(0)!=="/") {

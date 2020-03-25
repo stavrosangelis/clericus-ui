@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import axios from 'axios';
 import {
   Spinner,
@@ -11,15 +11,21 @@ const APIPath = process.env.REACT_APP_APIPATH;
 const Article = props => {
   const [loading, setLoading] = useState(true);
   const [article, setArticle] = useState(null);
+  const prevPermalink = useRef(props.match.params.permalink)
 
   useEffect(()=> {
+    let permalink = props.match.params.permalink;
+    if (prevPermalink.current!==permalink) {
+      prevPermalink.current = permalink;
+      setLoading(true)
+    }
     const load = async() => {
       setLoading(false);
       let responseData = await axios({
         method: 'get',
         url: APIPath+'content-article',
         crossDomain: true,
-        params: {permalink: props.match.params.permalink}
+        params: {permalink: permalink}
       })
       .then(function (response) {
         return response.data;
