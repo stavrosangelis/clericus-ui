@@ -1259,3 +1259,57 @@ section {
 .classpiece-search {
   margin-right: 3px;
 }
+.person-thumbnailImage {
+  width: 40%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.person-label {
+  text-align: center;
+  margin-top: 10px;
+}
+.person-container {
+  width: 98%;
+  margin-left: 1%;
+}
+.person-info-container {
+  border-bottom: 1px solid #eee;
+}
+.person-info-table {
+  margin-top: 15px;
+  margin-bottom: 20px;
+  width: 100%;
+  empty-cells: show;
+}
+.person-info-table th {
+  vertical-align: top;
+  padding: 2px;
+  border-top: 1px solid #ededed;
+  font-weight: 400;
+  width: 25%;
+  height: 40px;
+  padding-top: 7px;
+  font-size: 17.5px;
+}
+.person-info-table td {
+  vertical-align: top;
+  padding: 2px;
+  border-top: 1px solid #ededed;
+  width: 75%;
+  padding-top: 7px;
+}
+.person-info-table tr:last-child th, .person-info-table tr:last-child td {
+  border-bottom: none;
+}
+.person-des-container {
+  margin-top: 3%;
+  margin-left: 10%;
+  width: 80%;
+  
+  line-height: 1.8;
+}
+.person-des-content {
+  margin-left: 5%;
+  font-size: 16px;
+}

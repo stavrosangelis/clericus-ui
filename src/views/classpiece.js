@@ -3,14 +3,12 @@ import axios from 'axios';
 import {
   Spinner,
   Card, CardBody,
-  Button,
-  Form, Input, InputGroup, InputGroupAddon,
-  Collapse,
 } from 'reactstrap';
 import {Breadcrumbs} from '../components/breadcrumbs';
 import {getResourceThumbnailURL, getResourceFullsizeURL} from '../helpers/helpers';
 import {parseMetadata} from '../helpers/parse-metadata';
 import Viewer from '../components/image-viewer.js';
+import TagPeopleSearch from '../components/tag-people-search.js';
 
 class Classpiece extends Component {
   constructor(props) {
@@ -20,24 +18,18 @@ class Classpiece extends Component {
       loading: true,
       item: {},
       viewerVisible: false,
-      searchVisible: false,
       tableVisible: {
         metadataDataVisible: false,
-        peopleDataVisible: false,
       },
-      simpleSearchSet: '',
-      simpleSearchTerm: '',
     }
 
     this.load = this.load.bind(this);
     this.renderItem = this.renderItem.bind(this);
-    this.toggleViewer = this.toggleViewer.bind(this);
-    this.handleChange=this.handleChange.bind(this);
-    this.simpleSearch=this.simpleSearch.bind(this);
-    this.clearSearch=this.clearSearch.bind(this);
-    
     this.renderClasspieceDetails=this.renderClasspieceDetails.bind(this);
     this.renderThumbmailMetadata=this.renderThumbmailMetadata.bind(this);
+    
+    this.toggleViewer = this.toggleViewer.bind(this);
+    this.toggleTable = this.toggleTable.bind(this);
   }
 
   async load() {
@@ -70,31 +62,6 @@ class Classpiece extends Component {
     });
   }
 
-  handleChange(e) {
-    let target = e.target;
-    let value = target.type === 'checkbox' ? target.checked : target.value;
-    let name = target.name;
-    this.setState({
-      [name]: value
-    });
-  }
-  
-  simpleSearch(e) {
-    e.preventDefault();
-    document.getElementById("simpleSearchTerm").blur();
-    this.setState({
-      simpleSearchSet: this.state.simpleSearchTerm
-    });
-  }
-  
-  clearSearch(e) {
-    this.setState({
-      simpleSearchSet: '',
-      simpleSearchTerm: ''
-      
-    });
-  }
-
   toggleTable(e, dataType=null) {
     let newState = Object.assign({}, this.state);    
     if(dataType === "metadataData") {
@@ -103,12 +70,6 @@ class Classpiece extends Component {
       newState.tableVisible.peopleDataVisible = !this.state.tableVisible.peopleDataVisible;
     }
     this.setState(newState);
-  }
-  
-  toggleSearch() {
-    this.setState({
-      searchVisible: !this.state.searchVisible
-    })
   }
   
   toggleViewer() {
@@ -137,91 +98,43 @@ class Classpiece extends Component {
     //1.2 classpieceDetails - events
     let eventsRow = [];
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
-      let eventsData = item.events.map(eachItem =>{
-        return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/classpieces"}>{eachItem.ref.label}</a></li>
-      })
-      eventsRow = <tr key={"eventsRow"}><th>Events</th><td><ul className="tag-list">{eventsData}</ul></td></tr>;
+      //item.events = []
+      if(Object.keys(item.events).length === 0){
+        eventsRow = <tr key={"eventsRow"}><th>Events</th><td/></tr>;
+      }
+      //item.events = {...} 
+      else {
+        let eventsData = item.events.map(eachItem =>{
+          return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/classpieces"}>{eachItem.ref.label}</a></li>
+        })
+        eventsRow = <tr key={"eventsRow"}><th>Events</th><td><ul className="tag-list">{eventsData}</ul></td></tr>;
+      }
     }
     detailsTableRows.push(eventsRow);
     
     //1.3 classpieceDetails - organisations
     let organisationsRow = [];
     if (typeof item.organisations!=="undefined" && item.organisations!==null && item.organisations!=="") {
-      let organisationsData = item.organisations.map(eachItem =>{
-        return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/classpieces"}>{eachItem.ref.label}</a></li>
-      })
-      organisationsRow = <tr key={"organisationsRow"}><th>Organisations</th><td><ul className="tag-list">{organisationsData}</ul></td></tr>;
+      //item.organisations = []
+      if(Object.keys(item.organisations).length === 0){
+        organisationsRow = <tr key={"organisationsRow"}><th>Organisations</th><td/></tr>;
+      }
+      //item.organisations = {...} 
+      else {
+        let organisationsData = item.organisations.map(eachItem =>{
+          return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/classpieces"}>{eachItem.ref.label}</a></li>
+        })
+        organisationsRow = <tr key={"organisationsRow"}><th>Organisations</th><td><ul className="tag-list">{organisationsData}</ul></td></tr>;
+      }
     }
     detailsTableRows.push(organisationsRow);
     
     //1.4 classpieceDetails - people
-    let peopleDataHiden_container = "";
-    let peopleDataHiden_icon = "";
-    if(!stateData.tableVisible.peopleDataVisible){
-      peopleDataHiden_container = " closed";
-      peopleDataHiden_icon = " closed";
-      if(stateData.searchVisible){
-        peopleDataHiden_container = " closedWithSearch";
-      }
-    }
-    
-    let peopleRow = [];
-    if (typeof item.people!=="undefined" && item.people!==null && item.people!=="") {
-      let peopleDataExpand = [];
-      if(!stateData.tableVisible.peopleDataVisible){
-        peopleDataExpand = <li key={"dot"} ><i className="tag-bg tag-item" onClick={(e)=>{this.toggleTable(e,"peopleData")}}>...</i></li>;
-      }
-      
-      let peopleData = item.people.map(eachItem=>{
-        if(!eachItem.ref.label.includes(stateData.simpleSearchSet)){
-          return null;
-        }
-        return <li key={eachItem.ref._id} ><a className="tag-bg tag-item" href={"/person/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
-      })
-      
-      peopleRow = <tr key={"peopleRow"}>
-                    <th>People</th>
-                    <td>
-                      <div className={"people-info-container"+peopleDataHiden_container}>
-                        <div className="btn btn-default btn-xs pull-right toggle-info-btn pull-icon-middle" onClick={(e)=>{this.toggleTable(e,"peopleData")}}>
-                          <i className={"fa fa-angle-down"+peopleDataHiden_icon}/>
-                        </div>
-                        
-                        <div className="tool-box pull-right classpiece-search">
-                          <div className="action-trigger" onClick={()=>this.toggleSearch()} id="search-tooltip">
-                            <i className="fa fa-search" />
-                          </div>
-                        </div>
-                        
-                        <Collapse isOpen={stateData.searchVisible}>
-                          <Form>
-                            <InputGroup size="sm" className="search-dropdown-inputgroup classpiece-people-search-input">
-                                <Input className="simple-search-input" list="data" type="text" id="simpleSearchTerm" name="simpleSearchTerm" onChange={this.handleChange} placeholder="Search..." value={this.state.simpleSearchTerm}/>
-                                  <datalist id="data">
-                                    {this.state.item.people.map((item, key) =>
-                                      <option key={key} value={item.ref.label} />
-                                    )}
-                                  </datalist>
-                                
-                                <InputGroupAddon addonType="append">
-                                  <Button size="sm" outline type="button" onClick={this.clearSearch} className="clear-search">
-                                    <i className="fa fa-times-circle" />
-                                  </Button>
-                                  <Button size="sm" type="submit" onClick={this.simpleSearch}>
-                                    <i className="fa fa-search" />
-                                  </Button>
-                              </InputGroupAddon>
-                            </InputGroup>
-                          </Form>
-                        </Collapse>
-                        
-                        <ul className="tag-list tag-list-people">
-                          {peopleDataExpand}{peopleData}
-                        </ul>
-                      </div>
-                    </td>
-                  </tr>;
-    }
+    let peopleRow = <TagPeopleSearch
+      key ={"classpieceTagPeopleSearch"}
+      name = {"classpiece"}
+      peopleItem = {item.people}
+    />
     detailsTableRows.push(peopleRow);
     
     //1.5 classpieceDetails - classpieceDetails include description, events, organisations, and people
