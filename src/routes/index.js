@@ -6,6 +6,8 @@ import Classpiece from '../views/classpiece';
 import GenericSearch from '../views/generic-search';
 import People from '../views/people';
 import Person from '../views/person';
+import Event from '../views/event';
+import Organisation from '../views/organisation';
 
 var routes = [
   {
@@ -47,6 +49,16 @@ var routes = [
     path: "/person/:_id",
     component: Person,
     name: "Person",
+  },
+  {
+    path: "/event/:_id",
+    component: Event,
+    name: "Event",
+  },
+  {
+    path: "/organisation/:_id",
+    component: Organisation,
+    name: "Organisation",
   },
 ];
 export default routes;

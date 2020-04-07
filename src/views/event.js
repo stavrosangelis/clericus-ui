@@ -6,10 +6,10 @@ import {
 } from 'reactstrap';
 
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getPersonThumbnailURL} from '../helpers/helpers';
+import {getEventThumbnailURL} from '../helpers/helpers';
 import TagPeopleSearch from '../components/tag-people-search.js';
 
-class Person extends Component {
+class Event extends Component {
   constructor(props) {
     super(props);
 
@@ -20,7 +20,7 @@ class Person extends Component {
 
     this.load = this.load.bind(this);
     this.renderItem = this.renderItem.bind(this);
-    this.renderPersonDetails = this.renderPersonDetails.bind(this);
+    this.renderEventDetails = this.renderEventDetails.bind(this);
   }
 
   load() {
@@ -35,7 +35,7 @@ class Person extends Component {
     let params = {
       _id: _id,
     };
-    let url = process.env.REACT_APP_APIPATH+'ui-person';
+    let url = process.env.REACT_APP_APIPATH+'event';
     axios({
       method: 'get',
       url: url,
@@ -44,23 +44,23 @@ class Person extends Component {
     })
 	  .then(function (response) {
       let responseData = response.data;
-      let person = responseData.data;
+      let eventdata = responseData.data;
       context.setState({
         loading: false,
-        item: person
+        item: eventdata
       });
 	  })
 	  .catch(function (error) {
 	  });
   }
 
-  renderPersonDetails(stateData=null) {
+  renderEventDetails(stateData=null) {
     let item = stateData.item;
     
-    //1. PersonDetails
+    //1. EventDetails
     let meta = [];
         
-    //1.1 PersonDetails - events
+    //1.1 EventDetails - events
     let eventsRow = [];
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
       //item.events = []
@@ -77,7 +77,7 @@ class Person extends Component {
     }
     meta.push(eventsRow);
     
-    //1.2 PersonDetails - organisations
+    //1.2 EventDetails - organisations
     let organisationsRow = [];
     if (typeof item.organisations!=="undefined" && item.organisations!==null && item.organisations!=="") {
       //item.organisations = []
@@ -94,16 +94,16 @@ class Person extends Component {
     }
     meta.push(organisationsRow);
     
-    //1.3 PersonDetails - people   
+    //1.3 EventDetails - people   
     let peopleRow = <TagPeopleSearch
-      key ={"personTagPeopleSearch"}
-      name = {"person"}
+      key ={"eventTagPeopleSearch"}
+      name = {"event"}
       peopleItem = {item.people}
     />
     meta.push(peopleRow);
 
-    //1.5 PersonDetails - PersonDetails include events, organisations, and people
-    return <table key={"PersonDetails"} className="table table-borderless person-info-table">
+    //1.5 EventDetails - EventDetails include events, organisations, and people
+    return <table key={"EventDetails"} className="table table-borderless event-content-table">
           <tbody>{meta}</tbody>
         </table>
   }
@@ -111,46 +111,46 @@ class Person extends Component {
   renderItem(stateData=null) {
     let item = stateData.item;
     
-    //1.1 thumbnailImage
-    let label = item.firstName;
-    let thumbnailImage = [];
-    let thumbnailURL = getPersonThumbnailURL(item);
-    if (thumbnailURL!==null) {
-      thumbnailImage = <img src={thumbnailURL} className="people-thumbnail img-fluid img-thumbnail person-thumbnailImage" alt={label} />
-    }
-    
-    //1.2 label
-    if (typeof item.middleName!=="undefined" && item.middleName!==null && item.middleName!=="") {
-      label += " "+item.middleName;
-    }
-    label += " "+item.lastName;
+    //1.1 Event label
+    let label = item.label;
     
     //2.1 meta
     //let metaTable = <Table><tbody>{meta}</tbody></Table>
-    let metaTable = this.renderPersonDetails(stateData);
+    let metaTable = this.renderEventDetails(stateData);
     
-    //3 description
+    //2.2 thumbnailImage
+    let thumbnailImage = [];
+    let thumbnailURL = getEventThumbnailURL(item);
+    if (thumbnailURL!==null) {
+      thumbnailImage = <div key={"thumbnailImage"} className="show-classpiece" onClick={()=>this.toggleViewer()}>
+        <img src={thumbnailURL} className="people-thumbnail img-fluid img-thumbnail" alt={label} />
+      </div>
+    }
+    
+    //2.3 description
     let descriptionRow = []
     if(typeof item.description!=="undefined" && item.description!==null && item.description!=="") {
-      let descriptionTitle = <h5 key={"descriptionTitle"}>Description:</h5>;
+      let descriptionTitle = <h6 key={"descriptionTitle"} className="event-content-des-title">Description:</h6>;
       let descriptionData = <div className="person-des-content" key={"descriptionData"}>{item.description}</div>;
       descriptionRow.push(descriptionTitle,descriptionData);
     }
     
     let output = <Card>
       <CardBody>
-        <div className="person-container">
-          <div className="row person-info-container">
-            <div className="col-xs-12 col-sm-6 col-md-5">
-              {thumbnailImage}
-              <h5 className="person-label">{label}</h5>
-            </div>
-            <div className="col-xs-12 col-sm-6 col-md-7">
+        <div className="event-container">
+          <div className="event-title-container">
+            <h4 className="event-label">{label}</h4>
+          </div>
+          <div className="row event-content-container">
+            <div className="col-xs-12 col-sm-6 col-md-8">
+              <div className="event-content-des">
+                {descriptionRow}
+              </div>
               {metaTable}
             </div>
-          </div>
-          <div className="person-des-container">
-            {descriptionRow}
+            <div className="col-xs-12 col-sm-6 col-md-4">
+              {thumbnailImage}
+            </div>            
           </div>
         </div>
       </CardBody>
@@ -174,24 +174,20 @@ class Person extends Component {
     </div>
 
     if (!this.state.loading) {
-      let personCard = this.renderItem(this.state);
+      let eventCard = this.renderItem(this.state);
       content = <div>
         <div className="row">
           <div className="col-12">
-            {personCard}
+            {eventCard}
           </div>
         </div>
       </div>
     }
 
-    let label = this.state.item.firstName;
-    if (typeof this.state.item.middleName!=="undefined" && this.state.item.middleName!==null && this.state.item.middleName!=="") {
-      label += " "+this.state.item.middleName;
-    }
-    label += " "+this.state.item.lastName;
+    let label = this.state.item.label;
     let breadcrumbsItems = [
-      {label: "People", icon: "pe-7s-users", active: false, path: "/people"},
-      {label: label, icon: "pe-7s-user", active: true, path: ""},
+      {label: "Event", icon: "pe-7s-date", active: true, path: "/event"},
+      {label: label, active: true, path: ""},
     ];
     return (
       <div className="container">
@@ -203,4 +199,4 @@ class Person extends Component {
   }
 }
 
-export default Person;
+export default Event;
