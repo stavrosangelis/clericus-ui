@@ -318,6 +318,9 @@ h1, h2, h3, h4, h5 {
   }
 }
 
+.people-list {
+  margin-bottom: 10px;
+}
 .people-list-thumbnail {
   max-width: 40px;
   margin-right: 10px;
@@ -1400,4 +1403,18 @@ section {
 }
 .organisation-content-table tr:last-child th, .organisation-content-table tr:last-child td {
   border-bottom: none;
+}
+.events-list {
+  margin-bottom: 10px;
+}
+.events-list-thumbnail {
+  max-width: 40px;
+  margin-right: 10px;
+}
+.organisations-list {
+  margin-bottom: 10px;
+}
+.organisations-list-thumbnail {
+  max-width: 40px;
+  margin-right: 10px;
 }

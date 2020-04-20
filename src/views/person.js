@@ -59,7 +59,22 @@ class Person extends Component {
     
     //1. PersonDetails
     let meta = [];
-        
+
+    //1.0 PersonDetails - classpieces
+    let classpiecesRow = [];
+    if (typeof item.resources!=="undefined" && item.resources!==null && item.resources!=="") {
+      let classpiecesData = item.resources.map(eachItem =>{
+        if(eachItem.term.label==="isDepictedOn"){
+          return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/classpiece/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
+        }
+        else {
+          return null;
+        }
+      })
+      classpiecesRow = <tr key={"classpiecesRow"}><th>Classpieces</th><td><ul className="tag-list">{classpiecesData}</ul></td></tr>;
+    }
+    meta.push(classpiecesRow);
+    
     //1.1 PersonDetails - events
     let eventsRow = [];
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
@@ -102,7 +117,7 @@ class Person extends Component {
     />
     meta.push(peopleRow);
 
-    //1.5 PersonDetails - PersonDetails include events, organisations, and people
+    //1.5 PersonDetails - PersonDetails include classpieces, events, organisations, and people
     return <table key={"PersonDetails"} className="table table-borderless person-info-table">
           <tbody>{meta}</tbody>
         </table>

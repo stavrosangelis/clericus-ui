@@ -7,7 +7,9 @@ import GenericSearch from '../views/generic-search';
 import People from '../views/people';
 import Person from '../views/person';
 import Event from '../views/event';
+import Events from '../views/events';
 import Organisation from '../views/organisation';
+import Organisations from '../views/organisations';
 
 var routes = [
   {
@@ -51,9 +53,19 @@ var routes = [
     name: "Person",
   },
   {
+    path: "/events",
+    component: Events,
+    name: "Events",
+  },
+  {
     path: "/event/:_id",
     component: Event,
     name: "Event",
+  },
+  {
+    path: "/organisations",
+    component: Organisations,
+    name: "Organisations",
   },
   {
     path: "/organisation/:_id",

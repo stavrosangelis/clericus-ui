@@ -10,12 +10,21 @@ export const defaultState = {
     limit:25,
     page:1
   },
+  
+  eventsPagination: {
+    limit:25,
+    page:1
+  },
+  
+  organisationsPagination: {
+    limit:25,
+    page:1
+  },
 
   classpiecesFilters: {
     events: [],
     organisations: [],
   },
-  
   classpiecesRelationship: {
     events: [],
     organisations: [],
@@ -25,8 +34,25 @@ export const defaultState = {
     events: [],
     organisations: [],
   },
-  
   peopleRelationship: {
+    events: [],
+    organisations: [],
+  },
+  
+  eventsFilters: {
+    events: [],
+    organisations: [],
+  },
+  eventsRelationship: {
+    events: [],
+    organisations: [],
+  },
+  
+  organisationsFilters: {
+    events: [],
+    organisations: [],
+  },
+  organisationsRelationship: {
     events: [],
     organisations: [],
   },

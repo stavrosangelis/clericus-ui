@@ -21,6 +21,7 @@ const mapStateToProps = state => {
     resourceSystemTypes: state.resourceSystemTypes,
     classpiecesPagination: state.classpiecesPagination,
     classpiecesFilters: state.classpiecesFilters,
+    classpiecesRelationship: state.classpiecesRelationship,
    };
 };
 
@@ -136,7 +137,7 @@ class Classpieces extends Component {
         organisations: responseData.organisations.map(item=>{return item._id}),
       }
       
-      context.props.setRelationshipParams("resources",payload);
+      context.props.setRelationshipParams("classpieces",payload);
       
 	  })
 	  .catch(function (error) {
@@ -168,7 +169,7 @@ class Classpieces extends Component {
       limit:limit,
       page:page,
     }
-    this.props.setPaginationParams("people", payload);
+    this.props.setPaginationParams("classpieces", payload);
   }
 
   gotoPage(e) {
@@ -286,7 +287,12 @@ class Classpieces extends Component {
       content = <div>
         <div className="row">
           <div className="col-xs-12 col-sm-4">
-            <Filters name="resources" updatedata={this.load}/>
+            <Filters
+              name="classpieces"
+              filtersSet={this.props.classpiecesFilters}
+              filtersClasspieceType={null}
+              relationshipSet={this.props.classpiecesRelationship}
+              updatedata={this.load}/>
           </div>
           <div className="col-xs-12 col-sm-8">
             <h2>{heading}</h2>

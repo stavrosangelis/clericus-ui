@@ -8,7 +8,7 @@ import {
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getPersonThumbnailURL} from '../helpers/helpers';
+import {getOrganisationThumbnailURL} from '../helpers/helpers';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
@@ -21,9 +21,9 @@ import {
 
 const mapStateToProps = state => {
   return {
-    peoplePagination: state.peoplePagination,
-    peopleFilters: state.peopleFilters,
-    peopleRelationship: state.peopleRelationship
+    organisationsPagination: state.organisationsPagination,
+    organisationsFilters: state.organisationsFilters,
+    organisationsRelationship: state.organisationsRelationship,
    };
 };
 
@@ -35,13 +35,13 @@ function mapDispatchToProps(dispatch) {
 }
 
 
-class People extends Component {
+class Organisations extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       loading: true,
-      peopleLoading: true,
+      organisationsLoading: true,
       items: [],
       page: 1,
       gotoPage: 1,
@@ -70,14 +70,14 @@ class People extends Component {
 
   load() {
     this.setState({
-      peopleLoading: true
+      organisationsLoading: true
     })
     let context = this;
     let params = {
       page: this.state.page,
       limit: this.state.limit,
-      events: this.props.peopleFilters.events,
-      organisations: this.props.peopleFilters.organisations,
+      events: this.props.organisationsFilters.events,
+      organisations: this.props.organisationsFilters.organisations,
     };
     if (this.state.simpleSearchTerm!=="") {
       params.label = this.state.simpleSearchTerm;
@@ -88,7 +88,7 @@ class People extends Component {
         params[searchInput.select] = searchInput.input;
       }
     }
-    let url = process.env.REACT_APP_APIPATH+'ui-people';
+    let url = process.env.REACT_APP_APIPATH+'organisations';
     axios({
       method: 'get',
       url: url,
@@ -97,7 +97,7 @@ class People extends Component {
     })
 	  .then(function (response) {
       let responseData = response.data.data;
-      let people = responseData.data;
+      let organisations = responseData.data;
       let currentPage = 1;
       if (responseData.currentPage>0) {
         currentPage = responseData.currentPage;
@@ -114,34 +114,34 @@ class People extends Component {
       else {
         context.setState({
           loading: false,
-          peopleLoading: false,
+          organisationsLoading: false,
           page: responseData.currentPage,
           totalPages: responseData.totalPages,
           totalItems: responseData.totalItems,
-          items: people
+          items: organisations
         });
 
-        context.updatePeopleRelationship(people);
+        context.updateOrganisationsRelationship(organisations);
       }
 	  })
 	  .catch(function (error) {
 	  });
   }
 
-  updatePeopleRelationship(people=null) {
-    if(people===null){
+  updateOrganisationsRelationship(organisations=null) {
+    if(organisations===null){
       return false;
     }
 
-    let id_people = people.map(item =>{
+    let id_organisations = organisations.map(item =>{
       return item._id;
     });
     
     let context = this;
     let params = {
-      _ids: id_people,
+      _ids: id_organisations,
     };
-    let url = process.env.REACT_APP_APIPATH+'ui-person-active-filters';
+    let url = process.env.REACT_APP_APIPATH+'organisations-active-filters';
     axios({
       method: 'post',
       url: url,
@@ -157,7 +157,7 @@ class People extends Component {
       }
 
       setTimeout(function() {
-        context.props.setRelationshipParams("people",payload);
+        context.props.setRelationshipParams("organisations",payload);
       },10)
 
 	  })
@@ -171,7 +171,7 @@ class People extends Component {
       return false;
     }
     this.setState({
-      peopleLoading: true
+      organisationsLoading: true
     })
     let context = this;
     let params = {
@@ -179,7 +179,7 @@ class People extends Component {
       page: this.state.page,
       limit: this.state.limit
     };
-    let url = process.env.REACT_APP_APIPATH+'people';
+    let url = process.env.REACT_APP_APIPATH+'organisations';
     axios({
       method: 'get',
       url: url,
@@ -188,12 +188,12 @@ class People extends Component {
     })
 	  .then(function (response) {
       let responseData = response.data.data;
-      let people = responseData.data;
-      let newPeople = [];
-      for (let i=0;i<people.length; i++) {
-        let person = people[i];
-        person.checked = false;
-        newPeople.push(person);
+      let organisations = responseData.data;
+      let newOrganisations = [];
+      for (let i=0;i<organisations.length; i++) {
+        let organisationData = organisations[i];
+        organisationData.checked = false;
+        newOrganisations.push(organisationData);
       }
       let currentPage = 1;
       if (responseData.currentPage>0) {
@@ -211,11 +211,11 @@ class People extends Component {
       else {
         context.setState({
           loading: false,
-          peopleLoading: false,
+          organisationsLoading: false,
           page: responseData.currentPage,
           totalPages: responseData.totalPages,
           totalItems: responseData.totalItems,
-          items: newPeople
+          items: newOrganisations
         });
       }
 	  })
@@ -226,7 +226,7 @@ class People extends Component {
   advancedSearchSubmit(e) {
     e.preventDefault();
     this.setState({
-      peopleLoading: true
+      organisationsLoading: true
     })
     let context = this;
     let postData = {
@@ -261,7 +261,7 @@ class People extends Component {
     else {
       return false;
     }
-    let url = process.env.REACT_APP_APIPATH+'people-advanced';
+    let url = process.env.REACT_APP_APIPATH+'organisations';
     axios({
       method: 'post',
       url: url,
@@ -270,12 +270,12 @@ class People extends Component {
     })
 	  .then(function (response) {
       let responseData = response.data.data;
-      let people = responseData.data;
-      let newPeople = [];
-      for (let i=0;i<people.length; i++) {
-        let person = people[i];
-        person.checked = false;
-        newPeople.push(person);
+      let organisations = responseData.data;
+      let newOrganisations = [];
+      for (let i=0;i<organisations.length; i++) {
+        let organisationData = organisations[i];
+        organisationData.checked = false;
+        newOrganisations.push(organisationData);
       }
       let currentPage = 1;
       if (responseData.currentPage>0) {
@@ -293,11 +293,11 @@ class People extends Component {
       else {
         context.setState({
           loading: false,
-          peopleLoading: false,
+          organisationsLoading: false,
           page: responseData.currentPage,
           totalPages: responseData.totalPages,
           totalItems: responseData.totalItems,
-          items: newPeople
+          items: newOrganisations
         });
       }
 	  })
@@ -353,7 +353,7 @@ class People extends Component {
       limit:limit,
       page:page,
     }
-    this.props.setPaginationParams("people", payload);
+    this.props.setPaginationParams("organisations", payload);
   }
 
   gotoPage(e) {
@@ -387,24 +387,21 @@ class People extends Component {
     let output = [];
     for (let i=0;i<this.state.items.length; i++) {
       let item = this.state.items[i];
-      let label = item.firstName;
-      if (typeof item.middleName!=="undefined" && item.middleName!==null && item.middleName!=="") {
-        label += " "+item.middleName;
-      }
-      label += " "+item.lastName;
+      let label = item.label;
+      
       let thumbnailImage = [];
-      let thumbnailURL = getPersonThumbnailURL(item);
+      let thumbnailURL = getOrganisationThumbnailURL(item);
       if (thumbnailURL!==null) {
-        thumbnailImage = <img src={thumbnailURL} className="people-list-thumbnail img-fluid img-thumbnail" alt={label} />
+        thumbnailImage = <img src={thumbnailURL} className="organisations-list-thumbnail img-fluid img-thumbnail" alt={label} />
       }
-      let link = "/person/"+item._id;
+      let link = "/organisation/"+item._id;
       let outputItem = <ListGroupItem key={i}>
         <Link to={link} href={link}>{thumbnailImage}</Link>
         <Link to={link} href={link}>{label}</Link>
       </ListGroupItem>;
       output.push(outputItem);
     }
-    return <div className="people-list"><ListGroup>{output}</ListGroup></div>;
+    return <div className="organisations-list"><ListGroup>{output}</ListGroup></div>;
   }
 
   handleChange(e) {
@@ -427,7 +424,7 @@ class People extends Component {
   }
 
   render() {
-    let heading = "People";
+    let heading = "Organisations";
     let breadcrumbsItems = [
       {label: heading, icon: "pe-7s-users", active: true, path: ""}
     ];
@@ -459,30 +456,25 @@ class People extends Component {
         gotoPage={this.gotoPage}
         handleChange={this.handleChange}
         updateLimit={this.updateLimit}
-        pageType="people"
+        pageType="organisations"
       />
-      let people = <div className="row">
+      let organisations = <div className="row">
         <div className="col-12">
           <div style={{padding: '40pt',textAlign: 'center'}}>
             <Spinner type="grow" color="info" /> <i>loading...</i>
           </div>
         </div>
       </div>
-      if (!this.state.peopleLoading) {
-        people = this.renderItems();
+      if (!this.state.organisationsLoading) {
+        organisations = this.renderItems();
       }
       let searchElements = [
-        {element: "honorificPrefix", label: "Honorific prefix"},
-        {element: "firstName", label: "First name"},
-        {element: "middleName", label: "Middle name"},
-        {element: "lastName", label: "Last name"},
-        {element: "fnameSoundex", label: "First name sounds like"},
-        {element: "lnameSoundex", label: "Last name sounds like"},
-        {element: "description", label: "Description"},
+        {element: "label", label: "Label"},
       ]
 
       let searchBox = <Collapse isOpen={this.state.searchVisible}>
         <SearchForm
+          name="organisations"
           searchElements={searchElements}
           simpleSearchTerm={this.state.simpleSearchTerm}
           simpleSearch={this.simpleSearch}
@@ -499,10 +491,10 @@ class People extends Component {
         <div className="row">
           <div className="col-xs-12 col-sm-4">
             <Filters
-              name="people"
-              filtersSet={this.props.peopleFilters}
-              filtersClasspieceType="isDepictedOn"
-              relationshipSet={this.props.peopleRelationship}
+              name="organisations"
+              filtersSet={this.props.organisationsFilters}
+              filtersClasspieceType="hasRepresentationObject"
+              relationshipSet={this.props.organisationsRelationship}
               updatedata={this.load}/>
           </div>
           <div className="col-xs-12 col-sm-8">
@@ -519,7 +511,7 @@ class People extends Component {
             </h2>
             {searchBox}
             {pageActions}
-            {people}
+            {organisations}
             {pageActions}
           </div>
         </div>
@@ -535,4 +527,4 @@ class People extends Component {
   }
 }
 
-export default People = connect(mapStateToProps, mapDispatchToProps)(People);
+export default Organisations = connect(mapStateToProps, mapDispatchToProps)(Organisations);

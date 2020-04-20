@@ -3,6 +3,7 @@ import axios from 'axios';
 export function setPaginationParams(type,params) {
   return (dispatch,getState) => {
     let payload = null;
+    /*
     if (type==="resources") {
       payload = {
         resourcesPagination: {
@@ -12,14 +13,40 @@ export function setPaginationParams(type,params) {
         }
       };
     }
-    if (type==="people") {
+    */
+    if (type==="classpieces") {
+      payload = {
+        classpiecesPagination: {
+          limit:params.limit,
+          page:params.page,
+        }
+      };
+    }else if (type==="people") {
       payload = {
         peoplePagination: {
           limit:params.limit,
           page:params.page,
         }
       };
+    }else if (type==="events") {
+      payload = {
+        eventsPagination: {
+          limit:params.limit,
+          page:params.page,
+        }
+      };
+    }else if (type==="organisations") {
+      payload = {
+        organisationsPagination: {
+          limit:params.limit,
+          page:params.page,
+        }
+      };
     }
+    else {
+      return false;
+    }
+    
     if (payload===null) {
       return false;
     }
@@ -132,24 +159,39 @@ export function loadClasspieces() {
 export function updateFilters(type,params) {
   return (dispatch,getState) => {
     let payload = null;
-    if (type==="resources") {
+    if (type==="classpieces") {
       payload = {
         classpiecesFilters: {
           events: params.events,
           organisations: params.organisations,
         }
       };
-    }
-    /*
-    if (type==="people") {
+    }else if (type==="people") {
       payload = {
-        peoplePagination: {
-          limit:params.limit,
-          page:params.page,
+        peopleFilters: {
+          events: params.events,
+          organisations: params.organisations,
+        }
+      };
+    }else if (type==="events") {
+      payload = {
+        eventsFilters: {
+          events: params.events,
+          organisations: params.organisations,
+        }
+      };
+    }else if (type==="organisations") {
+      payload = {
+        organisationsFilters: {
+          events: params.events,
+          organisations: params.organisations,
         }
       };
     }
-    */
+    else {
+      return false;
+    }
+    
     if (payload===null) {
       return false;
     }
@@ -164,22 +206,37 @@ export function updateFilters(type,params) {
 export function setRelationshipParams(type,params) {
   return (dispatch,getState) => {
     let payload = null;
-    if (type==="resources") {
+    if (type==="classpieces") {
       payload = {
         classpiecesRelationship: {
           events: params.events,
           organisations: params.organisations,
         }
       };
-    }
-
-    if (type==="people") {
+    }else if (type==="people") {
       payload = {
         peopleRelationship: {
           events: params.events,
           organisations: params.organisations,
         }
       };
+    }else if (type==="events") {
+      payload = {
+        eventsRelationship: {
+          events: params.events,
+          organisations: params.organisations,
+        }
+      };
+    }else if (type==="organisations") {
+      payload = {
+        organisationsRelationship: {
+          events: params.events,
+          organisations: params.organisations,
+        }
+      };
+    }
+    else {
+      return false;
     }
 
     if (payload===null) {

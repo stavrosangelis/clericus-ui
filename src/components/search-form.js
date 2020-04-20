@@ -44,7 +44,7 @@ export default class SearchForm extends Component {
     let defaultRow = advancedSearchRows.find(el=>el._id==='default');
     let defaultRowIndex = advancedSearchRows.indexOf(defaultRow);
     let newRow = {_id: newId, select: defaultRow.select, qualifier:defaultRow.qualifier, input: defaultRow.input, default: false, boolean: defaultRow.boolean};
-    defaultRow.select = '';
+    //defaultRow.select = '';
     defaultRow.qualifier = 'equals';
     defaultRow.input = '';
     defaultRow.boolean = 'and';
@@ -53,7 +53,7 @@ export default class SearchForm extends Component {
     this.setState({
       advancedSearchRows: advancedSearchRows
     });
-    this.props.updateAdvancedSearchInputs(advancedSearchRows)
+    this.props.updateAdvancedSearchInputs(advancedSearchRows);
   }
 
   randomString(length) {

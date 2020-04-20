@@ -59,6 +59,21 @@ class Event extends Component {
     
     //1. EventDetails
     let meta = [];
+    
+    //1.0 EventDetails - classpieces
+    let classpiecesRow = [];
+    if (typeof item.resources!=="undefined" && item.resources!==null && item.resources!=="") {
+      let classpiecesData = item.resources.map(eachItem =>{
+        if(eachItem.term.label==="hasRepresentationObject"){
+          return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/classpiece/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
+        }
+        else {
+          return null;
+        }
+      })
+      classpiecesRow = <tr key={"classpiecesRow"}><th>Classpieces</th><td><ul className="tag-list">{classpiecesData}</ul></td></tr>;
+    }
+    meta.push(classpiecesRow);
         
     //1.1 EventDetails - events
     let eventsRow = [];
@@ -102,7 +117,7 @@ class Event extends Component {
     />
     meta.push(peopleRow);
 
-    //1.5 EventDetails - EventDetails include events, organisations, and people
+    //1.5 EventDetails - EventDetails include classpieces, events, organisations, and people
     return <table key={"EventDetails"} className="table table-borderless event-content-table">
           <tbody>{meta}</tbody>
         </table>
@@ -186,7 +201,7 @@ class Event extends Component {
 
     let label = this.state.item.label;
     let breadcrumbsItems = [
-      {label: "Event", icon: "pe-7s-date", active: true, path: "/event"},
+      {label: "Events", icon: "pe-7s-date", active: false, path: "/events"},
       {label: label, active: true, path: ""},
     ];
     return (

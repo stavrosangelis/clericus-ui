@@ -12,12 +12,6 @@ import {
 
 const mapStateToProps = state => {
   return {
-    classpiecesFilters: state.classpiecesFilters,
-    classpiecesRelationship: state.classpiecesRelationship,
-
-    peopleFilters: state.peopleFilters,
-    peopleRelationship: state.peopleRelationship,
-
     loadingOrganisations: state.loadingOrganisations,
     organisations: state.organisations,
 
@@ -39,34 +33,14 @@ class Filters extends React.Component {
     this.organisationsFilters = this.organisationsFilters.bind(this);
     this.eventsFilters = this.eventsFilters.bind(this);
     this.toggleFilter = this.toggleFilter.bind(this);
-    this.getFiltersSet = this.getFiltersSet.bind(this);
-    this.getRelationshipSet = this.getRelationshipSet.bind(this);
     this.clearFilters = this.clearFilters.bind(this);
     this.clearAllFilters = this.clearAllFilters.bind(this);
-  }
-
-  getFiltersSet(name=null){
-    if(name === "resources") {
-      return this.props.classpiecesFilters;
-    }else if(name === "people") {
-      return this.props.peopleFilters;
-    }
-    return null;
-  }
-
-  getRelationshipSet(name=null){
-    if(name === "resources") {
-      return this.props.classpiecesRelationship;
-    }else if(name === "people") {
-      return this.props.peopleRelationship;
-    }
-    return null;
   }
 
   organisationsFilters(relatedOrganisations=null) {
     let output = [];
     let disabled = "", checked = "";
-    let preFilterSet = this.getFiltersSet(this.name);
+    let preFilterSet = this.props.filtersSet;
     for (let i=0;i<this.props.organisations.length; i++) {
       disabled = "";
       checked="";
@@ -97,7 +71,7 @@ class Filters extends React.Component {
   eventsFilters(relatedEvents=null) {
     let output = [];
     let disabled = "", checked = "";
-    let preFilterSet = this.getFiltersSet(this.name);
+    let preFilterSet = this.props.filtersSet;
     for (let i=0;i<this.props.events.length; i++) {
       disabled = "";
       checked="";
@@ -130,7 +104,7 @@ class Filters extends React.Component {
     let name = target.name;
     let _id = target.id;
 
-    let allFilters = Object.assign({}, this.getFiltersSet(this.name));
+    let allFilters = Object.assign({}, this.props.filtersSet);
 
     if (allFilters[name].indexOf(_id)===-1) {
       allFilters[name].push(_id);
@@ -148,7 +122,7 @@ class Filters extends React.Component {
   }
 
   clearFilters(e, filterType=null) {
-    let payload = Object.assign({}, this.getFiltersSet(this.name), {[filterType]: []});
+    let payload = Object.assign({}, this.props.filtersSet, {[filterType]: []});
     let context = this;
     this.props.updateFilters(this.name,payload);
     setTimeout(function() {
@@ -169,7 +143,7 @@ class Filters extends React.Component {
   }
 
   render() {
-    let organisationItems=this.organisationsFilters(this.getRelationshipSet(this.name).organisations);
+    let organisationItems=this.organisationsFilters(this.props.relationshipSet.organisations);
     let organisations = <div className="row">
         <div className="col-12">
           <div style={{padding: '40pt',textAlign: 'center'}}>
@@ -191,7 +165,7 @@ class Filters extends React.Component {
       </Card>;
     }
 
-    let eventsItems=this.eventsFilters(this.getRelationshipSet(this.name).events);;
+    let eventsItems=this.eventsFilters(this.props.relationshipSet.events);
     let events = <div className="row">
         <div className="col-12">
           <div style={{padding: '40pt',textAlign: 'center'}}>
