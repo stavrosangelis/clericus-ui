@@ -22,39 +22,55 @@ export const defaultState = {
   },
 
   classpiecesFilters: {
+    classpieces: [],
     events: [],
     organisations: [],
+    people: [],
   },
   classpiecesRelationship: {
+    classpieces: [],
     events: [],
     organisations: [],
+    people: [],
   },
   
   peopleFilters: {
+    classpieces: [],
     events: [],
     organisations: [],
+    people: [],
   },
   peopleRelationship: {
+    classpieces: [],
     events: [],
     organisations: [],
+    people: [],
   },
   
   eventsFilters: {
+    classpieces: [],
     events: [],
     organisations: [],
+    people: [],
   },
   eventsRelationship: {
+    classpieces: [],
     events: [],
     organisations: [],
+    people: [],
   },
   
   organisationsFilters: {
+    classpieces: [],
     events: [],
     organisations: [],
+    people: [],
   },
   organisationsRelationship: {
+    classpieces: [],
     events: [],
     organisations: [],
+    people: [],
   },
 
   loadingOrganisations: true,
@@ -65,6 +81,9 @@ export const defaultState = {
 
   loadingEvents: true,
   events: [],
+  
+  loadingPeople: true,
+  people: [],
 
   loadingSpatial: true,
   spatial: [],

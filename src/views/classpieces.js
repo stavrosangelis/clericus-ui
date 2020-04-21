@@ -69,6 +69,8 @@ class Classpieces extends Component {
       limit: this.state.limit,
       events: this.props.classpiecesFilters.events,
       organisations: this.props.classpiecesFilters.organisations,
+      people: this.props.classpiecesFilters.people,
+      resources: this.props.classpiecesFilters.classpieces,
     };
     let url = process.env.REACT_APP_APIPATH+'classpieces';
     axios({
@@ -135,6 +137,8 @@ class Classpieces extends Component {
       let payload = {
         events: responseData.events.map(item=>{return item._id}),
         organisations: responseData.organisations.map(item=>{return item._id}),
+        people: responseData.people.map(item=>{return item._id}),
+        classpieces: responseData.resources.map(item=>{return item._id}),
       }
       
       context.props.setRelationshipParams("classpieces",payload);

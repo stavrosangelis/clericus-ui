@@ -4,7 +4,7 @@ import {
   Spinner,
   ListGroup, ListGroupItem,
   Collapse,
-  UncontrolledTooltip
+  Tooltip
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
@@ -78,6 +78,8 @@ class Organisations extends Component {
       limit: this.state.limit,
       events: this.props.organisationsFilters.events,
       organisations: this.props.organisationsFilters.organisations,
+      people: this.props.organisationsFilters.people,
+      resources: this.props.organisationsFilters.classpieces,
     };
     if (this.state.simpleSearchTerm!=="") {
       params.label = this.state.simpleSearchTerm;
@@ -154,6 +156,8 @@ class Organisations extends Component {
       let payload = {
         events: responseData.events.map(item=>{return item._id}),
         organisations: responseData.organisations.map(item=>{return item._id}),
+        people: responseData.people.map(item=>{return item._id}),
+        classpieces: responseData.resources.map(item=>{return item._id}),
       }
 
       setTimeout(function() {
@@ -499,9 +503,9 @@ class Organisations extends Component {
           </div>
           <div className="col-xs-12 col-sm-8">
             <h2>{heading}
-              <UncontrolledTooltip placement="top" target="search-tooltip">
+              <Tooltip placement="top" target="search-tooltip">
                 Search
-              </UncontrolledTooltip>
+              </Tooltip>
               <div className="tool-box">
                 <div className="tool-box-text">Total: {this.state.totalItems}</div>
                 <div className="action-trigger" onClick={()=>this.toggleSearch()} id="search-tooltip">

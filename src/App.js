@@ -21,12 +21,16 @@ import {connect} from "react-redux";
 import {
   loadOrganisations,
   loadEvents,
+  loadPeople,
+  loadClasspieces,
 } from "./redux/actions";
 
 function mapDispatchToProps(dispatch) {
   return {
     loadOrganisations: () => dispatch(loadOrganisations()),
     loadEvents: () => dispatch(loadEvents()),
+    loadPeople: () => dispatch(loadPeople()),
+    loadClasspieces: () => dispatch(loadClasspieces()),
   }
 }
 
@@ -36,6 +40,8 @@ class App extends Component{
     loadProgressBar();
     this.props.loadOrganisations();
     this.props.loadEvents();
+    this.props.loadPeople();
+    this.props.loadClasspieces();
   }
 
   render() {

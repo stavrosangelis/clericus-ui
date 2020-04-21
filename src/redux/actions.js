@@ -130,6 +130,32 @@ export function loadEvents() {
   }
 }
 
+export function loadPeople() {
+  return (dispatch,getState) => {
+    let params = {
+      limit: 1000000
+    }
+    axios({
+      method: 'get',
+      url: process.env.REACT_APP_APIPATH+'ui-people',
+      crossDomain: true,
+      params: params
+    })
+    .then(function (response) {
+      let payload = {
+        loadingPeople: false,
+        people: response.data.data.data,
+      }
+      dispatch({
+        type: "GENERIC_UPDATE",
+        payload: payload
+      });
+    })
+    .catch(function (error) {
+    });
+  }
+}
+
 export function loadClasspieces() {
   return (dispatch,getState) => {
     let params = {
@@ -162,29 +188,37 @@ export function updateFilters(type,params) {
     if (type==="classpieces") {
       payload = {
         classpiecesFilters: {
+          classpieces: params.classpieces,
           events: params.events,
           organisations: params.organisations,
+          people: params.people,
         }
       };
     }else if (type==="people") {
       payload = {
         peopleFilters: {
+          classpieces: params.classpieces,
           events: params.events,
           organisations: params.organisations,
+          people: params.people,
         }
       };
     }else if (type==="events") {
       payload = {
         eventsFilters: {
+          classpieces: params.classpieces,
           events: params.events,
           organisations: params.organisations,
+          people: params.people,
         }
       };
     }else if (type==="organisations") {
       payload = {
         organisationsFilters: {
+          classpieces: params.classpieces,
           events: params.events,
           organisations: params.organisations,
+          people: params.people,
         }
       };
     }
@@ -209,29 +243,37 @@ export function setRelationshipParams(type,params) {
     if (type==="classpieces") {
       payload = {
         classpiecesRelationship: {
+          classpieces: params.classpieces,
           events: params.events,
           organisations: params.organisations,
+          people: params.people,
         }
       };
     }else if (type==="people") {
       payload = {
         peopleRelationship: {
+          classpieces: params.classpieces,
           events: params.events,
           organisations: params.organisations,
+          people: params.people,
         }
       };
     }else if (type==="events") {
       payload = {
         eventsRelationship: {
+          classpieces: params.classpieces,
           events: params.events,
           organisations: params.organisations,
+          people: params.people,
         }
       };
     }else if (type==="organisations") {
       payload = {
         organisationsRelationship: {
+          classpieces: params.classpieces,
           events: params.events,
           organisations: params.organisations,
+          people: params.people,
         }
       };
     }
