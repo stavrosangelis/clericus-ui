@@ -26,12 +26,16 @@ export const defaultState = {
     events: [],
     organisations: [],
     people: [],
+    //temporals: [],
+    //spatials: [],
   },
   classpiecesRelationship: {
     classpieces: [],
     events: [],
     organisations: [],
     people: [],
+    //temporals: [],
+    //spatials: [],
   },
   
   peopleFilters: {
@@ -39,12 +43,16 @@ export const defaultState = {
     events: [],
     organisations: [],
     people: [],
+    //temporals: [],
+    //spatials: [],
   },
   peopleRelationship: {
     classpieces: [],
     events: [],
     organisations: [],
     people: [],
+    //temporals: [],
+    //spatials: [],
   },
   
   eventsFilters: {
@@ -52,12 +60,16 @@ export const defaultState = {
     events: [],
     organisations: [],
     people: [],
+    temporals: [],
+    spatials: [],
   },
   eventsRelationship: {
     classpieces: [],
     events: [],
     organisations: [],
     people: [],
+    temporals: [],
+    spatials: [],
   },
   
   organisationsFilters: {
@@ -65,12 +77,16 @@ export const defaultState = {
     events: [],
     organisations: [],
     people: [],
+    temporals: [],
+    spatials: [],
   },
   organisationsRelationship: {
     classpieces: [],
     events: [],
     organisations: [],
     people: [],
+    temporals: [],
+    spatials: [],
   },
 
   loadingOrganisations: true,
@@ -85,9 +101,9 @@ export const defaultState = {
   loadingPeople: true,
   people: [],
 
-  loadingSpatial: true,
-  spatial: [],
+  loadingSpatials: true,
+  spatials: [],
 
-  loadingTemporal: true,
-  temporal: []
+  loadingTemporals: true,
+  temporals: []
 }

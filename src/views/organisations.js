@@ -158,6 +158,8 @@ class Organisations extends Component {
         organisations: responseData.organisations.map(item=>{return item._id}),
         people: responseData.people.map(item=>{return item._id}),
         classpieces: responseData.resources.map(item=>{return item._id}),
+        temporals: responseData.temporals.map(item=>{return item._id}),
+        spatials: responseData.spatials.map(item=>{return item._id}),
       }
 
       setTimeout(function() {
@@ -473,7 +475,7 @@ class Organisations extends Component {
         organisations = this.renderItems();
       }
       let searchElements = [
-        {element: "label", label: "Label"},
+        {element: "label", label: "Label", inputType: "text", inputData: null},
       ]
 
       let searchBox = <Collapse isOpen={this.state.searchVisible}>
@@ -484,6 +486,7 @@ class Organisations extends Component {
           simpleSearch={this.simpleSearch}
           clearSearch={this.clearSearch}
           handleChange={this.handleChange}
+          adadvancedSearchEnable={false}
           advancedSearch={this.advancedSearchSubmit}
           updateAdvancedSearchRows={this.updateAdvancedSearchRows}
           clearAdvancedSearch={this.clearAdvancedSearch}
@@ -496,6 +499,7 @@ class Organisations extends Component {
           <div className="col-xs-12 col-sm-4">
             <Filters
               name="organisations"
+              filterType = {["Organisations"]}
               filtersSet={this.props.organisationsFilters}
               filtersClasspieceType="hasRepresentationObject"
               relationshipSet={this.props.organisationsRelationship}

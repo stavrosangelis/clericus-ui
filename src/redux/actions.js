@@ -182,6 +182,58 @@ export function loadClasspieces() {
   }
 }
 
+export function loadTemporals() {
+  return (dispatch,getState) => {
+    let params = {
+      limit: 1000000
+    }
+    axios({
+      method: 'get',
+      url: process.env.REACT_APP_APIPATH+'temporals',
+      crossDomain: true,
+      params: params
+    })
+	  .then(function (response) {
+      let payload = {
+        loadingTemporals: false,
+        temporals: response.data.data.data,
+      }
+      dispatch({
+        type: "GENERIC_UPDATE",
+        payload: payload
+      });
+	  })
+	  .catch(function (error) {
+	  });
+  }
+}
+
+export function loadSpatials() {
+  return (dispatch,getState) => {
+    let params = {
+      limit: 1000000
+    }
+    axios({
+      method: 'get',
+      url: process.env.REACT_APP_APIPATH+'spatials',
+      crossDomain: true,
+      params: params
+    })
+	  .then(function (response) {
+      let payload = {
+        loadingSpatials: false,
+        spatials: response.data.data.data,
+      }
+      dispatch({
+        type: "GENERIC_UPDATE",
+        payload: payload
+      });
+	  })
+	  .catch(function (error) {
+	  });
+  }
+}
+
 export function updateFilters(type,params) {
   return (dispatch,getState) => {
     let payload = null;
@@ -192,6 +244,8 @@ export function updateFilters(type,params) {
           events: params.events,
           organisations: params.organisations,
           people: params.people,
+          //temporals: params.temporals,
+          //spatials: params.spatials,
         }
       };
     }else if (type==="people") {
@@ -201,6 +255,8 @@ export function updateFilters(type,params) {
           events: params.events,
           organisations: params.organisations,
           people: params.people,
+          //temporals: params.temporals,
+          //spatials: params.spatials,
         }
       };
     }else if (type==="events") {
@@ -210,6 +266,8 @@ export function updateFilters(type,params) {
           events: params.events,
           organisations: params.organisations,
           people: params.people,
+          temporals: params.temporals,
+          spatials: params.spatials,
         }
       };
     }else if (type==="organisations") {
@@ -219,6 +277,8 @@ export function updateFilters(type,params) {
           events: params.events,
           organisations: params.organisations,
           people: params.people,
+          temporals: params.temporals,
+          spatials: params.spatials,
         }
       };
     }
@@ -247,6 +307,8 @@ export function setRelationshipParams(type,params) {
           events: params.events,
           organisations: params.organisations,
           people: params.people,
+          //temporals: params.temporals,
+          //spatials: params.spatials,
         }
       };
     }else if (type==="people") {
@@ -256,6 +318,8 @@ export function setRelationshipParams(type,params) {
           events: params.events,
           organisations: params.organisations,
           people: params.people,
+          //temporals: params.temporals,
+          //spatials: params.spatials,
         }
       };
     }else if (type==="events") {
@@ -265,6 +329,8 @@ export function setRelationshipParams(type,params) {
           events: params.events,
           organisations: params.organisations,
           people: params.people,
+          temporals: params.temporals,
+          spatials: params.spatials,
         }
       };
     }else if (type==="organisations") {
@@ -274,6 +340,8 @@ export function setRelationshipParams(type,params) {
           events: params.events,
           organisations: params.organisations,
           people: params.people,
+          temporals: params.temporals,
+          spatials: params.spatials,
         }
       };
     }

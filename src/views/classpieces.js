@@ -139,6 +139,8 @@ class Classpieces extends Component {
         organisations: responseData.organisations.map(item=>{return item._id}),
         people: responseData.people.map(item=>{return item._id}),
         classpieces: responseData.resources.map(item=>{return item._id}),
+        //temporals: responseData.temporals.map(item=>{return item._id}),
+        //spatials: responseData.spatials.map(item=>{return item._id}),
       }
       
       context.props.setRelationshipParams("classpieces",payload);
@@ -293,6 +295,7 @@ class Classpieces extends Component {
           <div className="col-xs-12 col-sm-4">
             <Filters
               name="classpieces"
+              filterType = {["Classpieces", "Events", "Organisations", "People"]}
               filtersSet={this.props.classpiecesFilters}
               filtersClasspieceType={null}
               relationshipSet={this.props.classpiecesRelationship}

@@ -158,6 +158,8 @@ class People extends Component {
         organisations: responseData.organisations.map(item=>{return item._id}),
         people: responseData.people.map(item=>{return item._id}),
         classpieces: responseData.resources.map(item=>{return item._id}),
+        //temporals: responseData.temporals.map(item=>{return item._id}),
+        //spatials: responseData.spatials.map(item=>{return item._id}),
       }
 
       setTimeout(function() {
@@ -233,7 +235,7 @@ class People extends Component {
       peopleLoading: true
     })
     let context = this;
-    let postData = {
+    let params = {
       page: 1,
       limit: this.state.limit
     };
@@ -252,25 +254,28 @@ class People extends Component {
         }
         */
         if(searchInput.input!==""){
+          /*
           let queryRow = {};
           queryRow.field = searchInput.select;
           queryRow.qualifier = searchInput.qualifier;
           queryRow.term = searchInput.input;
           queryRow.boolean = searchInput.boolean;
           queryRows.push(queryRow);
+          */
+          params[`${searchInput.select}`] = searchInput.input;
         }
       }
-      postData.query = queryRows;
+      params.query = queryRows;
     }
     else {
       return false;
     }
-    let url = process.env.REACT_APP_APIPATH+'people-advanced';
+    let url = process.env.REACT_APP_APIPATH+'ui-people';
     axios({
-      method: 'post',
+      method: 'get',
       url: url,
       crossDomain: true,
-      data: postData
+      params: params
     })
 	  .then(function (response) {
       let responseData = response.data.data;
@@ -318,9 +323,9 @@ class People extends Component {
     })
   }
 
-  clearAdvancedSearch() {
+  clearAdvancedSearch(defaultSearch) {
     this.setState({
-      advancedSearchInputs: [],
+      advancedSearchInputs: defaultSearch,
     }, ()=>{
       this.load();
     })
@@ -476,13 +481,25 @@ class People extends Component {
         people = this.renderItems();
       }
       let searchElements = [
-        {element: "honorificPrefix", label: "Honorific prefix"},
-        {element: "firstName", label: "First name"},
-        {element: "middleName", label: "Middle name"},
-        {element: "lastName", label: "Last name"},
-        {element: "fnameSoundex", label: "First name sounds like"},
-        {element: "lnameSoundex", label: "Last name sounds like"},
-        {element: "description", label: "Description"},
+        { element: "honorificPrefix", label: "Honorific prefix",
+          inputType: "text", inputData: null},
+        { element: "firstName", label: "First name",
+          inputType: "text", inputData: null},
+        //{element: "middleName", label: "Middle name", inputType: "text", inputData: null},
+        { element: "lastName", label: "Last name",
+          inputType: "text", inputData: null},
+        { element: "fnameSoundex", label: "First name sounds like",
+          inputType: "text", inputData: null},
+        { element: "lnameSoundex", label: "Last name sounds like",
+          inputType: "text", inputData: null},
+        { element: "description", label: "Description",
+          inputType: "text", inputData: null},
+        { element: "orderField", label: "Order Field",  
+          inputType: "select", inputData: [ {label: "First Name", value: "firstName"},
+                                            {label: "Last Name", value: "lastName"} ]},
+        { element: "orderDesc", label: "Order Desc",
+          inputType: "select", inputData: [ {label: "True", value: "true"},
+                                            {label: "False", value: "false"}]},
       ]
 
       let searchBox = <Collapse isOpen={this.state.searchVisible}>
@@ -492,6 +509,7 @@ class People extends Component {
           simpleSearch={this.simpleSearch}
           clearSearch={this.clearSearch}
           handleChange={this.handleChange}
+          adadvancedSearchEnable={true}
           advancedSearch={this.advancedSearchSubmit}
           updateAdvancedSearchRows={this.updateAdvancedSearchRows}
           clearAdvancedSearch={this.clearAdvancedSearch}
@@ -504,6 +522,7 @@ class People extends Component {
           <div className="col-xs-12 col-sm-4">
             <Filters
               name="people"
+              filterType = {["Classpieces", "Events", "Organisations", "People"]}
               filtersSet={this.props.peopleFilters}
               filtersClasspieceType="isDepictedOn"
               relationshipSet={this.props.peopleRelationship}

@@ -17,13 +17,14 @@ export default class SearchForm extends Component {
       simpleSearchVisible: true,
       advancedSearchVisible: false,
       advancedSearchRows: [
-        {_id: 'default', select: advancedSearchElement, qualifier: 'equals', input: '', default: true, boolean: 'and'},
+        {_id: 'default', select: advancedSearchElement, qualifier: 'contains', input: '', default: true, boolean: 'and'},
       ],
       advancedSearchElement: advancedSearchElement,
     };
 
     this.handleChange = this.handleChange.bind(this);
     this.handleAdvancedSearchChange = this.handleAdvancedSearchChange.bind(this);
+    this.updateAdvancedSearchInputContent = this.updateAdvancedSearchInputContent.bind(this);
     this.toggleSearch = this.toggleSearch.bind(this);
     this.addAdvancedSearchRow = this.addAdvancedSearchRow.bind(this);
     this.removeAdvancedSearchRow = this.removeAdvancedSearchRow.bind(this);
@@ -32,10 +33,16 @@ export default class SearchForm extends Component {
   }
 
   toggleSearch() {
-    this.setState({
-      simpleSearchVisible: !this.state.simpleSearchVisible,
-      advancedSearchVisible: !this.state.advancedSearchVisible,
-    })
+    if(this.props.adadvancedSearchEnable===true) {
+      this.setState({
+        simpleSearchVisible: !this.state.simpleSearchVisible,
+        advancedSearchVisible: !this.state.advancedSearchVisible,
+      })
+    }else {
+      this.setState({
+        simpleSearchVisible: !this.state.simpleSearchVisible,
+      })
+    }
   }
 
   addAdvancedSearchRow() {
@@ -45,8 +52,8 @@ export default class SearchForm extends Component {
     let defaultRowIndex = advancedSearchRows.indexOf(defaultRow);
     let newRow = {_id: newId, select: defaultRow.select, qualifier:defaultRow.qualifier, input: defaultRow.input, default: false, boolean: defaultRow.boolean};
     //defaultRow.select = '';
-    defaultRow.qualifier = 'equals';
-    defaultRow.input = '';
+    defaultRow.qualifier = 'contains';
+    //defaultRow.input = '';
     defaultRow.boolean = 'and';
     advancedSearchRows[defaultRowIndex] = defaultRow;
     advancedSearchRows.push(newRow);
@@ -104,15 +111,31 @@ export default class SearchForm extends Component {
     });
     this.props.updateAdvancedSearchInputs(advancedSearchRows)
   }
-
-  clearAdvancedSearch() {
-    let advancedSearchRows = [
-      {_id: 'default', select: '', qualifier: '', input: '', default: true, boolean: 'and'},
-    ];
+  
+  updateAdvancedSearchInputContent(rowId, name, value) {
+    let advancedSearchRows = this.state.advancedSearchRows;
+    let advancedSearchRow = advancedSearchRows.find(el=>el._id===rowId);
+    let index = advancedSearchRows.indexOf(advancedSearchRow);
+    advancedSearchRow[name] = value;
+    advancedSearchRows[index] = advancedSearchRow;
     this.setState({
       advancedSearchRows: advancedSearchRows
+    });
+    this.props.updateAdvancedSearchInputs(advancedSearchRows)
+  }
+
+  clearAdvancedSearch() {
+    let advancedSearchRows = this.state.advancedSearchRows;
+    let advancedSearchRow = advancedSearchRows.find(el=>el._id==="default");
+    let index = advancedSearchRows.indexOf(advancedSearchRow);
+
+    advancedSearchRows = [
+      advancedSearchRows[index],
+    ];
+    this.setState({
+      advancedSearchRows: advancedSearchRows,
     })
-    this.props.clearAdvancedSearch();
+    this.props.clearAdvancedSearch(advancedSearchRows);
   }
 
   render() {
@@ -125,19 +148,28 @@ export default class SearchForm extends Component {
     for (let ar=0;ar<this.state.advancedSearchRows.length;ar++) {
       let advancedSearchRow = this.state.advancedSearchRows[ar];
       let row = <AdvancedSearchFormRow
-        key={ar}
+        key={advancedSearchRow._id}
         default={advancedSearchRow.default}
         availableElements={availableElements}
         rowId={advancedSearchRow._id}
         handleAdvancedSearchChange={this.handleAdvancedSearchChange}
+        updateAdvancedSearchInputContent={this.updateAdvancedSearchInputContent}
         addAdvancedSearchRow={this.addAdvancedSearchRow}
         removeAdvancedSearchRow={this.removeAdvancedSearchRow}
         searchSelect={advancedSearchRow.select}
         searchQualifier={advancedSearchRow.qualifier}
         searchInput={advancedSearchRow.input}
         searchBoolean={advancedSearchRow.boolean}
+        searchElements={this.props.searchElements}
       />;
       advancedSearchRows.push(row);
+    }
+
+    let advancedSearch = []
+    if(this.props.adadvancedSearchEnable === true) {
+      advancedSearch = <div className="toggle-search" onClick={()=>this.toggleSearch()}>Advanced search <i className="fa fa-chevron-down" /></div>
+    }else {
+      advancedSearch = <div className="toggle-search"></div>
     }
 
     let searchBox = <div>
@@ -155,7 +187,7 @@ export default class SearchForm extends Component {
             </InputGroupAddon>
           </InputGroup>
         </Form>
-        <div className="toggle-search" onClick={()=>this.toggleSearch()}>Advanced search <i className="fa fa-chevron-down" /></div>
+        {advancedSearch}
       </Collapse>
 
       <Collapse isOpen={this.state.advancedSearchVisible}>
