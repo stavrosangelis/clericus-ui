@@ -90,7 +90,7 @@ class Events extends Component {
         params[searchInput.select] = searchInput.input;
       }
     }
-    let url = process.env.REACT_APP_APIPATH+'events';
+    let url = process.env.REACT_APP_APIPATH+'ui-events';
     axios({
       method: 'get',
       url: url,
@@ -138,12 +138,12 @@ class Events extends Component {
     let id_events = events.map(item =>{
       return item._id;
     });
-    
+
     let context = this;
     let params = {
       _ids: id_events,
     };
-    let url = process.env.REACT_APP_APIPATH+'events-active-filters';
+    let url = process.env.REACT_APP_APIPATH+'ui-events-active-filters';
     axios({
       method: 'post',
       url: url,
@@ -185,7 +185,7 @@ class Events extends Component {
       page: this.state.page,
       limit: this.state.limit
     };
-    let url = process.env.REACT_APP_APIPATH+'events';
+    let url = process.env.REACT_APP_APIPATH+'ui-events';
     axios({
       method: 'get',
       url: url,
@@ -267,7 +267,7 @@ class Events extends Component {
     else {
       return false;
     }
-    let url = process.env.REACT_APP_APIPATH+'events';
+    let url = process.env.REACT_APP_APIPATH+'ui-events';
     axios({
       method: 'post',
       url: url,
@@ -394,7 +394,7 @@ class Events extends Component {
     for (let i=0;i<this.state.items.length; i++) {
       let item = this.state.items[i];
       let label = item.label;
-      
+
       let thumbnailImage = [];
       let thumbnailURL = getEventThumbnailURL(item);
       if (thumbnailURL!==null) {

@@ -20,10 +20,12 @@ import {
 } from "../redux/actions";
 
 const mapStateToProps = state => {
+  let peopleFilters = state.peopleFilters || null;
+  let peopleRelationship = state.peopleRelationship || null;
   return {
     peoplePagination: state.peoplePagination,
-    peopleFilters: state.peopleFilters,
-    peopleRelationship: state.peopleRelationship
+    peopleFilters: peopleFilters,
+    peopleRelationship: peopleRelationship
    };
 };
 
@@ -48,7 +50,7 @@ class People extends Component {
       limit: 50,
       totalPages: 0,
       totalItems: 0,
-      searchVisible: false,
+      searchVisible: true,
       simpleSearchTerm: '',
       advancedSearchInputs: [],
     }
@@ -68,11 +70,10 @@ class People extends Component {
     this.toggleSearch = this.toggleSearch.bind(this);
   }
 
-  load() {
+  async load() {
     this.setState({
       peopleLoading: true
     })
-    let context = this;
     let params = {
       page: this.state.page,
       limit: this.state.limit,
@@ -91,150 +92,145 @@ class People extends Component {
       }
     }
     let url = process.env.REACT_APP_APIPATH+'ui-people';
-    axios({
+    let responseData = await axios({
       method: 'get',
       url: url,
       crossDomain: true,
       params: params
     })
 	  .then(function (response) {
-      let responseData = response.data.data;
-      let people = responseData.data;
-      let currentPage = 1;
-      if (responseData.currentPage>0) {
-        currentPage = responseData.currentPage;
-      }
-      // normalize the page number when the selected page is empty for the selected number of items per page
-      if (currentPage>1 && responseData.data.length===0) {
-        context.setState({
-          page: currentPage-1
-        });
-        setTimeout(function() {
-          context.load();
-        },10)
-      }
-      else {
-        context.setState({
-          loading: false,
-          peopleLoading: false,
-          page: responseData.currentPage,
-          totalPages: responseData.totalPages,
-          totalItems: responseData.totalItems,
-          items: people
-        });
-
-        context.updatePeopleRelationship(people);
-      }
+      return response.data.data;
 	  })
 	  .catch(function (error) {
+      console.log(error);
 	  });
+    let people = responseData.data;
+    let currentPage = 1;
+    if (responseData.currentPage>0) {
+      currentPage = responseData.currentPage;
+    }
+    // normalize the page number when the selected page is empty for the selected number of items per page
+    if (currentPage>1 && responseData.data.length===0) {
+      this.setState({
+        page: currentPage-1
+      });
+      let context = this;
+      setTimeout(() =>{
+        context.load();
+      },10);
+    }
+    else {
+      this.setState({
+        loading: false,
+        peopleLoading: false,
+        page: responseData.currentPage,
+        totalPages: responseData.totalPages,
+        totalItems: responseData.totalItems,
+        items: people
+      });
+      this.updatePeopleRelationship(people);
+    }
   }
 
-  updatePeopleRelationship(people=null) {
+  async updatePeopleRelationship(people=null) {
     if(people===null){
       return false;
     }
-
     let id_people = people.map(item =>{
       return item._id;
     });
-    
-    let context = this;
     let params = {
       _ids: id_people,
     };
     let url = process.env.REACT_APP_APIPATH+'ui-person-active-filters';
-    axios({
+    let responseData = await axios({
       method: 'post',
       url: url,
       crossDomain: true,
       data: params
     })
 	  .then(function (response) {
-      let responseData = response.data.data;
-
-      let payload = {
-        events: responseData.events.map(item=>{return item._id}),
-        organisations: responseData.organisations.map(item=>{return item._id}),
-        people: responseData.people.map(item=>{return item._id}),
-        classpieces: responseData.resources.map(item=>{return item._id}),
-        //temporals: responseData.temporals.map(item=>{return item._id}),
-        //spatials: responseData.spatials.map(item=>{return item._id}),
-      }
-
-      setTimeout(function() {
-        context.props.setRelationshipParams("people",payload);
-      },10)
-
+      return response.data.data;
 	  })
 	  .catch(function (error) {
+      console.log(error);
 	  });
+
+    let payload = {
+      events: responseData.events.map(item=>{return item._id}),
+      organisations: responseData.organisations.map(item=>{return item._id}),
+      people: responseData.people.map(item=>{return item._id}),
+      classpieces: responseData.resources.map(item=>{return item._id}),
+      //temporals: responseData.temporals.map(item=>{return item._id}),
+      //spatials: responseData.spatials.map(item=>{return item._id}),
+    }
+    this.props.setRelationshipParams("people",payload);
   }
 
-  simpleSearch(e) {
+  async simpleSearch(e) {
     e.preventDefault();
     if (this.state.simpleSearchTerm.length<2) {
       return false;
     }
     this.setState({
       peopleLoading: true
-    })
-    let context = this;
+    });
     let params = {
       label: this.state.simpleSearchTerm,
       page: this.state.page,
       limit: this.state.limit
     };
     let url = process.env.REACT_APP_APIPATH+'people';
-    axios({
+    let responseData = await axios({
       method: 'get',
       url: url,
       crossDomain: true,
       params: params
     })
 	  .then(function (response) {
-      let responseData = response.data.data;
-      let people = responseData.data;
-      let newPeople = [];
-      for (let i=0;i<people.length; i++) {
-        let person = people[i];
-        person.checked = false;
-        newPeople.push(person);
-      }
-      let currentPage = 1;
-      if (responseData.currentPage>0) {
-        currentPage = responseData.currentPage;
-      }
-      // normalize the page number when the selected page is empty for the selected number of items per page
-      if (currentPage>1 && responseData.data.length===0) {
-        context.setState({
-          page: currentPage-1
-        });
-        setTimeout(function() {
-          context.load();
-        },10)
-      }
-      else {
-        context.setState({
-          loading: false,
-          peopleLoading: false,
-          page: responseData.currentPage,
-          totalPages: responseData.totalPages,
-          totalItems: responseData.totalItems,
-          items: newPeople
-        });
-      }
+      return response.data.data;
 	  })
 	  .catch(function (error) {
 	  });
+
+    let people = responseData.data;
+    let newPeople = [];
+    for (let i=0;i<people.length; i++) {
+      let person = people[i];
+      person.checked = false;
+      newPeople.push(person);
+    }
+    let currentPage = 1;
+    if (responseData.currentPage>0) {
+      currentPage = responseData.currentPage;
+    }
+    // normalize the page number when the selected page is empty for the selected number of items per page
+    if (currentPage>1 && responseData.data.length===0) {
+      this.setState({
+        page: currentPage-1
+      });
+      let context = this;
+      setTimeout(function() {
+        context.load();
+      },10)
+    }
+    else {
+      this.setState({
+        loading: false,
+        peopleLoading: false,
+        page: responseData.currentPage,
+        totalPages: responseData.totalPages,
+        totalItems: responseData.totalItems,
+        items: newPeople
+      });
+    }
   }
 
-  advancedSearchSubmit(e) {
+  async advancedSearchSubmit(e) {
     e.preventDefault();
     this.setState({
       peopleLoading: true
     })
-    let context = this;
     let params = {
       page: 1,
       limit: this.state.limit
@@ -271,47 +267,49 @@ class People extends Component {
       return false;
     }
     let url = process.env.REACT_APP_APIPATH+'ui-people';
-    axios({
+    let responseData = await axios({
       method: 'get',
       url: url,
       crossDomain: true,
       params: params
     })
 	  .then(function (response) {
-      let responseData = response.data.data;
-      let people = responseData.data;
-      let newPeople = [];
-      for (let i=0;i<people.length; i++) {
-        let person = people[i];
-        person.checked = false;
-        newPeople.push(person);
-      }
-      let currentPage = 1;
-      if (responseData.currentPage>0) {
-        currentPage = responseData.currentPage;
-      }
-      // normalize the page number when the selected page is empty for the selected number of items per page
-      if (currentPage>1 && responseData.data.length===0) {
-        context.setState({
-          page: currentPage-1
-        });
-        setTimeout(function() {
-          context.load();
-        },10)
-      }
-      else {
-        context.setState({
-          loading: false,
-          peopleLoading: false,
-          page: responseData.currentPage,
-          totalPages: responseData.totalPages,
-          totalItems: responseData.totalItems,
-          items: newPeople
-        });
-      }
+      return response.data.data;
 	  })
 	  .catch(function (error) {
 	  });
+
+    let people = responseData.data;
+    let newPeople = [];
+    for (let i=0;i<people.length; i++) {
+      let person = people[i];
+      person.checked = false;
+      newPeople.push(person);
+    }
+    let currentPage = 1;
+    if (responseData.currentPage>0) {
+      currentPage = responseData.currentPage;
+    }
+    // normalize the page number when the selected page is empty for the selected number of items per page
+    if (currentPage>1 && responseData.data.length===0) {
+      this.setState({
+        page: currentPage-1
+      });
+      let context = this;
+      setTimeout(function() {
+        context.load();
+      },10)
+    }
+    else {
+      this.setState({
+        loading: false,
+        peopleLoading: false,
+        page: responseData.currentPage,
+        totalPages: responseData.totalPages,
+        totalItems: responseData.totalItems,
+        items: newPeople
+      });
+    }
   }
 
   clearSearch() {
@@ -494,7 +492,7 @@ class People extends Component {
           inputType: "text", inputData: null},
         { element: "description", label: "Description",
           inputType: "text", inputData: null},
-        { element: "orderField", label: "Order Field",  
+        { element: "orderField", label: "Order Field",
           inputType: "select", inputData: [ {label: "First Name", value: "firstName"},
                                             {label: "Last Name", value: "lastName"} ]},
         { element: "orderDesc", label: "Order Desc",
@@ -516,17 +514,20 @@ class People extends Component {
           updateAdvancedSearchInputs={this.updateAdvancedSearchInputs}
           />
       </Collapse>
-
+      let filters = [];
+      if (this.props.peopleFilters!==null && this.props.peopleRelationship!==null) {
+        filters = <Filters
+          name="people"
+          filterType={["Classpieces", "Events", "Organisations", "People"]}
+          filtersSet={this.props.peopleFilters}
+          relationshipSet={this.props.peopleRelationship}
+          updatedata={this.load}
+          />
+      }
       content = <div>
         <div className="row">
           <div className="col-xs-12 col-sm-4">
-            <Filters
-              name="people"
-              filterType = {["Classpieces", "Events", "Organisations", "People"]}
-              filtersSet={this.props.peopleFilters}
-              filtersClasspieceType="isDepictedOn"
-              relationshipSet={this.props.peopleRelationship}
-              updatedata={this.load}/>
+            {filters}
           </div>
           <div className="col-xs-12 col-sm-8">
             <h2>{heading}

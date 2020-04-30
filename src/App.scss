@@ -1191,7 +1191,7 @@ section {
   vertical-align: top;
   padding: 2px;
   border-bottom: 1px solid #ededed;
-  
+
   font-weight: 400;
   width: 15%;
 }
@@ -1199,7 +1199,7 @@ section {
   vertical-align: top;
   padding: 2px;
   border-bottom: 1px solid #ededed;
-  
+
   width: 85%;
 }
 .classpiece-details-table tr:last-child th, .classpiece-details-table tr:last-child td {
@@ -1310,7 +1310,7 @@ section {
   margin-top: 3%;
   margin-left: 10%;
   width: 80%;
-  
+
   line-height: 1.8;
 }
 .person-des-content {
@@ -1418,4 +1418,7 @@ section {
 .organisations-list-thumbnail {
   max-width: 40px;
   margin-right: 10px;
+}
+.filter-block {
+  margin-bottom: 15px;
 }

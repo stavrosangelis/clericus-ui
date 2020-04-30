@@ -94,6 +94,13 @@ export const getResourceFullsizeURL = (resource) => {
   if (resource===null || typeof resource.paths==="undefined") {
     return null;
   }
+  if(typeof resource.paths[0].path==="undefined") {
+    let parsedPaths = resource.paths.map(path=>{
+      let newPath = JSON.parse(path);
+      return newPath;
+    });
+    resource.paths = parsedPaths;
+  }
   let thumbnail = resource.paths.filter((item)=>{return (item.pathType==="source")});
   let thumbnailPath = null;
   if (typeof thumbnail[0]!=="undefined") {

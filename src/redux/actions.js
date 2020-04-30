@@ -46,7 +46,7 @@ export function setPaginationParams(type,params) {
     else {
       return false;
     }
-    
+
     if (payload===null) {
       return false;
     }
@@ -85,7 +85,7 @@ export function loadOrganisations() {
     }
     axios({
       method: 'get',
-      url: process.env.REACT_APP_APIPATH+'organisations',
+      url: process.env.REACT_APP_APIPATH+'ui-organisations',
       crossDomain: true,
       params: params
     })
@@ -111,7 +111,7 @@ export function loadEvents() {
     }
     axios({
       method: 'get',
-      url: process.env.REACT_APP_APIPATH+'events',
+      url: process.env.REACT_APP_APIPATH+'ui-events',
       crossDomain: true,
       params: params
     })
@@ -163,7 +163,7 @@ export function loadClasspieces() {
     }
     axios({
       method: 'get',
-      url: process.env.REACT_APP_APIPATH+'resources',
+      url: process.env.REACT_APP_APIPATH+'classpieces',
       crossDomain: true,
       params: params
     })
@@ -285,7 +285,7 @@ export function updateFilters(type,params) {
     else {
       return false;
     }
-    
+
     if (payload===null) {
       return false;
     }

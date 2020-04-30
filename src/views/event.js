@@ -35,7 +35,7 @@ class Event extends Component {
     let params = {
       _id: _id,
     };
-    let url = process.env.REACT_APP_APIPATH+'event';
+    let url = process.env.REACT_APP_APIPATH+'ui-event';
     axios({
       method: 'get',
       url: url,
@@ -56,10 +56,10 @@ class Event extends Component {
 
   renderEventDetails(stateData=null) {
     let item = stateData.item;
-    
+
     //1. EventDetails
     let meta = [];
-    
+
     //1.0 EventDetails - classpieces
     let classpiecesRow = [];
     if (typeof item.resources!=="undefined" && item.resources!==null && item.resources!=="") {
@@ -74,7 +74,7 @@ class Event extends Component {
       classpiecesRow = <tr key={"classpiecesRow"}><th>Classpieces</th><td><ul className="tag-list">{classpiecesData}</ul></td></tr>;
     }
     meta.push(classpiecesRow);
-        
+
     //1.1 EventDetails - events
     let eventsRow = [];
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
@@ -82,7 +82,7 @@ class Event extends Component {
       if(Object.keys(item.events).length === 0){
         eventsRow = <tr key={"eventsRow"}><th>Events</th><td/></tr>;
       }
-      //item.events = {...} 
+      //item.events = {...}
       else {
         let eventsData = item.events.map(eachItem =>{
           return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/event/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
@@ -91,7 +91,7 @@ class Event extends Component {
       }
     }
     meta.push(eventsRow);
-    
+
     //1.2 EventDetails - organisations
     let organisationsRow = [];
     if (typeof item.organisations!=="undefined" && item.organisations!==null && item.organisations!=="") {
@@ -99,7 +99,7 @@ class Event extends Component {
       if(Object.keys(item.organisations).length === 0){
         organisationsRow = <tr key={"organisationsRow"}><th>Organisations</th><td/></tr>;
       }
-      //item.organisations = {...} 
+      //item.organisations = {...}
       else {
         let organisationsData = item.organisations.map(eachItem =>{
           return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/organisation/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
@@ -108,8 +108,8 @@ class Event extends Component {
       }
     }
     meta.push(organisationsRow);
-    
-    //1.3 EventDetails - people   
+
+    //1.3 EventDetails - people
     let peopleRow = <TagPeopleSearch
       key ={"eventTagPeopleSearch"}
       name = {"event"}
@@ -125,14 +125,14 @@ class Event extends Component {
 
   renderItem(stateData=null) {
     let item = stateData.item;
-    
+
     //1.1 Event label
     let label = item.label;
-    
+
     //2.1 meta
     //let metaTable = <Table><tbody>{meta}</tbody></Table>
     let metaTable = this.renderEventDetails(stateData);
-    
+
     //2.2 thumbnailImage
     let thumbnailImage = [];
     let thumbnailURL = getEventThumbnailURL(item);
@@ -141,7 +141,7 @@ class Event extends Component {
         <img src={thumbnailURL} className="people-thumbnail img-fluid img-thumbnail" alt={label} />
       </div>
     }
-    
+
     //2.3 description
     let descriptionRow = []
     if(typeof item.description!=="undefined" && item.description!==null && item.description!=="") {
@@ -149,7 +149,7 @@ class Event extends Component {
       let descriptionData = <div className="person-des-content" key={"descriptionData"}>{item.description}</div>;
       descriptionRow.push(descriptionTitle,descriptionData);
     }
-    
+
     let output = <Card>
       <CardBody>
         <div className="event-container">
@@ -165,7 +165,7 @@ class Event extends Component {
             </div>
             <div className="col-xs-12 col-sm-6 col-md-4">
               {thumbnailImage}
-            </div>            
+            </div>
           </div>
         </div>
       </CardBody>
