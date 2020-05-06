@@ -11,6 +11,9 @@ import Events from '../views/events';
 import Organisation from '../views/organisation';
 import Organisations from '../views/organisations';
 
+// visualisations
+import Heatmap from '../views/visualisations/heatmap';
+
 var routes = [
   {
     path: "/",
@@ -71,6 +74,11 @@ var routes = [
     path: "/organisation/:_id",
     component: Organisation,
     name: "Organisation",
+  },
+  {
+    path: "/heatmap/",
+    component: Heatmap,
+    name: "Heatmap",
   },
 ];
 export default routes;
