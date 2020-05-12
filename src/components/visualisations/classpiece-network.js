@@ -184,7 +184,6 @@ const ClasspieceNetwork = props => {
       })
       .catch(function (error) {
       });
-      console.log(responseData)
       setData(responseData);
       setDrawing(true);
     }

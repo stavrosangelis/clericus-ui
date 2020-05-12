@@ -647,7 +647,7 @@ h1, h2, h3, h4, h5 {
   margin-top: 20px;
   border-radius: 50%;
   background-color: #fff;
-  position: relative;
+  position: absolute;
   right: 5px;
   top: 160px;
   z-index: 3;
@@ -709,6 +709,10 @@ h1, h2, h3, h4, h5 {
 }
 .classpiece-person > span {
   display: none;
+}
+.classpiece-person.selected {
+  border: 4px solid rgba(0,15,255,1);
+    background-color: rgba(0,15,255,0.1);
 }
 .metadata-title {
   font-weight: 500;
@@ -1945,4 +1949,30 @@ section {
 }
 .map-search-container-nodes > div:active {
   background-color: #f0f0f0;
+}
+
+.img-viewer-search-toggle {
+  width: 40px;
+  height: 40px;
+  margin: 10px auto 15px auto;
+  border-radius: 50%;
+  background-color: #fff;
+  position: absolute;
+  top:250px;
+  right: 13px;
+  z-index: 3;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  text-align: center;
+  line-height: 40px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.img-viewer-search-toggle:hover {
+  background-color: #eee;
+}
+.img-viewer-search-toggle:active {
+  background-color: #d0d0d0;
+}
+.img-viewer-search-container .graph-search-container-nodes {
+  height: calc(100vh - 80px);
 }
