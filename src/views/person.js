@@ -5,6 +5,7 @@ import {
   Card, CardBody,
 } from 'reactstrap';
 
+import {Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
 import {getPersonThumbnailURL} from '../helpers/helpers';
 import TagPeopleSearch from '../components/tag-people-search.js';
@@ -56,7 +57,7 @@ class Person extends Component {
 
   renderPersonDetails(stateData=null) {
     let item = stateData.item;
-    
+
     //1. PersonDetails
     let meta = [];
 
@@ -74,7 +75,7 @@ class Person extends Component {
       classpiecesRow = <tr key={"classpiecesRow"}><th>Classpieces</th><td><ul className="tag-list">{classpiecesData}</ul></td></tr>;
     }
     meta.push(classpiecesRow);
-    
+
     //1.1 PersonDetails - events
     let eventsRow = [];
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
@@ -82,7 +83,7 @@ class Person extends Component {
       if(Object.keys(item.events).length === 0){
         eventsRow = <tr key={"eventsRow"}><th>Events</th><td/></tr>;
       }
-      //item.events = {...} 
+      //item.events = {...}
       else {
         let eventsData = item.events.map(eachItem =>{
           return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/event/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
@@ -91,7 +92,7 @@ class Person extends Component {
       }
     }
     meta.push(eventsRow);
-    
+
     //1.2 PersonDetails - organisations
     let organisationsRow = [];
     if (typeof item.organisations!=="undefined" && item.organisations!==null && item.organisations!=="") {
@@ -99,7 +100,7 @@ class Person extends Component {
       if(Object.keys(item.organisations).length === 0){
         organisationsRow = <tr key={"organisationsRow"}><th>Organisations</th><td/></tr>;
       }
-      //item.organisations = {...} 
+      //item.organisations = {...}
       else {
         let organisationsData = item.organisations.map(eachItem =>{
           return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/organisation/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
@@ -108,8 +109,8 @@ class Person extends Component {
       }
     }
     meta.push(organisationsRow);
-    
-    //1.3 PersonDetails - people   
+
+    //1.3 PersonDetails - people
     let peopleRow = <TagPeopleSearch
       key ={"personTagPeopleSearch"}
       name = {"person"}
@@ -125,7 +126,7 @@ class Person extends Component {
 
   renderItem(stateData=null) {
     let item = stateData.item;
-    
+
     //1.1 thumbnailImage
     let label = item.firstName;
     let thumbnailImage = [];
@@ -133,17 +134,17 @@ class Person extends Component {
     if (thumbnailURL!==null) {
       thumbnailImage = <img src={thumbnailURL} className="people-thumbnail img-fluid img-thumbnail person-thumbnailImage" alt={label} />
     }
-    
+
     //1.2 label
     if (typeof item.middleName!=="undefined" && item.middleName!==null && item.middleName!=="") {
       label += " "+item.middleName;
     }
     label += " "+item.lastName;
-    
+
     //2.1 meta
     //let metaTable = <Table><tbody>{meta}</tbody></Table>
     let metaTable = this.renderPersonDetails(stateData);
-    
+
     //3 description
     let descriptionRow = []
     if(typeof item.description!=="undefined" && item.description!==null && item.description!=="") {
@@ -151,10 +152,8 @@ class Person extends Component {
       let descriptionData = <div className="person-des-content" key={"descriptionData"}>{item.description}</div>;
       descriptionRow.push(descriptionTitle,descriptionData);
     }
-    
-    let output = <Card>
-      <CardBody>
-        <div className="person-container">
+
+    let output = <div className="person-container">
           <div className="row person-info-container">
             <div className="col-xs-12 col-sm-6 col-md-5">
               {thumbnailImage}
@@ -168,8 +167,6 @@ class Person extends Component {
             {descriptionRow}
           </div>
         </div>
-      </CardBody>
-    </Card>
     return output;
   }
 
@@ -191,11 +188,20 @@ class Person extends Component {
     if (!this.state.loading) {
       let personCard = this.renderItem(this.state);
       content = <div>
-        <div className="row">
-          <div className="col-12">
-            {personCard}
-          </div>
-        </div>
+        <Card>
+          <CardBody>
+            <div className="row">
+              <div className="col-12">
+                {personCard}
+              </div>
+            </div>
+            <div className="row">
+              <div className="col-xs-12 col-sm-4">
+                <Link href={`/person-graph/${this.props.match.params._id}`} to={`/person-graph/${this.props.match.params._id}`} className="person-component-link" title="Person graph network"><i className="pe-7s-graph1" /></Link>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
       </div>
     }
 

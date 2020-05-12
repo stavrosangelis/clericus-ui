@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useReducer} from 'react';
+import React, { useEffect, useState, useRef} from 'react';
 import {
   Spinner,
 } from 'reactstrap';
@@ -17,15 +17,11 @@ const APIPath = process.env.REACT_APP_APIPATH;
 const Heatmap = props => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState([]);
-  const defaultMapState = {
+  const mapState = {
     lat: 53.3497645,
     lng: -6.2602732,
     zoom: 8,
   }
-  const [mapState, setMapState] = useReducer(
-    (state, newState) => (
-    {...state, ...newState}
-  ),defaultMapState);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
 

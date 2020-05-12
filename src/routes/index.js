@@ -6,6 +6,7 @@ import Classpiece from '../views/classpiece';
 import GenericSearch from '../views/generic-search';
 import People from '../views/people';
 import Person from '../views/person';
+import PersonGraph from '../views/visualisations/person-graph';
 import Event from '../views/event';
 import Events from '../views/events';
 import Organisation from '../views/organisation';
@@ -54,6 +55,11 @@ var routes = [
     path: "/person/:_id",
     component: Person,
     name: "Person",
+  },
+  {
+    path: "/person-graph/:_id",
+    component: PersonGraph,
+    name: "Person graph",
   },
   {
     path: "/events",

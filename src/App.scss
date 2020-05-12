@@ -163,13 +163,21 @@ h1, h2, h3, h4, h5 {
   margin: 0;
   padding: 0;
   opacity: 0;
-  height: 0;
   transition: 0.2s opacity;
-  z-index: 999999;
+  z-index: -1;
+  height: 0;
 }
 .generic-search-input.visible {
   opacity: 0.8;
   height: 50px;
+  z-index: 999999;
+  height: 40px;
+}
+.generic-search-input form {
+  display: none;
+}
+.generic-search-input.visible form {
+  display: block;
 }
 .generic-search-input input {
   width: 100%;
@@ -606,6 +614,32 @@ h1, h2, h3, h4, h5 {
 .zoom-action:active {
   background-color: #d0d0d0;
 }
+.zoom-action.active {
+  background-color: #466ddb;
+  color: #fff;
+}
+/*
+.zoom-action.active.color1 {
+  background-color: #DE9A96;
+}
+.zoom-action.active.color2 {
+  background-color: #F5D98B;
+  color: #333;
+}
+.zoom-action.active.color3 {
+  background-color: #FAF3A5;
+  color: #333;
+}
+.zoom-action.active.color4 {
+  background-color: #82CEB6;
+}
+.zoom-action.active.color5 {
+  background-color: #96E3E6;
+}
+.zoom-action.active.color6 {
+  background-color: #89BDE0;
+}
+*/
 
 .pan-container {
   width: 60px;
@@ -614,7 +648,6 @@ h1, h2, h3, h4, h5 {
   border-radius: 50%;
   background-color: #fff;
   position: relative;
-  position: absolute;
   right: 5px;
   top: 160px;
   z-index: 3;
@@ -1471,4 +1504,351 @@ section {
 .marker-cluster-medium div, .marker-cluster-small div {
   background-color: transparent !important;
   font-weight: bold !important;
+}
+.graph-container {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+  height:600px;
+  position: relative;
+  overflow: hidden;
+}
+.graph-details-card {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  max-height: 350px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  min-width: 350px;
+  max-width: 500px;
+}
+.graph-details-card-close {
+  font-size: 16px;
+  position: absolute;
+  top: 2px;
+  right: 0;
+  width: 24px;
+  width: 24px;
+  line-height: 24px;
+  text-align: center;
+  cursor: pointer;
+  color: #666;
+}
+.graph-details-card-close:hover {
+  color: #999;
+}
+.graph-details-card-close:active {
+  color: #444;
+}
+.graph-details-card .card-title {
+  padding: 10px 15px 0 15px;
+  margin: 0;
+}
+.graph-details-card .card-title > h4 {
+  font-size: 18px;
+}
+.graph-details-card .node-relations-title .badge {
+  cursor: pointer;
+}
+.graph-details-card .card-body {
+  padding-top: 0;
+}
+.graph-details-card .card-content {
+  overflow: auto;
+  max-height: 200px;
+  padding-right: 10px;
+  margin-right: -10px;
+}
+.graph-details-card .card-content .entries-list {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+.graph-details-card .card-content .entries-list > li:before {
+  content: "-";
+  color: #999;
+  padding: 0 5px;
+}
+.graph-details-card .card-content .entries-list li a {
+  font-size: 13px;
+}
+.graph-details-card .card-content .entries-list li .graph-link-rel {
+  font-size: 11px;
+  color: #555;
+}
+.graph-details-card .card-content .entries-list li .arrow {
+  font-size: 11px;
+  color: #555;
+  padding: 0 5px;
+}
+.graph-details-card .card-footer {
+  padding: 10px 0 0 0;
+  margin-top: -5px;
+  margin-bottom: -5px;
+  text-align: center;
+  background-color: transparent;
+  border: 0 none;
+}
+.graph-actions {
+  position: absolute;
+  top: 15px;
+  right: 10px;
+  width: 80px;
+  text-align: center;
+}
+.graph-actions .zoom-panel {
+  margin: 0 auto 15px auto;
+  position: relative;
+  z-index: 3;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  border-radius: 6px;
+  width: 40px;
+}
+.zoom-action {
+  cursor: pointer;
+  background-color: #FFF;
+  display: block;
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  line-height: 40px;
+  transition: all 0.3s;
+}
+.zoom-panel .zoom-action:first-child {
+  border-top-right-radius: 4px;
+  border-top-left-radius: 4px;
+}
+.zoom-panel .zoom-action:last-child {
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+.zoom-action:hover {
+  background-color: #eee;
+}
+.zoom-action:active {
+  background-color: #d0d0d0;
+}
+
+.graph-actions .pan-container, .options-trigger {
+  padding: 0;
+  margin: 0 auto 15px auto;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #fff;
+  position: relative;
+  z-index: 3;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  right: 0;
+  top: 0;
+}
+.graph-search-toggle {
+  width: 40px;
+  height: 40px;
+  margin: 10px auto 15px auto;
+  border-radius: 50%;
+  background-color: #fff;
+  position: relative;
+  right: 0;
+  z-index: 3;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  text-align: center;
+  line-height: 40px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.graph-search-toggle:hover {
+  background-color: #eee;
+}
+.graph-search-toggle:active {
+  background-color: #d0d0d0;
+}
+.graph-search-container {
+  width: 250px;
+  height: 100%;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  position: absolute;
+  top: 0;
+  right: -255px;
+  transition: all 0.5s;
+  z-index: 5;
+}
+.graph-search-container.visible {
+  right: 0;
+}
+.close-graph-search-container {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  line-height: 20px;
+  text-align: center;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 9;
+}
+.close-graph-search-container:hover {
+  color: #666;
+}
+.close-graph-search-container:active {
+  color: #000;
+}
+.graph-search-input {
+  padding: 0 15px;
+  margin: 20px 0 10px 0;
+  position: relative;
+}
+.graph-search-input input {
+  padding-right: 20px;
+}
+.graph-search-input > i {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  cursor: pointer;
+}
+.graph-search-input > i:hover {
+  color: #666;
+}
+.graph-search-input > i:active {
+  color: #000;
+}
+.graph-search-container-nodes {
+  height: 530px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.graph-search-container-nodes > div {
+  cursor: pointer;
+  padding: 5px 15px;
+  border-bottom: 1px solid #ddd;
+}
+.graph-search-container-nodes > div:first-child {
+  border-top: 1px solid #ddd;
+}
+.graph-search-container-nodes > div:hover {
+  background-color: #f9f9f9;
+}
+.graph-search-container-nodes > div:active {
+  background-color: #f0f0f0;
+}
+.pan-action {
+  position: absolute;
+  display: block;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+  transition: all 0.3s;
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 14px;
+}
+.pan-action:hover {
+  background-color: #eee;
+}
+.pan-action:active {
+  background-color: #d0d0d0;
+}
+.graph-loading {
+  height: 600px;
+  line-height: 500px;
+  display: block;
+  text-align: center;
+}
+.person-component-link {
+  width: 60px;
+  height: 60px;
+  line-height: 50px;
+  border: 4px solid $link;
+  border-radius: 100%;
+  position: relative;
+  display: block;
+  margin: 0 auto;
+  text-align: center;
+  transition: 0.4s background-color;
+}
+.person-component-link > i {
+  font-size: 38px;
+  vertical-align: middle;
+  transition: 0.4s color;
+}
+.person-component-link:hover {
+  background-color: $link-lighter;
+}
+.person-component-link:hover > i {
+  color: #fff;
+}
+.related-nodes-paths-label {
+  margin-bottom: 5px;
+}
+.related-nodes-paths-label > div {
+  display: inline-block;
+}
+.related-nodes-paths-label .source {
+  padding-right: 10px;
+}
+.related-nodes-paths-label .source span {
+  color: $green;
+}
+.related-nodes-paths-label .target span {
+  color: $blue;
+}
+.related-nodes-paths-block {
+  position: relative;
+  display: block;
+}
+.related-nodes-paths-count {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.related-nodes-paths {
+  margin: 0;
+  padding: 0 0 10px 25px;
+  list-style-type: none;
+  font-size: 13px;
+}
+.related-nodes-paths > li::before {
+  content: "\f068";
+  font-family: "FontAwesome";
+  padding-right: 5px;
+  font-size: 8px;
+  vertical-align: middle;
+}
+.related-nodes-paths > li {
+}
+.related-nodes-paths > li > div {
+  display: inline-block;
+}
+.related-nodes-paths div {
+  padding-right: 5px;
+}
+.related-nodes-paths .relationship {
+  font-size: 11px;
+  padding-right: 15px;
+  position: relative;
+  padding-bottom: 5px;
+  top: -5px;
+}
+.related-nodes-paths .relationship .line {
+  position: absolute;
+  bottom: 4px;
+  border-bottom: 2px solid #333;
+  width: calc(100% - 12px);
+  height: 2px;
+}
+.related-nodes-paths .relationship .arrow::after {
+  content: "\f054";
+  font-family: "FontAwesome";
+  position: absolute;
+  font-size: 13px;
+  width: 15px;
+  height: 15px;
+  right: -2px;
+  top: 7px;
+  display: block;
+  color: #333;
 }
