@@ -3,6 +3,7 @@ import Article from '../views/article';
 import Articles from '../views/articles';
 import Classpieces from '../views/classpieces';
 import Classpiece from '../views/classpiece';
+import ClasspieceGraph from '../views/visualisations/classpiece-graph';
 import GenericSearch from '../views/generic-search';
 import People from '../views/people';
 import Person from '../views/person';
@@ -40,6 +41,11 @@ var routes = [
     path: "/classpiece/:_id",
     component: Classpiece,
     name: "classpiece",
+  },
+  {
+    path: "/classpiece-graph/:_id",
+    component: ClasspieceGraph,
+    name: "classpiece graph",
   },
   {
     path: "/search/:term",

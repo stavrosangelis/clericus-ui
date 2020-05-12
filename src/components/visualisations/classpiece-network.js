@@ -145,7 +145,7 @@ const drawLines = (coords) => {
 }
 
 
-const PersonNetwork = props => {
+const ClasspieceNetwork = props => {
   const [loading, setLoading] = useState(true);
   const [drawing, setDrawing] = useState(false);
   const [data, setData] = useState(null);
@@ -184,6 +184,7 @@ const PersonNetwork = props => {
       })
       .catch(function (error) {
       });
+      console.log(responseData)
       setData(responseData);
       setDrawing(true);
     }
@@ -568,6 +569,7 @@ const PersonNetwork = props => {
       node.selected=true;
       zoom_handler.translateTo(canvas, node.x, node.y);
     }
+
   }
 
   const searchIcon = <div className="graph-search-toggle" onClick={()=>toggleSearchContainerVisible()}>
@@ -678,4 +680,4 @@ const PersonNetwork = props => {
     </div>
   )
 }
-export default PersonNetwork;
+export default ClasspieceNetwork;
