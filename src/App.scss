@@ -1976,3 +1976,32 @@ section {
 .img-viewer-search-container .graph-search-container-nodes {
   height: calc(100vh - 80px);
 }
+
+
+.filter-label{
+  margin-left: 10px;
+}
+.filter-body .filter-span-type{
+  padding-left: 10px;
+}
+.filter-span{
+  vertical-align: middle;
+  line-height: normal;
+}
+/* datepicker */
+.ui-datepicker {
+  width: 100%; 
+  height: calc(1.5em + .5rem + 2px); 
+}
+.datepicker-wrapper {
+  width: 100%;
+  display: flex;
+  margin: 0 0 15px 0;
+  height: calc(1.5em + .5rem + 2px); 
+}
+.datepicker-wrapper .btn-append {
+  z-index: 0;
+}
+.filter-search-font {
+  font-size: 7px;
+}

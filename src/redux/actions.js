@@ -78,6 +78,32 @@ export function loadGenericStats() {
   }
 }
 
+export function loadOrganisationsType() {
+  return (dispatch,getState) => {
+    let params = {
+      systemType: "organisationTypes"
+    }
+    axios({
+      method: 'get',
+      url: process.env.REACT_APP_APIPATH+'taxonomy',
+      crossDomain: true,
+      params: params
+    })
+	  .then(function (response) {
+      let payload = {
+        loadingOrganisationsType: false,
+        organisationsType: response.data.data.taxonomyterms,
+      }
+      dispatch({
+        type: "GENERIC_UPDATE",
+        payload: payload
+      });
+	  })
+	  .catch(function (error) {
+	  });
+  }
+}
+
 export function loadOrganisations() {
   return (dispatch,getState) => {
     let params = {
@@ -89,10 +115,36 @@ export function loadOrganisations() {
       crossDomain: true,
       params: params
     })
-	  .then(function (response) {
+    .then(function (response) {
       let payload = {
         loadingOrganisations: false,
         organisations: response.data.data.data,
+      }
+      dispatch({
+        type: "GENERIC_UPDATE",
+        payload: payload
+      });
+    })
+    .catch(function (error) {
+    });
+  }
+}
+
+export function loadEventsType() {
+  return (dispatch,getState) => {
+    let params = {
+      systemType: "eventTypes"
+    }
+    axios({
+      method: 'get',
+      url: process.env.REACT_APP_APIPATH+'taxonomy',
+      crossDomain: true,
+      params: params
+    })
+	  .then(function (response) {
+      let payload = {
+        loadingEventsType: false,
+        eventsType: response.data.data.taxonomyterms,
       }
       dispatch({
         type: "GENERIC_UPDATE",
@@ -185,7 +237,9 @@ export function loadClasspieces() {
 export function loadTemporals() {
   return (dispatch,getState) => {
     let params = {
-      limit: 1000000
+      limit: 1000000,
+      orderField: "startDate",
+      orderDesc: false,
     }
     axios({
       method: 'get',
@@ -237,48 +291,78 @@ export function loadSpatials() {
 export function updateFilters(type,params) {
   return (dispatch,getState) => {
     let payload = null;
+    let eventsData = params.events;
+    let organisationsData = params.organisations;
+    let temporalsData = params.temporals;
+    let spatialsData = params.spatials;
+    
     if (type==="classpieces") {
+      /*
+      if(typeof params.events === "undefined") {
+        eventsData = Object.assign({}, getState().classpiecesFilters.events);
+      }*/
+      if(typeof params.organisations === "undefined") {
+        organisationsData = Object.assign({}, getState().classpiecesFilters.organisations);
+      }
+      if(typeof params.temporals === "undefined") {
+        temporalsData = Object.assign({}, getState().classpiecesFilters.temporals);
+      }
+      if(typeof params.spatials === "undefined") {
+        spatialsData = Object.assign({}, getState().classpiecesFilters.spatials);
+      }
       payload = {
         classpiecesFilters: {
-          classpieces: params.classpieces,
-          events: params.events,
-          organisations: params.organisations,
-          people: params.people,
-          //temporals: params.temporals,
-          //spatials: params.spatials,
+          //classpieces: params.classpieces,
+          //events: eventsData,
+          organisations: organisationsData,
+          //people: params.people,
+          temporals: temporalsData,
+          spatials: spatialsData,
         }
       };
     }else if (type==="people") {
+      if(typeof params.events === "undefined") {
+        eventsData = Object.assign({}, getState().peopleFilters.events);
+      }
+      if(typeof params.organisations === "undefined") {
+        organisationsData = Object.assign({}, getState().peopleFilters.organisations);
+      }
+      if(typeof params.temporals === "undefined") {
+        temporalsData = Object.assign({}, getState().peopleFilters.temporals);
+      }
+      if(typeof params.spatials === "undefined") {
+        spatialsData = Object.assign({}, getState().peopleFilters.spatials);
+      }
       payload = {
         peopleFilters: {
-          classpieces: params.classpieces,
-          events: params.events,
-          organisations: params.organisations,
-          people: params.people,
-          //temporals: params.temporals,
-          //spatials: params.spatials,
+          //classpieces: params.classpieces,
+          events: eventsData,
+          organisations: organisationsData,
+          //people: params.people,
+          temporals: temporalsData,
+          spatials: spatialsData,
         }
       };
     }else if (type==="events") {
       payload = {
         eventsFilters: {
-          classpieces: params.classpieces,
-          events: params.events,
-          organisations: params.organisations,
-          people: params.people,
-          temporals: params.temporals,
-          spatials: params.spatials,
+          //classpieces: params.classpieces,
+          events: eventsData,
+          //organisations: params.organisations,
+          //people: params.people,
+          //temporals: params.temporals,
+          //spatials: params.spatials,
         }
       };
     }else if (type==="organisations") {
       payload = {
         organisationsFilters: {
-          classpieces: params.classpieces,
-          events: params.events,
-          organisations: params.organisations,
-          people: params.people,
-          temporals: params.temporals,
-          spatials: params.spatials,
+          //classpieces: params.classpieces,
+          //events: params.events,
+          organisations: organisationsData,
+          //people: params.people,
+          //temporals: params.temporals,
+          //spatials: params.spatials,
         }
       };
     }

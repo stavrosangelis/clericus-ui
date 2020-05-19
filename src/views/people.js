@@ -8,7 +8,7 @@ import {
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getPersonThumbnailURL} from '../helpers/helpers';
+import {getPersonThumbnailURL, getIDFromArray} from '../helpers/helpers';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
@@ -74,13 +74,38 @@ class People extends Component {
     this.setState({
       peopleLoading: true
     })
+    let /*eventsType,*/ eventsData = [], /*organisationsType,*/ organisationsData = [];
+    if(typeof this.props.peopleFilters.events !== "undefined") {
+      //eventsType = getIDFromArray(this.props.peopleFilters.events.type);
+      eventsData = getIDFromArray(this.props.peopleFilters.events.data);
+    }
+    if(typeof this.props.peopleFilters.organisations !== "undefined") {
+      //organisationsType = getIDFromArray(this.props.peopleFilters.organisations.type);
+      organisationsData = getIDFromArray(this.props.peopleFilters.organisations.data);
+    }
+    if(this.props.peopleFilters.temporals.eventID.length > 0) {
+      for (let i=0;i<this.props.peopleFilters.temporals.eventID.length;i++) {
+        if(!eventsData.includes(this.props.peopleFilters.temporals.eventID[i])) {
+          eventsData.push(this.props.peopleFilters.temporals.eventID[i]);
+        }
+      }
+    }
+    if(this.props.peopleFilters.spatials.eventID.length > 0) {
+      for (let i=0;i<this.props.peopleFilters.spatials.eventID.length;i++) {
+        if(!eventsData.includes(this.props.peopleFilters.spatials.eventID[i])) {
+          eventsData.push(this.props.peopleFilters.spatials.eventID[i]);
+        }
+      }
+    }
     let params = {
       page: this.state.page,
       limit: this.state.limit,
-      events: this.props.peopleFilters.events,
-      organisations: this.props.peopleFilters.organisations,
-      people: this.props.peopleFilters.people,
-      resources: this.props.peopleFilters.classpieces,
+      //eventType: eventsType,
+      events: eventsData,
+      organisations: organisationsData,
+      //organisationType: organisationsType,
+      //people: this.props.peopleFilters.people,
+      //resources: this.props.peopleFilters.classpieces,
     };
     if (this.state.simpleSearchTerm!=="") {
       params.label = this.state.simpleSearchTerm;
@@ -514,20 +539,22 @@ class People extends Component {
           updateAdvancedSearchInputs={this.updateAdvancedSearchInputs}
           />
       </Collapse>
-      let filters = [];
-      if (this.props.peopleFilters!==null && this.props.peopleRelationship!==null) {
-        filters = <Filters
-          name="people"
-          filterType={["Classpieces", "Events", "Organisations", "People"]}
-          filtersSet={this.props.peopleFilters}
-          relationshipSet={this.props.peopleRelationship}
-          updatedata={this.load}
-          />
-      }
+
       content = <div>
         <div className="row">
           <div className="col-xs-12 col-sm-4">
-            {filters}
+            <Filters
+              name="people"
+              filterType = {[
+                {name: "organisations", layer: ["type","data"], compareData: {dataSet: "organisationType", typeSet: "labelId"}, typeFilterDisable: true},
+                {name: "events", layer: ["type","data"], compareData: {dataSet: "eventType", typeSet: "_id"}, typeFilterDisable: true},
+                //{name: "temporals"},
+                //{name: "spatials"},
+                ]}
+              filtersSet={this.props.peopleFilters}
+              relationshipSet={this.props.peopleRelationship}
+              decidingFilteringSet={!this.state.loading}
+              updatedata={this.load}/>
           </div>
           <div className="col-xs-12 col-sm-8">
             <h2>{heading}

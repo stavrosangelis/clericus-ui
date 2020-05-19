@@ -8,7 +8,7 @@ import {
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getOrganisationThumbnailURL} from '../helpers/helpers';
+import {getOrganisationThumbnailURL, getIDFromArray} from '../helpers/helpers';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
@@ -73,13 +73,16 @@ class Organisations extends Component {
       organisationsLoading: true
     })
     let context = this;
+    let organisationsType = getIDFromArray(this.props.organisationsFilters.organisations.type);
+    //let organisationsData = getIDFromArray(this.props.organisationsFilters.organisations.data);
     let params = {
       page: this.state.page,
       limit: this.state.limit,
-      events: this.props.organisationsFilters.events,
-      organisations: this.props.organisationsFilters.organisations,
-      people: this.props.organisationsFilters.people,
-      resources: this.props.organisationsFilters.classpieces,
+      //events: this.props.organisationsFilters.events,
+      //organisations: organisationsData,
+      organisationType: organisationsType,
+      //people: this.props.organisationsFilters.people,
+      //resources: this.props.organisationsFilters.classpieces,
     };
     if (this.state.simpleSearchTerm!=="") {
       params.label = this.state.simpleSearchTerm;
@@ -120,16 +123,17 @@ class Organisations extends Component {
           page: responseData.currentPage,
           totalPages: responseData.totalPages,
           totalItems: responseData.totalItems,
-          items: organisations
+          items: organisations,
         });
 
-        context.updateOrganisationsRelationship(organisations);
+        //context.updateOrganisationsRelationship(organisations);
       }
 	  })
 	  .catch(function (error) {
 	  });
   }
 
+  /*
   updateOrganisationsRelationship(organisations=null) {
     if(organisations===null){
       return false;
@@ -170,7 +174,8 @@ class Organisations extends Component {
 	  .catch(function (error) {
 	  });
   }
-
+  */
+  
   simpleSearch(e) {
     e.preventDefault();
     if (this.state.simpleSearchTerm.length<2) {
@@ -499,10 +504,10 @@ class Organisations extends Component {
           <div className="col-xs-12 col-sm-4">
             <Filters
               name="organisations"
-              filterType = {["Organisations"]}
+              filterType = {[{name: "organisations", layer: ["type","data"], compareData: {dataSet: "organisationType", typeSet: "labelId"}, typeFilterDisable: false}]}
               filtersSet={this.props.organisationsFilters}
-              filtersClasspieceType="hasRepresentationObject"
               relationshipSet={this.props.organisationsRelationship}
+              decidingFilteringSet={!this.state.loading}
               updatedata={this.load}/>
           </div>
           <div className="col-xs-12 col-sm-8">

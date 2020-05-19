@@ -19,20 +19,24 @@ import mainRoutes from "./routes/";
 
 import {connect} from "react-redux";
 import {
+  loadOrganisationsType,
   loadOrganisations,
+  loadEventsType,
   loadEvents,
-  loadPeople,
-  loadClasspieces,
+  //loadPeople,
+  //loadClasspieces,
   loadTemporals,
   loadSpatials,
 } from "./redux/actions";
 
 function mapDispatchToProps(dispatch) {
   return {
+    loadOrganisationsType: () => dispatch(loadOrganisationsType()),
     loadOrganisations: () => dispatch(loadOrganisations()),
+    loadEventsType: () => dispatch(loadEventsType()),
     loadEvents: () => dispatch(loadEvents()),
-    loadPeople: () => dispatch(loadPeople()),
-    loadClasspieces: () => dispatch(loadClasspieces()),
+    //loadPeople: () => dispatch(loadPeople()),
+    //loadClasspieces: () => dispatch(loadClasspieces()),
     loadTemporals: () => dispatch(loadTemporals()),
     loadSpatials: () => dispatch(loadSpatials()),
   }
@@ -42,10 +46,12 @@ class App extends Component{
 
   componentDidMount() {
     loadProgressBar();
+    this.props.loadOrganisationsType();
     this.props.loadOrganisations();
+    this.props.loadEventsType();
     this.props.loadEvents();
-    this.props.loadPeople();
-    this.props.loadClasspieces();
+    //this.props.loadPeople();
+    //this.props.loadClasspieces();
     this.props.loadTemporals();
     this.props.loadSpatials();
   }

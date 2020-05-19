@@ -6,7 +6,7 @@ import {
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getResourceThumbnailURL} from '../helpers/helpers';
+import {getResourceThumbnailURL, getIDFromArray} from '../helpers/helpers';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 
@@ -64,13 +64,38 @@ class Classpieces extends Component {
       classpiecesLoading: true
     })
     let context = this;
+    let /*eventsType,*/ eventsData = [], /*organisationsType,*/ organisationsData = [];
+    if(typeof this.props.classpiecesFilters.events !== "undefined") {
+      //eventsType = getIDFromArray(this.props.classpiecesFilters.events.type);
+      eventsData = getIDFromArray(this.props.classpiecesFilters.events.data);
+    }
+    if(typeof this.props.classpiecesFilters.organisations !== "undefined") {
+      //organisationsType = getIDFromArray(this.props.classpiecesFilters.organisations.type);
+      organisationsData = getIDFromArray(this.props.classpiecesFilters.organisations.data);
+    }
+    if(this.props.classpiecesFilters.temporals.eventID.length > 0) {
+      for (let i=0;i<this.props.classpiecesFilters.temporals.eventID.length;i++) {
+        if(!eventsData.includes(this.props.classpiecesFilters.temporals.eventID[i])) {
+          eventsData.push(this.props.classpiecesFilters.temporals.eventID[i]);
+        }
+      }
+    }
+    if(this.props.classpiecesFilters.spatials.eventID.length > 0) {
+      for (let i=0;i<this.props.classpiecesFilters.spatials.eventID.length;i++) {
+        if(!eventsData.includes(this.props.classpiecesFilters.spatials.eventID[i])) {
+          eventsData.push(this.props.classpiecesFilters.spatials.eventID[i]);
+        }
+      }
+    }
     let params = {
       page: this.state.page,
       limit: this.state.limit,
-      events: this.props.classpiecesFilters.events,
-      organisations: this.props.classpiecesFilters.organisations,
-      people: this.props.classpiecesFilters.people,
-      resources: this.props.classpiecesFilters.classpieces,
+      //eventType: eventsType,
+      events: eventsData,
+      organisations: organisationsData,
+      //organisationType: organisationsType,
+      //people: this.props.classpiecesFilters.people,
+      //resources: this.props.classpiecesFilters.classpieces,
     };
     let url = process.env.REACT_APP_APIPATH+'classpieces';
     axios({
@@ -256,6 +281,9 @@ class Classpieces extends Component {
     let content = <div>
       <div className="row">
         <div className="col-xs-12">
+          <h4>Filters</h4>
+        </div>
+        <div className="col-xs-12 col-sm-8">
           <h2>{heading}</h2>
         </div>
       </div>
@@ -295,10 +323,15 @@ class Classpieces extends Component {
           <div className="col-xs-12 col-sm-4">
             <Filters
               name="classpieces"
-              filterType = {["Classpieces", "Events", "Organisations", "People"]}
+              filterType = {[
+                {name: "organisations", layer: ["type","data"], compareData: {dataSet: "organisationType", typeSet: "labelId"}, typeFilterDisable: true},
+                //{name: "events", layer: ["type","data"], compareData: {dataSet: "eventType", typeSet: "_id"}, typeFilterDisable: true},
+                //{name: "temporals"},
+                //{name: "spatials"},
+                ]}
               filtersSet={this.props.classpiecesFilters}
-              filtersClasspieceType={null}
               relationshipSet={this.props.classpiecesRelationship}
+              decidingFilteringSet={!this.state.loading}
               updatedata={this.load}/>
           </div>
           <div className="col-xs-12 col-sm-8">

@@ -22,12 +22,29 @@ export const defaultState = {
   },
 
   classpiecesFilters: {
-    classpieces: [],
-    events: [],
-    organisations: [],
-    people: [],
-    //temporals: [],
-    //spatials: [],
+    //classpieces: [],
+    /*
+    events: {
+      type: {},
+      data: {},
+      dataName: {},
+    },
+    */
+    organisations:  {
+      type: {},
+      data: {},
+      dataName: {},
+    },
+    //people: [],
+    temporals: {
+      startDate: null,
+      endDate: null,
+      eventType: [],
+      eventID: [],
+    },
+    spatials: {
+      eventID: [],
+    },
   },
   classpiecesRelationship: {
     classpieces: [],
@@ -39,12 +56,27 @@ export const defaultState = {
   },
   
   peopleFilters: {
-    classpieces: [],
-    events: [],
-    organisations: [],
-    people: [],
-    //temporals: [],
-    //spatials: [],
+    //classpieces: [],
+    events: {
+      type: {},
+      data: {},
+      dataName: {},
+    },
+    organisations:  {
+      type: {},
+      data: {},
+      dataName: {},
+    },
+    //people: [],
+    temporals: {
+      startDate: null,
+      endDate: null,
+      eventType: [],
+      eventID: [],
+    },
+    spatials: {
+      eventID: [],
+    },
   },
   peopleRelationship: {
     classpieces: [],
@@ -56,45 +88,59 @@ export const defaultState = {
   },
   
   eventsFilters: {
-    classpieces: [],
-    events: [],
-    organisations: [],
-    people: [],
-    temporals: [],
-    spatials: [],
+    //classpieces: [],
+    events: {
+      type: {},
+      data: {},
+      dataName: {},
+    },
+    //organisations: [],
+    //people: [],
+    //temporals: [],
+    //spatials: [],
   },
   eventsRelationship: {
-    classpieces: [],
+    //classpieces: [],
     events: [],
-    organisations: [],
-    people: [],
-    temporals: [],
-    spatials: [],
+    //organisations: [],
+    //people: [],
+    //temporals: [],
+    //spatials: [],
   },
   
   organisationsFilters: {
-    classpieces: [],
-    events: [],
-    organisations: [],
-    people: [],
-    temporals: [],
-    spatials: [],
+    //classpieces: [],
+    //events: [],
+    organisations: {
+      type: {},
+      data: {},
+      dataName: {},
+    },
+    //people: [],
+    //temporals: [],
+    //spatials: [],
   },
   organisationsRelationship: {
-    classpieces: [],
-    events: [],
+    //classpieces: [],
+    //events: [],
     organisations: [],
-    people: [],
-    temporals: [],
-    spatials: [],
+    //people: [],
+    //temporals: [],
+    //spatials: [],
   },
 
+  loadingOrganisationsType: true,
+  organisationsType: [],
+  
   loadingOrganisations: true,
   organisations: [],
 
   loadingClasspieces: true,
   classpieces: [],
 
+  loadingEventsType: true,
+  eventsType: [],
+  
   loadingEvents: true,
   events: [],
   
