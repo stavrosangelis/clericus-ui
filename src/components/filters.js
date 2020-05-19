@@ -4,21 +4,29 @@ import {
   updateFilters
 } from "../redux/actions";
 import Filter from "./filter";
+import FilterTemporal from "./filter-temporal";
+import FilterSpatial from "./filter-spatial";
 import PropTypes from 'prop-types';
 
 const mapStateToProps = state => {
   return {
+    loadingOrganisationsType: state.loadingOrganisationsType,
+    organisationsType: state.organisationsType,
+    
     loadingOrganisations: state.loadingOrganisations,
     organisations: state.organisations,
+    
+    loadingEventsType: state.loadingEventsType,
+    eventsType: state.eventsType,
 
     loadingEvents: state.loadingEvents,
     events: state.events,
 
-    loadingPeople: state.loadingPeople,
-    people: state.people,
+    //loadingPeople: state.loadingPeople,
+    //people: state.people,
 
-    loadingClasspieces: state.loadingClasspieces,
-    classpieces: state.classpieces,
+    //loadingClasspieces: state.loadingClasspieces,
+    //classpieces: state.classpieces,
 
     loadingTemporals: state.loadingTemporals,
     temporals: state.temporals,
@@ -43,33 +51,84 @@ class Filters extends React.Component {
     this.clearAllFilters = this.clearAllFilters.bind(this);
   }
 
-  updateFilters(name, values) {
+  updateFilters(name, values, dataRefresh=true) {
     let props = this.props;
-    let allFilters = props.filtersSet;
     let payload = {
-      events:allFilters.events,
-      organisations: allFilters.organisations,
-      people: allFilters.people,
-      classpieces: allFilters.classpieces,
-      temporals: allFilters.temporals,
-      spatials: allFilters.spatials,
+      [name]: values,
     }
-    payload[name] = values;
     props.updateFilters(props.name,payload);
-    let context = this;
-    setTimeout(function() {
-      context.props.updatedata();
-    },10);
+    if(dataRefresh === true) {
+      let context = this;
+      setTimeout(function() {
+        context.props.updatedata();
+      },10);
+    }
   }
 
   clearAllFilters(e) {
-    let payload = {
-      classpieces: [],
-      events: [],
-      organisations: [],
-      people: [],
-      temporals: [],
-      spatials: [],
+    let payload = null;
+    if(this.name === "people") {
+      payload = {
+        events: {
+          type: {},
+          data: {},
+          dataName: {},
+        },
+        organisations:  {
+          type: {},
+          data: {},
+          dataName: {},
+        },
+        temporals: {
+          startDate: null,
+          endDate: null,
+          eventType: [],
+          eventID: [],
+        },
+        spatials: {
+          eventID: [],
+        },
+      }
+    }else if (this.name === "classpieces") {
+      payload = {
+        /*
+        events: {
+          type: {},
+          data: {},
+          dataName: {},
+        },
+        */
+        organisations:  {
+          type: {},
+          data: {},
+          dataName: {},
+        },
+        temporals: {
+          startDate: null,
+          endDate: null,
+          eventType: [],
+          eventID: [],
+        },
+        spatials: {
+          eventID: [],
+        },
+      }
+    }else if (this.name === "events") {
+      payload = {
+        events: {
+          type: {},
+          data: {},
+          dataName: {},
+        },
+      }
+    }else if (this.name === "organisations") {
+      payload = {
+        organisations: {
+          type: {},
+          data: {},
+          dataName: {},
+        },
+      }
     }
     let context = this;
     this.props.updateFilters(this.name,payload);
@@ -86,63 +145,85 @@ class Filters extends React.Component {
     let people = [];
     let temporals = [];
     let spatials = [];
-    if(props.filterType.includes("Classpieces")) {
-      if (!props.loadingClasspieces) {
-        classpieces = <Filter
-          filtersSet={props.filtersSet.classpieces}
-          filtersType={"classpieces"}
-          items={props.classpieces}
-          label="Classpieces"
-          updateFilters={this.updateFilters}
-        />
+    for (let i=0;i<props.filterType.length;i++) {
+      if(props.filterType[i].name === "Classpieces") {
+        if (!props.loadingClasspieces) {
+          classpieces = <Filter
+            key={this.name+"classpieces"}
+            filtersSet={props.filtersSet.classpieces}
+            filtersType={"classpieces"}
+            items={props.classpieces}
+            label="Classpieces"
+            updateFilters={this.updateFilters}
+          />
+        }
       }
-    }
-
-    if(props.filterType.includes("Events")) {
-      if (!props.loadingEvents) {
-        events = <Filter
-          filtersSet={props.filtersSet.events}
-          filtersType={"events"}
-          items={props.events}
-          label="Events"
-          updateFilters={this.updateFilters}
-        />
+      else if(props.filterType[i].name === "events") {
+        if ((!props.loadingEvents) && (props.decidingFilteringSet)) {
+          events = <Filter
+            key={this.name+"events"}
+            filtersSet={props.filtersSet.events}
+            relationshipSet={props.relationshipSet.events}
+            filtersType={props.filterType[i]}
+            items={props.events}
+            itemsType={props.eventsType}
+            label="Events"
+            updateFilters={this.updateFilters}
+          />
+        }
       }
-    }
-
-    if(props.filterType.includes("People")) {
-      if (!props.loadingPeople) {
-        people = <Filter
-          filtersSet={props.filtersSet.people}
-          filtersType={"people"}
-          items={props.people}
-          label="People"
-          updateFilters={this.updateFilters}
-        />
+      else if(props.filterType[i].name === "People") {
+        if (!props.loadingPeople) {
+          people = <Filter
+            key={this.name+"people"}
+            filtersSet={props.filtersSet.people}
+            filtersType={"people"}
+            items={props.people}
+            label="People"
+            updateFilters={this.updateFilters}
+          />
+        }
       }
-    }
-
-    if(props.filterType.includes("People")) {
-      if (!props.loadingPeople) {
-        people = <Filter
-          filtersSet={props.filtersSet.people}
-          filtersType={"people"}
-          items={props.people}
-          label="People"
-          updateFilters={this.updateFilters}
-        />
+      else if(props.filterType[i].name === "organisations") {
+        if ((!props.loadingOrganisations) && (props.decidingFilteringSet)) {
+          organisations = <Filter
+            key={this.name+"organisations"}
+            filtersSet={props.filtersSet.organisations}
+            relationshipSet={props.relationshipSet.organisations}
+            filtersType={props.filterType[i]}
+            items={props.organisations}
+            itemsType={props.organisationsType}
+            label="Organisations"
+            updateFilters={this.updateFilters}
+          />
+        }
       }
-    }
-
-    if(props.filterType.includes("Organisations")) {
-      if (!props.loadingOrganisations) {
-        organisations = <Filter
-          filtersSet={props.filtersSet.organisations}
-          filtersType={"organisations"}
-          items={props.organisations}
-          label="Organisations"
-          updateFilters={this.updateFilters}
-        />
+      else if(props.filterType[i].name === "temporals") {
+        if ((!props.loadingTemporals) && (props.decidingFilteringSet)) {
+          temporals = <FilterTemporal
+            key={this.name+"temporals"}
+            filtersSet={props.filtersSet.temporals}
+            relationshipSet={props.relationshipSet.events}
+            filtersType={props.filterType[i]}
+            items={props.temporals}
+            itemsType={props.eventsType}
+            label="Temporals"
+            updateFilters={this.updateFilters}
+          />
+        }
+      }
+      else if(props.filterType[i].name === "spatials") {
+        if ((!props.loadingSpatials) && (props.decidingFilteringSet)) {
+          spatials = <FilterSpatial
+            key={this.name+"spatials"}
+            filtersSet={props.filtersSet.spatials}
+            relationshipSet={props.relationshipSet.events}
+            filtersType={props.filterType[i]}
+            items={props.spatials}
+            label="Spatials"
+            updateFilters={this.updateFilters}
+          />
+        }
       }
     }
 
@@ -167,6 +248,7 @@ Filters.propTypes = {
   filtersSet: PropTypes.object,
   filtersClasspieceType: PropTypes.string,
   relationshipSet: PropTypes.object,
+  decidingFilteringSet: PropTypes.bool,
   updatedata: PropTypes.func,
 }
 

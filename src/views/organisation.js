@@ -35,7 +35,7 @@ class Organisation extends Component {
     let params = {
       _id: _id,
     };
-    let url = process.env.REACT_APP_APIPATH+'organisation';
+    let url = process.env.REACT_APP_APIPATH+'ui-organisation';
     axios({
       method: 'get',
       url: url,

@@ -8,7 +8,7 @@ import {
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getEventThumbnailURL} from '../helpers/helpers';
+import {getEventThumbnailURL, getIDFromArray} from '../helpers/helpers';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
@@ -73,13 +73,16 @@ class Events extends Component {
       eventsLoading: true
     })
     let context = this;
+    let eventsType = getIDFromArray(this.props.eventsFilters.events.type);
+    //let eventsData = getIDFromArray(this.props.eventsFilters.events.data);
     let params = {
       page: this.state.page,
       limit: this.state.limit,
-      events: this.props.eventsFilters.events,
-      organisations: this.props.eventsFilters.organisations,
-      people: this.props.eventsFilters.people,
-      resources: this.props.eventsFilters.classpieces,
+      eventType: eventsType,
+      //events: eventsData,
+      //organisations: this.props.eventsFilters.organisations,
+      //people: this.props.eventsFilters.people,
+      //resources: this.props.eventsFilters.classpieces,
     };
     if (this.state.simpleSearchTerm!=="") {
       params.label = this.state.simpleSearchTerm;
@@ -123,13 +126,14 @@ class Events extends Component {
           items: events
         });
 
-        context.updateEventsRelationship(events);
+        //context.updateEventsRelationship(events);
       }
 	  })
 	  .catch(function (error) {
 	  });
   }
 
+  /*
   updateEventsRelationship(events=null) {
     if(events===null){
       return false;
@@ -170,7 +174,8 @@ class Events extends Component {
 	  .catch(function (error) {
 	  });
   }
-
+  */
+  
   simpleSearch(e) {
     e.preventDefault();
     if (this.state.simpleSearchTerm.length<2) {
@@ -499,10 +504,10 @@ class Events extends Component {
           <div className="col-xs-12 col-sm-4">
             <Filters
               name="events"
-              filterType = {["Temporals", "Spatials"]}
+              filterType = {[{name: "events", layer: ["type","data"], compareData: {dataSet: "eventType", typeSet: "_id"}, typeFilterDisable: false}]}
               filtersSet={this.props.eventsFilters}
-              filtersClasspieceType="hasRepresentationObject"
               relationshipSet={this.props.eventsRelationship}
+              decidingFilteringSet={!this.state.loading}
               updatedata={this.load}/>
           </div>
           <div className="col-xs-12 col-sm-8">

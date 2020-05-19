@@ -108,3 +108,15 @@ export const getResourceFullsizeURL = (resource) => {
   }
   return thumbnailPath;
 }
+
+export const getIDFromArray = (dataArray) => {
+  let result = [];
+  for(var property in dataArray) {
+    if(dataArray[property].length>0) {
+      for(let i=0;i<dataArray[property].length;i++){
+        result.push(dataArray[property][i]);
+      }
+    }
+  }
+  return result;
+}
