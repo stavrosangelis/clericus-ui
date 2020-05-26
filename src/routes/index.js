@@ -15,6 +15,7 @@ import Organisations from '../views/organisations';
 
 // visualisations
 import Heatmap from '../views/visualisations/heatmap';
+import GraphNetwork from '../views/visualisations/graph-network';
 
 var routes = [
   {
@@ -91,6 +92,11 @@ var routes = [
     path: "/heatmap/",
     component: Heatmap,
     name: "Heatmap",
+  },
+  {
+    path: "/network-graph/",
+    component: GraphNetwork,
+    name: "Graph network",
   },
 ];
 export default routes;

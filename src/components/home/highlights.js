@@ -11,7 +11,6 @@ const HighLights = props => {
   const [width, setWidth] = useState("100%");
   const [containerInnerWidth, setContainerInnerWidth] = useState("100%");
   const [containerInnerLeft, setContainerInnerLeft] = useState(0);
-  const [hiddenWidth, setHiddenWidth] = useState(0);
   const container = useRef(null);
 
   const resize = useCallback(() => {
@@ -36,11 +35,6 @@ const HighLights = props => {
     setWidth(itemWidth);
     let newInnerWidth = items.length*(itemWidth+15);
     setContainerInnerWidth(newInnerWidth);
-    let newHiddenWidth = 0;
-    if (newInnerWidth>containerWidth) {
-      newHiddenWidth = newInnerWidth-containerWidth;
-    }
-    setHiddenWidth(newHiddenWidth);
   },[items.length]);
 
   useEffect(()=> {

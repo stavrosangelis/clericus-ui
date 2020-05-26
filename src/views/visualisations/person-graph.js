@@ -1,6 +1,6 @@
 import React, { useEffect, useState} from 'react';
 import axios from 'axios';
-import PersonNetwork from '../../components/visualisations/person-network';
+import PersonNetwork from '../../components/visualisations/person-network-pixi';
 import {Breadcrumbs} from '../../components/breadcrumbs';
 import { Spinner } from 'reactstrap';
 

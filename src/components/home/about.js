@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import {Link} from 'react-router-dom';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
@@ -12,7 +13,7 @@ const About = props => {
       setLoading(false);
       let responseData = await axios({
         method: 'get',
-        url: APIPath+'article',
+        url: APIPath+'content-article',
         crossDomain: true,
         params: {permalink: 'about'}
       })
@@ -30,17 +31,20 @@ const About = props => {
 
   let content = [];
   if (!loading && article!==null) {
+    let title = article.label;
+    let titleFirst = title.substring(0,1);
+    let titleRest = title.substring(1);
     content = <div>
-      <h3>{article.label}</h3>
-      <div dangerouslySetInnerHTML={{__html: article.teaser}}></div>
-    </div>
-  }
-  return(
-    <div className="row">
-      <div className="col-12">
-        {content}
+      <h3 className="section-title"><span><span>{titleFirst}</span>{titleRest}</span></h3>
+      <div className="text-justify" dangerouslySetInnerHTML={{__html: article.teaser}}></div>
+      <div className="text-center">
+        <Link className="btn btn-default" href={`/article/about`} to={`/article/about`}>More</Link>
       </div>
     </div>
+  }
+
+  return(
+    <div style={{padding: "0 15px"}}>{content}</div>
   );
 }
 

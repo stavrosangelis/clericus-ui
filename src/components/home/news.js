@@ -4,7 +4,7 @@ import {Link} from 'react-router-dom';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
-const About = props => {
+const News = props => {
   const [loading, setLoading] = useState(true);
   const [articles, setArticles] = useState([]);
 
@@ -98,4 +98,4 @@ const About = props => {
   );
 }
 
-export default About;
+export default News;

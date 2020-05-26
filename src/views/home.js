@@ -5,6 +5,7 @@ import SectionNumbers from '../components/home/section-numbers';
 import About from '../components/home/about';
 import HighLights from '../components/home/highlights';
 import News from '../components/home/news';
+import Visualisations from '../components/home/visualisations';
 
 class Home extends Component {
 
@@ -18,7 +19,7 @@ class Home extends Component {
         <section className="white-section">
           <div className="container">
             <div className="row">
-              <div className="col-xs-12 col-md-7">
+              <div className="col-xs-12">
                 <About />
               </div>
               <div className="col-xs-12 col-md-5">
@@ -40,6 +41,15 @@ class Home extends Component {
             <div className="row">
               <div className="col-12 col-md-8">
                 <News />
+              </div>
+            </div>
+          </div>
+        </section>
+        <section>
+          <div className="container">
+            <div className="row">
+              <div className="col-12">
+                <Visualisations />
               </div>
             </div>
           </div>

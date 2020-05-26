@@ -1574,6 +1574,10 @@ section {
   padding-right: 10px;
   margin-right: -10px;
 }
+.node-relations-list {
+  overflow-y: auto;
+  height: 120px;
+}
 .graph-details-card .card-content .entries-list {
   margin: 0;
   padding: 0;
@@ -2014,7 +2018,13 @@ section {
 }
 .filter-search-font {
   font-size: 7px;
-}.highlights-controls > div {
+}
+.highlights-controls {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+}
+.highlights-controls > div {
   background-color: rgba(0,0,0,0.1);
   display: inline-block;
   width: 28px;
@@ -2048,4 +2058,19 @@ section {
   display: block;
   transition:left 0.3s;
   white-space: nowrap;
+}
+.visualisations-image {
+  width: 100%;
+  margin-bottom: 10px;
+}
+.graph-drawing {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 2px 5px;
+  font-size: 11px;
+  background-color: rgba(255,255,255,0.8);
+}
+.home-visualisation-thumb {
+  margin-bottom: 15px;
 }

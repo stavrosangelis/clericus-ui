@@ -3,117 +3,146 @@ import axios from 'axios';
 import * as d3 from "d3";
 import {Link} from 'react-router-dom';
 import { Spinner, FormGroup, Input } from 'reactstrap';
-
+import * as PIXI from 'pixi.js';
+import { Viewport } from 'pixi-viewport';
+import dataWorker from "./person-data.worker.js";
+import simulationWorker from "./force-simulation.worker.js";
 const APIPath = process.env.REACT_APP_APIPATH;
 
 /// d3 network
 
-var canvas, ctx, nodes, links, width=600, height=600, transform={k:1,x:0,y:0}, associatedNodes=[], associatedLinks=[], selectedNode;
+var app, container, nodes, links, width=600, height=600, resolution=window.devicePixelRatio || 1, transform={s:1,x:0,y:0}, associatedNodes=[], associatedLinks=[], selectedNode, lineContainer, nodesContainer, textContainer, publicFunctions = {};
 
-const zoomedEnd = async() => {
-  if (d3.event!==null && d3.event.transform!==null) {
-    transform = d3.event.transform;
-  }
-  let scale = transform.k;
-  ctx.save();
-  ctx.clearRect(0,0,width,height);
-  ctx.translate(transform.x, transform.y);
-  ctx.scale(scale, scale);
-  drawLines(transform);
-  drawNodes(transform);
-  ctx.restore();
+const transformEnd = () => {
+  container.screenWidth = width;
+  container.options.screenWidth = width;
+  app.renderer.resize(width,height);
+  let point = container.center;
+  transform.x = point.x;
+  transform.y = point.y;
 }
 
-const zoom_handler = d3.zoom()
-  .scaleExtent([0.1, 8])
-  .on("zoom",zoomedEnd);
+const redraw = () => {
+  lineContainer.removeChildren();
+  nodesContainer.removeChildren();
+  textContainer.removeChildren();
+  drawNodes();
+  drawLines();
+}
+const moving = () => {
+  lineContainer.removeChildren();
+  textContainer.removeChildren();
+}
 
-const drawNodes = (coords) => {
-  console.log(nodes.length)
-  let lx = coords.x;
-  let ty = coords.y;
-  let scale = coords.k;
-  for (let i=0; i<nodes.length; i++) {
-    let d = nodes[i];
-    d.visible = false;
-    let x = d.x;
-    let y = d.y;
-    let newX = lx+(x*scale);
-    let newY = ty+(y*scale);
-    if (newX>0 && newX<width && newY>0 && newY<height) {
-      d.radius = d.size;
-      let radius = d.radius;
-      d.visible = true;
-      let labelRows = d.label.split(" ").filter(i=>i!=="");
-      ctx.beginPath();
-      // circle
-      if (typeof d.selected!=="undefined" && d.selected) {
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = "#33729f";
-        radius+=5;
-      }
-      else if (typeof d.associated!=="undefined" && d.associated) {
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = d.strokeColor;
-      }
-      else {
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = d.strokeColor;
-      }
-      ctx.arc(x, y, radius, 0, 2 * Math.PI, true);
-      ctx.fillStyle = d.color;
-      ctx.fill();
-      ctx.stroke();
-      let textX = x;
-      let textY = y;
-      let length = labelRows.length;
-      if (length>2) {
-        textY -= 6 ;
-      }
-      for (let t=0; t<labelRows.length; t++) {
-        let label = labelRows[t];
-        ctx.fillStyle = "#333333";
-        ctx.font = "9px sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "Top";
-        ctx.fillText(label, textX, textY)
-        textY+=10;
-      }
+const movedEnd = () => {
+  let point = container.center;
+  transform.x = point.x;
+  transform.y = point.y;
+  redraw()
+}
 
-      ctx.closePath();
+const zoomedEnd = () => {
+  transform.s = container.scaled;
+  redraw();
+}
+
+const doubleClickZoom = () => {
+  container.zoomPercent(0.25, true);
+}
+
+const hexColor = (value) => {
+  return value.replace("#","0x");
+}
+
+const loader = new PIXI.Loader();
+
+const drawNodes = async () => {
+  if(typeof loader.resources['Arial']==="undefined") {
+    loader.add("Arial", "/arial-bitmap/Arial.xml");
+  }
+  loader.load((loader, resources) => {
+    let bbox = container.getVisibleBounds();
+    let leftX = bbox.x;
+    let rightX = bbox.x+bbox.width;
+    let topY = bbox.y;
+    let bottomY = bbox.y+bbox.height;
+    for (let i=0; i<nodes.length; i++) {
+      let d = nodes[i];
+      d.visible = false;
+      let radius = d.size;
+      let x = d.x;
+      let y = d.y;
+      if (
+        leftX<=x && rightX>=x
+        && topY<=y && bottomY>=y
+      ) {
+        d.gfx = new PIXI.Graphics();
+        d.gfx.interactive = true;
+        d.gfx.on("click", ()=>publicFunctions.clickNode(d))
+        let lineWidth = 1;
+        let strokeStyle = hexColor(d.strokeColor);
+        d.visible = true;
+        // circle
+        if (typeof d.selected!=="undefined" && d.selected) {
+          lineWidth = 3;
+          strokeStyle = "0x33729f";
+          radius+=5;
+        }
+        else if (typeof d.associated!=="undefined" && d.associated) {
+          lineWidth = 3;
+        }
+        else {
+          lineWidth = 1;
+        }
+        d.gfx.beginFill(hexColor(d.color));
+        d.gfx.lineStyle(lineWidth,strokeStyle);
+        d.gfx.drawCircle(x, y, radius);
+        nodesContainer.addChild(d.gfx);
+        if (d.label!=="") {
+          let label = d.label.trim().replace(/  +/g," ");
+          let spaces = label.split(" ");
+          let minusY = spaces.length/2;
+          label = label.replace(/\s/g,"\n");
+          let text = new PIXI.BitmapText(label,{font: `11px Arial`, align : 'center'});
+          text.x = x-((radius/2)+(lineWidth*2));
+          text.y = y-(10*minusY);
+          textContainer.addChild(text);
+        }
+      }
     }
-  }
+  });
+
 }
 
-const drawLines = (coords) => {
-  return false;
-  console.log(links.length)
-  let coordsX = coords.x;
-  let coordsY = coords.y;
-  let scale = coords.k;
-  //const colors = {1:'#DE9A96',2:'#F5D98B',3:'#FAF3A5',4:'#82CEB6',5:'#96E3E6',6:'#89BDE0'};
+const drawLines = () => {
+  let bbox = container.getVisibleBounds();
+  let leftX = bbox.x;
+  let rightX = bbox.x+bbox.width;
+  let topY = bbox.y;
+  let bottomY = bbox.y+bbox.height;
   for (let i=0; i<links.length; i++) {
     let d = links[i];
     let sx = d.source.x;
     let sy = d.source.y;
     let tx = d.target.x;
     let ty = d.target.y;
-
-    let newX = coordsX+(tx*scale);
-    let newY = coordsY+(ty*scale);
-    if (newX>0 && newX<width && newY>0 && newY<height) {
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.lineTo(tx, ty);
+    if (
+      leftX<=sx && rightX>=sx
+      && topY<=sy && bottomY>=sy
+    ) {
+      let line = new PIXI.Graphics();
+      let lWidth = 1;
+      let strokeStyle = 0x666666;
       if (typeof d.associated!=="undefined" && d.associated) {
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "#33729f";
+        lWidth = 2;
+        strokeStyle = 0x33729f;
       }
-      else {
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = "#666";
-      }
-      let lineWidth = 0;
+      line.lineStyle(lWidth,strokeStyle);
+      line.moveTo(sx, sy);
+      line.lineTo(tx, ty);
+      lineContainer.addChild(line);
+      // line label
+      /*let lineWidth = 0;
       let lineHeight = 0;
       let textX = 0;
       let textY = 0;
@@ -136,21 +165,22 @@ const drawLines = (coords) => {
         lineHeight = ty-sy;
       }
       textY= smallY+(lineHeight/2);
-      ctx.fillStyle = "#666";
-      ctx.font = "9px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(d.label, textX, textY);
-
-      ctx.stroke();
-      ctx.closePath();
+      let text = new PIXI.Text(d.label,{fontFamily : 'sans-serif', fontSize: 9, fill : 0x666666, align : 'center'});
+      text.x = textX;
+      text.y = textY;
+      lineContainer.addChild(text);*/
     }
   }
 }
 
+const dataLoadingWorker = new dataWorker();
+const forceSimulationWorker = new simulationWorker();
 
 const PersonNetwork = props => {
+  const [initiated, setInitiated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [drawing, setDrawing] = useState(false);
+  const [drawingIndicator, setDrawingIndicator] = useState([]);
   const [data, setData] = useState(null);
   const [step, setStep] = useState(1);
   const [detailsCardVisible, setDetailsCardVisible] = useState(false);
@@ -162,6 +192,9 @@ const PersonNetwork = props => {
   const toggleDetailsCard = (value=null) => {
     let visible = !detailsCardVisible;
     if (value!==null) visible = value;
+    if (!visible) {
+      clearAssociated();
+    }
     setDetailsCardVisible(visible);
   }
 
@@ -170,37 +203,71 @@ const PersonNetwork = props => {
   }
 
   useEffect(()=> {
+    const initiateGraph = ()=> {
+      setInitiated(true);
+      let graphContainer = document.getElementById('graph-container');
+      width = graphContainer.offsetWidth-2;
+
+      app = new PIXI.Application({
+        width: width,
+        height: height,
+        antialias: true,
+        transparent: false,
+        resolution: resolution,
+        backgroundColor: 0xFFFFFF,
+        autoResize: true,
+        preserveDrawingBuffer: true,
+        powerPreference: "high-performance",
+        sharedTicker: true
+      });
+      document.getElementById("pixi-network").appendChild(app.view);
+
+      container = new Viewport({
+          screenWidth: width,
+          screenHeight: height,
+          worldWidth: 1000,
+          worldHeight: 1000,
+          interaction: app.renderer.plugins.interaction,
+          ticker: PIXI.Ticker.shared,
+          bounce: false,
+          decelerate: false,
+          passiveWheel: false
+      })
+      .on("moved",()=>moving())
+      .on("moved-end",()=>movedEnd())
+      .on("zoomed-end",()=>zoomedEnd())
+      app.stage.addChild(container);
+      container.drag({wheel:false});
+
+      lineContainer = new PIXI.Container();
+      nodesContainer = new PIXI.Container();
+      textContainer = new PIXI.Container();
+      container.addChild(lineContainer);
+      container.addChild(nodesContainer);
+      container.addChild(textContainer);
+
+    };
+    if (!initiated) {
+      initiateGraph();
+    }
+  },[initiated]);
+
+  useEffect(()=> {
     const load = async() => {
+      setDrawingIndicator("loading data...");
       let _id = props._id;
       if (typeof _id==="undefined" || _id===null || _id==="") {
         return false;
       }
       setLoading(false);
-      let response = await fetch(APIPath+`item-network?_id=${_id}&step=${step}`);
-      let text = "";
-      const stream = new ReadableStream({
-        start(controller) {
-          const reader = response.body.getReader();
-
-          function pushData() {
-            reader.read().then(({ done, value })=> {
-              if (done) {
-                controller.close();
-                return;
-              }
-              controller.enqueue(value);
-              pushData();
-            });
-          }
-
-          pushData();
-        }
+      let workerParams = {_id:_id, step: step, APIPath:APIPath};
+      dataLoadingWorker.postMessage(workerParams);
+      let newData = await new Promise ((resolve,reject)=>{
+        dataLoadingWorker.addEventListener('message',(e) =>{
+          resolve(e.data);
+        }, false);
       });
-      const streamedResponse = new Response(stream, { headers: { "Content-Type": "application/json" } });
-
-      const data = await streamedResponse.text();
-      const parsedData = JSON.parse(data);
-      setData(JSON.parse(parsedData.data));
+      setData(newData.data);
       setDrawing(true);
     }
     if (loading) {
@@ -208,124 +275,105 @@ const PersonNetwork = props => {
     }
   },[loading,props._id,step]);
 
+
   useEffect(()=> {
-    const updateDimensions = () => {
-      let container = document.getElementById('graph-container');
-      width = container.offsetWidth-2;
-      if (ctx.canvas!==null) {
-        transform = {k:1,x:0,y:0};
-        ctx.save();
-        canvas.attr("width", width);
-        ctx.clearRect(0,0,width,height);
-        ctx.translate(0,0);
-        ctx.scale(1, 1);
-        drawLines(transform);
-        drawNodes(transform);
-        ctx.restore();
-      }
-      zoomedEnd();
-    }
-
-    const drawGraph = () => {
+    const drawGraph = async() => {
       setDrawing(false);
-      let graphContainer = document.getElementById('graph-container');
-      width = graphContainer.offsetWidth-2;
+      setDrawingIndicator("simulating...");
+      let centerX = width/2;
+      let centerY = height/2;
+      transform.x = centerX;
+      transform.y = centerY;
 
-      let container = d3.select("#network-graph");
-      container.html("");
-      canvas = container
-        .append("canvas")
-        .attr("id", "visualisation-canvas")
-  			.attr('width', width)
-  			.attr('height', height);
+      transformEnd();
 
-      ctx = canvas.node().getContext('2d');
-      nodes = data.nodes.map(d => Object.create(d));
-      links = data.links.map(d => Object.create(d));
+      let simulationParams = {nodes:data.nodes, links: data.links, centerX:centerX,centerY:centerY};
+      forceSimulationWorker.postMessage(simulationParams);
+      let simulation = await new Promise ((resolve,reject)=>{
+        forceSimulationWorker.addEventListener('message',(e) =>{
+          resolve(e.data);
+        }, false);
+      });
+      setDrawingIndicator("drawing...");
+      nodes = simulation.data.nodes;
+      links = simulation.data.links;
 
-      nodes[0].fixed = true;
-      nodes[0].x = width/2;
-      nodes[0].y = height/2;
-      let strength = -500;
-      const simulation = d3.forceSimulation(nodes)
-        .force("link",
-        d3.forceLink(links)
-            .id(d => d.id)
-            .strength(d=>1)
-            .distance(d=>200)
-          )
-        .force("charge", d3.forceManyBody().strength(strength))
-        .force("center", d3.forceCenter(width/2, height/2))
-        .force('collide', d3.forceCollide(60))
-        .stop();
-
-      // control ticks aka performance trick
-      const iterations = 50;
-      var threshold = 0.001;
-      simulation.restart();
-      for (var i = iterations; i > 0; --i) {
-        simulation.tick();
-        if(simulation.alpha() < threshold) {
-          break;
-        }
-      }
-      simulation.stop();
+      // recenter viewport
+      container.moveCenter(nodes[0].x, nodes[0].y)
 
       d3.select("#graph-zoom-in")
       .on("click", function() {
-        zoom_handler.scaleBy(canvas, 1.25);
+        container.zoomPercent(0.25, true);
+        zoomedEnd();
       });
       d3.select("#graph-zoom-out")
       .on("click", function() {
-        zoom_handler.scaleBy(canvas, 0.75);
+        container.zoomPercent(-0.25, true);
+        zoomedEnd();
       });
       d3.select("#graph-pan-up")
       .on("click", function() {
-        let currentTransform = d3.zoomTransform(canvas);
-        let newX = currentTransform.x;
-        let newY = currentTransform.y - 50;
-        zoom_handler.translateBy(canvas, newX, newY);
+        let newX = transform.x;
+        let newY = transform.y + 50;
+        container.moveCenter(newX, newY);
+        zoomedEnd();
       });
       d3.select("#graph-pan-right")
       .on("click", function() {
-        let currentTransform = d3.zoomTransform(canvas);
-        let newX = currentTransform.x + 50;
-        let newY = currentTransform.y;
-        zoom_handler.translateBy(canvas, newX, newY);
+        let newX = transform.x - 50;
+        let newY = transform.y;
+        container.moveCenter(newX, newY);
+        zoomedEnd();
       });
       d3.select("#graph-pan-down")
       .on("click", function() {
-        let currentTransform = d3.zoomTransform(canvas);
-        let newX = currentTransform.x;
-        let newY = currentTransform.y + 50;
-        zoom_handler.translateBy(canvas, newX, newY);
+        let newX = transform.x;
+        let newY = transform.y - 50;
+        container.moveCenter(newX, newY);
+        zoomedEnd();
       });
       d3.select("#graph-pan-left")
       .on("click", function() {
-        let currentTransform = d3.zoomTransform(canvas);
-        let newX = currentTransform.x - 50;
-        let newY = currentTransform.y;
-        zoom_handler.translateBy(canvas, newX, newY);
+        let newX = transform.x + 50;
+        let newY = transform.y;
+        container.moveCenter(newX, newY);
+        zoomedEnd();
       });
 
-      zoom_handler(d3.select(ctx.canvas));
-      updateDimensions();
+      lineContainer.destroy();
+      nodesContainer.destroy();
+      textContainer.destroy();
+      lineContainer = new PIXI.Container();
+      nodesContainer = new PIXI.Container();
+      textContainer = new PIXI.Container();
+      container.addChild(lineContainer);
+      container.addChild(nodesContainer);
+      container.addChild(textContainer);
+
+      drawLines();
+      drawNodes();
+      setDrawingIndicator("drawing complete.");
+      setTimeout(()=>{setDrawingIndicator("");},1000);
     }
-    if (drawing && data!==null) {
+    if (drawing && initiated) {
       drawGraph();
     }
-  },[drawing, data]);
+  },[drawing,initiated,data]);
 
   useEffect(()=>{
+    var resizeTimer;
     const updateCanvasSize = () => {
       let container = document.getElementById('graph-container');
       width = container.offsetWidth-2;
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function() {
+        transformEnd();
+        redraw();
+      }, 250);
     }
     window.addEventListener('resize', updateCanvasSize);
-    window.addEventListener('click', clickNode);
     return(()=> {
       window.removeEventListener('resize', updateCanvasSize);
-      window.removeEventListener('click', clickNode);
     })
   })
 
@@ -356,8 +404,6 @@ const PersonNetwork = props => {
         returnItem.push(sourceItem);
       }
       else if (i>0 && source._id!==segments[prevIndex].target._id) {
-        console.log(source)
-        console.log(segments[prevIndex].target)
         returnItem.push(sourceItem);
       }
       returnItem.push(<div className="relationship" key={`relationship-${i}`}>{relationship.type}<div className="line"></div><div className="arrow"></div></div>);
@@ -426,57 +472,16 @@ const PersonNetwork = props => {
     }
   }
 
-  const clickNode = (e) => {
-    if (e.target.getAttribute("id")!=="visualisation-canvas") {
-      return false;
+  publicFunctions.clickNode = (d)=> {
+    let prevNode = nodes.find(n=>n.selected);
+    if (typeof prevNode!=="undefined") {
+      delete prevNode.selected;
     }
-    let visibleNodes = nodes.filter(n=>n.visible);
-    let transformX = transform.x;
-    let transformY = transform.y;
-    let scale = transform.k;
-    let x = e.offsetX/scale;
-    let y = e.offsetY/scale;
-    // locate node
-    let clickedNodes = [];
-    for (let i=0; i<visibleNodes.length; i++) {
-      let d = visibleNodes[i];
-      let dx = d.x;
-      let dy = d.y;
-      let radius = d.radius;
-      let lx = dx-radius+transformX/scale;
-      let rx = dx+radius+transformX/scale;
-      let ty = dy-radius+transformY/scale;
-      let by = dy+radius+transformY/scale;
-
-      if (x>=lx && x<=rx && y>=ty && y<=by) {
-        clickedNodes.push(d);
-      }
-    }
-    clickedNodes.sort((a,b)=>{
-      let keyA=a.index;
-      let keyB=b.index;
-      if (keyA>keyB) return -1;
-      if (keyA<keyB) return 1;
-      return 0;
-    });
-    let clickedNode = null;
-    if (clickedNodes.length>0) {
-      clickedNode = clickedNodes[0];
-    }
-    else {
-      return false;
-    }
-    clickedNode.selected=true;
+    d.selected=true;
     // load node details ;
-    loadNodeDetails(clickedNode.id);
+    loadNodeDetails(d.id);
     toggleDetailsCard(true);
-    if (selectedNode!==null) {
-      let prevNode = nodes.find(n=>n===selectedNode);
-      if (typeof prevNode!=="undefined") {
-        delete prevNode.selected;
-      }
-    }
-    selectedNode = clickedNode;
+    selectedNode = d;
     selectedNodes();
   }
 
@@ -494,6 +499,9 @@ const PersonNetwork = props => {
     }
     associatedNodes = [];
     associatedLinks = [];
+    delete selectedNode.selected;
+    textContainer.removeChildren();
+    redraw();
   };
 
   const selectedNodes = ()=> {
@@ -534,14 +542,7 @@ const PersonNetwork = props => {
     associatedNodes = newAssociatedNodes;
     associatedLinks = mergedAssociatedLinks;
 
-    let scale = transform.k;
-    ctx.save();
-    ctx.clearRect(0,0,width,height);
-    ctx.translate(transform.x, transform.y);
-    ctx.scale(scale, scale);
-    drawLines(transform);
-    drawNodes(transform);
-    ctx.restore();
+    redraw();
   };
 
   const updateStep = (value) => {
@@ -585,7 +586,7 @@ const PersonNetwork = props => {
         n.selected=false;
       }
       node.selected=true;
-      zoom_handler.translateTo(canvas, node.x, node.y);
+      container.moveCenter(node.x, node.y)
     }
   }
 
@@ -683,9 +684,11 @@ const PersonNetwork = props => {
       {searchContainerNodes}
     </div>
   </div>
+
   return (
     <div style={{position:"relative", display: "block"}}>
-      <div id="network-graph"></div>
+      <div className="graph-drawing">{drawingIndicator}</div>
+      <div id="pixi-network" onDoubleClick={()=>doubleClickZoom()}></div>
       <div className="graph-actions">
         {panPanel}
         {zoomPanel}
