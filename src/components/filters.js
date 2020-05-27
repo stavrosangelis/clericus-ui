@@ -12,10 +12,10 @@ const mapStateToProps = state => {
   return {
     loadingOrganisationsType: state.loadingOrganisationsType,
     organisationsType: state.organisationsType,
-    
+
     loadingOrganisations: state.loadingOrganisations,
     organisations: state.organisations,
-    
+
     loadingEventsType: state.loadingEventsType,
     eventsType: state.eventsType,
 
@@ -50,7 +50,6 @@ class Filters extends React.Component {
     this.updateFilters = this.updateFilters.bind(this);
     this.clearAllFilters = this.clearAllFilters.bind(this);
   }
-
   updateFilters(name, values, dataRefresh=true) {
     let props = this.props;
     let payload = {
@@ -80,16 +79,15 @@ class Filters extends React.Component {
           dataName: {},
         },
         temporals: {
-          startDate: null,
-          endDate: null,
-          eventType: [],
-          eventID: [],
+          startDate: "",
+          endDate: ""
         },
         spatials: {
           eventID: [],
         },
       }
-    }else if (this.name === "classpieces") {
+    }
+    else if (this.name === "classpieces") {
       payload = {
         /*
         events: {
@@ -113,7 +111,8 @@ class Filters extends React.Component {
           eventID: [],
         },
       }
-    }else if (this.name === "events") {
+    }
+    else if (this.name === "events") {
       payload = {
         events: {
           type: {},
@@ -121,7 +120,8 @@ class Filters extends React.Component {
           dataName: {},
         },
       }
-    }else if (this.name === "organisations") {
+    }
+    else if (this.name === "organisations") {
       payload = {
         organisations: {
           type: {},
@@ -199,7 +199,7 @@ class Filters extends React.Component {
         }
       }
       else if(props.filterType[i].name === "temporals") {
-        if ((!props.loadingTemporals) && (props.decidingFilteringSet)) {
+        //if ((!props.loadingTemporals) && (props.decidingFilteringSet)) {
           temporals = <FilterTemporal
             key={this.name+"temporals"}
             filtersSet={props.filtersSet.temporals}
@@ -210,7 +210,7 @@ class Filters extends React.Component {
             label="Temporals"
             updateFilters={this.updateFilters}
           />
-        }
+        //}
       }
       else if(props.filterType[i].name === "spatials") {
         if ((!props.loadingSpatials) && (props.decidingFilteringSet)) {

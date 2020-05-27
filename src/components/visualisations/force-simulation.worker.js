@@ -19,11 +19,10 @@ onmessage = async(e)=>{
     .force("charge", d32.forceManyBodyReuse().strength(strength))
     .force("center", d3.forceCenter(e.data.centerX, e.data.centerY))
     .force('collide', d3.forceCollide(60))
-    .alphaDecay(0.3)
+    .alphaDecay(0.06)
     .stop();
 
-  let max = 30 //Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay()));
-  console.log(max)
+  let max = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay()));
   for (let i = 0; i < max; i++) {
     simulation.tick();
   }

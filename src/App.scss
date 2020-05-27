@@ -366,6 +366,11 @@ h1, h2, h3, h4, h5 {
 .navbar-toggler-icon {
 
 }
+.breadcrumb-item i {
+  line-height: 13px;
+  margin-right: 5px;
+  margin-top: 3px;
+}
 
 .bw-logo {
   display: block;
@@ -1588,7 +1593,7 @@ section {
   color: #999;
   padding: 0 5px;
 }
-.graph-details-card .card-content .entries-list li a {
+.graph-details-card .card-content .entries-list li, .graph-details-card .card-content .entries-list li a {
   font-size: 13px;
 }
 .graph-details-card .card-content .entries-list li .graph-link-rel {
@@ -1717,6 +1722,9 @@ section {
   padding: 0 15px;
   margin: 20px 0 10px 0;
   position: relative;
+}
+.graph-search-input-type {
+  margin: 10px 15px;
 }
 .graph-search-input input {
   padding-right: 20px;
@@ -2073,4 +2081,43 @@ section {
 }
 .home-visualisation-thumb {
   margin-bottom: 15px;
+}
+.graph-legend-panel {
+  position: absolute;
+  bottom: 10px;
+  right: 5px;
+  background-color: rgba(255,255,255,0.7);
+  padding: 5px;
+  z-index: 2px;
+  font-size: 10px;
+  border: 1px solid #ddd;
+  box-shadow: 0 0 2px rgba(0,0,0,0.2);
+  border-radius: 4px;
+}
+.graph-legend-panel > ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 5px;
+}
+.graph-legend-panel > ul > li {
+  line-height: 15px;
+  vertical-align: top;
+}
+.graph-legend-panel > ul > li > span {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 1px solid;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.react-datepicker-wrapper {
+  display: block !important;
+}
+.react-datepicker__input-container input {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  line-height: 32px;
+  color: #555;
 }

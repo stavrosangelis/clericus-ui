@@ -6,7 +6,6 @@ import { Badge, FormGroup, Input } from 'reactstrap';
 import * as PIXI from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 import dataWorker from "./graph-data.worker.js";
-import simulationWorker from "./graph-force-simulation.worker.js";
 const APIPath = process.env.REACT_APP_APIPATH;
 
 /// d3 network
@@ -58,6 +57,9 @@ const hexColor = (value) => {
 const loader = new PIXI.Loader();
 
 const drawNodes = async () => {
+  if (typeof nodes==="undefined") {
+    return false;
+  }
   if(typeof loader.resources['Arial']==="undefined") {
     loader.add("Arial", "/arial-bitmap/Arial.xml");
   }
@@ -69,7 +71,7 @@ const drawNodes = async () => {
     let bottomY = bbox.y+bbox.height;
     for (let i=0; i<nodes.length; i++) {
       let d = nodes[i];
-      d.visible = false;
+      d.visible = true;
       let radius = d.size || 30;
       let x = d.x;
       let y = d.y;
@@ -82,7 +84,7 @@ const drawNodes = async () => {
         d.gfx.on("click", ()=>publicFunctions.clickNode(d))
         let lineWidth = 1;
         let strokeStyle = hexColor(d.strokeColor);
-        d.visible = true;
+        //d.visible = true;
         // circle
         if (typeof d.selected!=="undefined" && d.selected) {
           lineWidth = 3;
@@ -103,7 +105,7 @@ const drawNodes = async () => {
           let label = d.label.trim().replace(/  +/g," ");
           let spaces = label.split(" ");
           let minusY = spaces.length/2;
-          label = label.replace(/\s/g,"\n");
+          //label = label.replace(/\s/g,"\n");
           let text = new PIXI.BitmapText(label,{font: `11px Arial`, align : 'center'});
           text.maxWidth = radius+(lineWidth*2);
           text.x = x-((radius/2)+(lineWidth*2)+1);
@@ -117,6 +119,9 @@ const drawNodes = async () => {
 }
 
 const drawLines = () => {
+  if (typeof links==="undefined") {
+    return false;
+  }
   let bbox = container.getVisibleBounds();
   let leftX = bbox.x;
   let rightX = bbox.x+bbox.width;
@@ -136,7 +141,7 @@ const drawLines = () => {
       let lWidth = 1;
       let strokeStyle = 0x666666;
       if (typeof d.associated!=="undefined" && d.associated) {
-        lWidth = 2;
+        lWidth = 3;
         strokeStyle = 0x33729f;
       }
       line.lineStyle(lWidth,strokeStyle);
@@ -176,7 +181,6 @@ const drawLines = () => {
 }
 
 const dataLoadingWorker = new dataWorker();
-const forceSimulationWorker = new simulationWorker();
 
 const PersonNetwork = props => {
   const [initiated, setInitiated] = useState(false);
@@ -188,6 +192,7 @@ const PersonNetwork = props => {
   const [detailsCardVisible, setDetailsCardVisible] = useState(false);
   const [searchContainerVisible, setSearchContainerVisible] = useState(false);
   const [searchInput, setSearchInput] = useState("");
+  const [searchInputType, setSearchInputType] = useState("");
   const [nodeLink, setNodeLink] = useState([]);
   const [relatedNodesHTML, setRelatedNodesHTML] = useState([]);
 
@@ -196,6 +201,9 @@ const PersonNetwork = props => {
     if (value!==null) visible = value;
     if (!visible) {
       clearAssociated();
+    }
+    else {
+      setStep(1);
     }
     setDetailsCardVisible(visible);
   }
@@ -267,6 +275,8 @@ const PersonNetwork = props => {
       });
       setData(newData.data);
       setDrawing(true);
+      setSearchInput("");
+      setSearchInputType("");
     }
     if (loading) {
       load();
@@ -284,16 +294,9 @@ const PersonNetwork = props => {
 
       transformEnd();
 
-      let simulationParams = {nodes:data.nodes, links: data.links, centerX:centerX,centerY:centerY};
-      forceSimulationWorker.postMessage(simulationParams);
-      let simulation = await new Promise ((resolve,reject)=>{
-        forceSimulationWorker.addEventListener('message',(e) =>{
-          resolve(e.data);
-        }, false);
-      });
       setDrawingIndicator("drawing...");
-      nodes = simulation.data.nodes;
-      links = simulation.data.links;
+      nodes = data.nodes;
+      links = data.links;
 
       // recenter viewport
       container.moveCenter(nodes[0].x, nodes[0].y)
@@ -388,29 +391,34 @@ const PersonNetwork = props => {
       return response.data.data;
     })
     .catch(function (error) {
-      });
+      console.log(error)
+    });
     let nodeType = selectedNode.type;
     setNodeLink(<Link href={"/"+nodeType+"/"+selectedNode.id} to={"/"+nodeType+"/"+selectedNode.id}><b>{selectedNode.label}</b> [{nodeType}]</Link>);
 
-    let relatedNodesIds = [];
+    let relatedNodesIds = [_id];
+    let linkArray = ["Classpiece", "Organisation", "Person", "Event"];
     let nodesHTML = responseData.map((node,i)=>{
       if (relatedNodesIds.indexOf(node._id)===-1) {
         relatedNodesIds.push(node._id);
       }
       let nodeType = node.type;
-      let nodeLink = <Link href={"/"+nodeType+"/"+node._id} to={"/"+nodeType+"/"+node._id}><b>{node.label}</b> [{nodeType}]</Link>;
+      let nodeLink = <span><b>{node.label}</b> <small>[{nodeType}]</small></span>
+      if (linkArray.indexOf(nodeType)>-1) {
+        nodeLink = <Link href={`${nodeType}/${node._id}`} to={`${nodeType}/${node._id}`}><b>{node.label}</b> <small>[{nodeType}]</small></Link>;
+      }
       return <li key={i}>{nodeLink}</li>;
     });
 
-    let relatedLinksIds = links.filter(link=>{
-      if (relatedNodesIds.indexOf(link.source)>-1 && relatedNodesIds.indexOf(link.target)>-1) {
-        return true;
+    for (let i=0;i<links.length;i++) {
+      let link = links[i];
+      if (relatedNodesIds.indexOf(link.source.id)>-1 && relatedNodesIds.indexOf(link.target.id)>-1) {
+        link.associated = true;
       }
-      return false;
-    }).map(link=>link.refId);
-
-    relatedLinksIds = Array.from(new Set(relatedLinksIds));
+      else link.associated = false;
+    }
     setRelatedNodesHTML(nodesHTML);
+    redraw();
   }
 
   const setSteps = (val=1)=> {
@@ -424,8 +432,8 @@ const PersonNetwork = props => {
       delete prevNode.selected;
     }
     d.selected=true;
+    selectedNode = nodes.find(n=>n.id===d.id);
     // load node details;
-    selectedNode = d;
     loadNodeDetails(d.id);
     toggleDetailsCard(true);
     selectedNodes();
@@ -445,6 +453,7 @@ const PersonNetwork = props => {
     }
     associatedNodes = [];
     associatedLinks = [];
+    selectedNode.selected=false;
     delete selectedNode.selected;
     textContainer.removeChildren();
     redraw();
@@ -457,7 +466,6 @@ const PersonNetwork = props => {
     let outgoingLinks = links.filter(l=>l.source.id===selectedNode.id);
     incomingLinks = incomingLinks.map(l=>l.refId);
     outgoingLinks = outgoingLinks.map(l=>l.refId);
-
     let newAssociatedLinks = incomingLinks.concat(outgoingLinks.filter(i => incomingLinks.indexOf(i)===-1));
     let mergedAssociatedLinks = newAssociatedLinks.concat(props.relatedLinks.filter(i => newAssociatedLinks.indexOf(i)===-1));
     if (mergedAssociatedLinks.length>0) {
@@ -495,7 +503,41 @@ const PersonNetwork = props => {
     let target = e.target;
     let value = target.type === 'checkbox' ? target.checked : target.value;
     setSearchInput(value);
-    let visibleNodes = data.nodes.filter(n=>n.label.toLowerCase().includes(value.toLowerCase()));
+    console.log(value,searchInputType)
+    let visibleNodes = data.nodes.filter(n=>{
+      if (searchInputType!=="") {
+        if (n.type.toLowerCase()===searchInputType.toLowerCase() && n.label.toLowerCase().includes(value.toLowerCase())) {
+          return true;
+        }
+      }
+      else if (n.label.toLowerCase().includes(value.toLowerCase())) {
+        return true;
+      }
+      return false;
+    });
+    let dataNodes = data.nodes;
+    for (let i=0;i<dataNodes.length; i++) {
+      let n = dataNodes[i];
+      if (visibleNodes.indexOf(n)>-1) {
+        n.visible = true;
+      }
+      else n.visible = false;
+    }
+    data.nodes = dataNodes;
+    setData(data);
+  }
+
+  const searchNodeType = (e) =>{
+    let target = e.target;
+    let value = target.type === 'checkbox' ? target.checked : target.value;
+    setSearchInputType(value);
+
+    let visibleNodes = data.nodes.filter(n=>{
+      if (n.type.toLowerCase()===value.toLowerCase() && n.label.toLowerCase().includes(searchInput.toLowerCase())) {
+        return true;
+      }
+      return false;
+    });
     let dataNodes = data.nodes;
     for (let i=0;i<dataNodes.length; i++) {
       let n = dataNodes[i];
@@ -510,6 +552,7 @@ const PersonNetwork = props => {
 
   const clearSearchNode = () => {
     setSearchInput("");
+    setSearchInputType("");
     let dataNodes = data.nodes;
     for (let i=0;i<dataNodes.length; i++) {
       let n = dataNodes[i];
@@ -635,7 +678,7 @@ const PersonNetwork = props => {
     for (let i=0;i<data.nodes.length; i++) {
       let n = data.nodes[i];
       if (typeof n.visible==="undefined" || n.visible===true) {
-        searchContainerNodes.push(<div key={i} onClick={()=>centerNode(n.id)}>{n.label}</div>);
+        searchContainerNodes.push(<div key={i} onClick={()=>centerNode(n.id)}>{n.label} <small>[{n.type}]</small></div>);
       }
     }
   }
@@ -647,11 +690,30 @@ const PersonNetwork = props => {
       <Input type="text" name="text" placeholder="Search node..." value={searchInput} onChange={(e)=>searchNode(e)}/>
       <i className="fa fa-times-circle" onClick={()=>clearSearchNode()}/>
     </FormGroup>
+    <FormGroup className="graph-search-input-type">
+      <Input type="select" name="search_node_type" value={searchInputType} onChange={(e)=>searchNodeType(e)}>
+        <option value="">All</option>
+        <option value="Classpiece">Classpiece</option>
+        <option value="Event">Event</option>
+        <option value="Organisation">Organisation</option>
+        <option value="Person">Person</option>
+        <option value="Resource">Resource</option>
+      </Input>
+    </FormGroup>
     <div className="graph-search-container-nodes">
       {searchContainerNodes}
     </div>
   </div>
 
+  const legendPanel = <div className="graph-legend-panel">
+    <ul>
+      <li><span style={{borderColor: '#1e9dd8',backgroundColor: '#1ed8bf'}}></span> Classpiece</li>
+      <li><span style={{borderColor: '#c9730a',backgroundColor: '#f9cd1b'}}></span> Event</li>
+      <li><span style={{borderColor: '#5343b7',backgroundColor: '#9b8cf2'}}></span> Organisation</li>
+      <li><span style={{borderColor: '#519b1b',backgroundColor: '#5dc910'}}></span> Person</li>
+      <li><span style={{borderColor: '#0982a0',backgroundColor: '#00cbff'}}></span> Resource</li>
+    </ul>
+  </div>
   return (
     <div style={{position:"relative", display: "block"}}>
       <div className="graph-drawing">{drawingIndicator}</div>
@@ -663,6 +725,7 @@ const PersonNetwork = props => {
       </div>
       {detailsCard}
       {searchContainer}
+      {legendPanel}
     </div>
   )
 }

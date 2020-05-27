@@ -295,7 +295,7 @@ export function updateFilters(type,params) {
     let organisationsData = params.organisations;
     let temporalsData = params.temporals;
     let spatialsData = params.spatials;
-    
+
     if (type==="classpieces") {
       /*
       if(typeof params.events === "undefined") {

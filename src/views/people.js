@@ -74,7 +74,7 @@ class People extends Component {
     this.setState({
       peopleLoading: true
     })
-    let /*eventsType,*/ eventsData = [], /*organisationsType,*/ organisationsData = [];
+    let /*eventsType,*/ eventsData = [], /*organisationsType,*/ organisationsData = [], temporals={};
     if(typeof this.props.peopleFilters.events !== "undefined") {
       //eventsType = getIDFromArray(this.props.peopleFilters.events.type);
       eventsData = getIDFromArray(this.props.peopleFilters.events.data);
@@ -83,12 +83,8 @@ class People extends Component {
       //organisationsType = getIDFromArray(this.props.peopleFilters.organisations.type);
       organisationsData = getIDFromArray(this.props.peopleFilters.organisations.data);
     }
-    if(this.props.peopleFilters.temporals.eventID.length > 0) {
-      for (let i=0;i<this.props.peopleFilters.temporals.eventID.length;i++) {
-        if(!eventsData.includes(this.props.peopleFilters.temporals.eventID[i])) {
-          eventsData.push(this.props.peopleFilters.temporals.eventID[i]);
-        }
-      }
+    if(this.props.peopleFilters.temporals !=="undefined") {
+      temporals = this.props.peopleFilters.temporals;
     }
     if(this.props.peopleFilters.spatials.eventID.length > 0) {
       for (let i=0;i<this.props.peopleFilters.spatials.eventID.length;i++) {
@@ -103,6 +99,7 @@ class People extends Component {
       //eventType: eventsType,
       events: eventsData,
       organisations: organisationsData,
+      temporals: temporals
       //organisationType: organisationsType,
       //people: this.props.peopleFilters.people,
       //resources: this.props.peopleFilters.classpieces,
@@ -548,7 +545,7 @@ class People extends Component {
               filterType = {[
                 {name: "organisations", layer: ["type","data"], compareData: {dataSet: "organisationType", typeSet: "labelId"}, typeFilterDisable: true},
                 {name: "events", layer: ["type","data"], compareData: {dataSet: "eventType", typeSet: "_id"}, typeFilterDisable: true},
-                //{name: "temporals"},
+                {name: "temporals"},
                 //{name: "spatials"},
                 ]}
               filtersSet={this.props.peopleFilters}

@@ -57,6 +57,9 @@ const hexColor = (value) => {
 const loader = new PIXI.Loader();
 
 const drawNodes = async () => {
+  if (typeof nodes==="undefined") {
+    return false;
+  }
   if(typeof loader.resources['Arial']==="undefined") {
     loader.add("Arial", "/arial-bitmap/Arial.xml");
   }
@@ -115,6 +118,9 @@ const drawNodes = async () => {
 }
 
 const drawLines = () => {
+  if (typeof links==="undefined") {
+    return false;
+  }
   let bbox = container.getVisibleBounds();
   let leftX = bbox.x;
   let rightX = bbox.x+bbox.width;
@@ -188,6 +194,7 @@ const PersonNetwork = props => {
   const [detailsCardContent, setDetailsCardContent] = useState([]);
   const [searchContainerVisible, setSearchContainerVisible] = useState(false);
   const [searchInput, setSearchInput] = useState("");
+  const [searchInputType, setSearchInputType] = useState("");
 
   const toggleDetailsCard = (value=null) => {
     let visible = !detailsCardVisible;
@@ -269,6 +276,8 @@ const PersonNetwork = props => {
       });
       setData(newData.data);
       setDrawing(true);
+      setSearchInput("");
+      setSearchInputType("");
     }
     if (loading) {
       load();
@@ -421,7 +430,6 @@ const PersonNetwork = props => {
         setDetailsCardEntityInfo(node.label);
         setDetailsCardContent("");
       }
-
     }
     else {
       setDetailsCardEntityInfo("");
@@ -450,7 +458,7 @@ const PersonNetwork = props => {
           <ul className="related-nodes-paths">{segmentsHTML}</ul>
         </div>);
       }
-      let linkArray = ["Classpiece", "Organisation", "Person"];
+      let linkArray = ["Classpiece", "Organisation", "Person", "Event"];
       let sourceType = source.type;
       let targetType = target.type;
       let sourceLabel = <span>{source.label}</span>;
@@ -478,27 +486,32 @@ const PersonNetwork = props => {
       delete prevNode.selected;
     }
     d.selected=true;
+    selectedNode = nodes.find(n=>n.id===d.id);
     // load node details ;
     loadNodeDetails(d.id);
     toggleDetailsCard(true);
-    selectedNode = d;
     selectedNodes();
   }
 
   const clearAssociated = () => {
     for (let n=0;n<associatedNodes.length; n++) {
       let item = associatedNodes[n];
-      item.associated = false;
-      delete item.associated;
+      if (typeof item!=="undefined") {
+        item.associated = false;
+        delete item.associated;
+      }
     }
     for (let l=0;l<associatedLinks.length; l++) {
       let item = associatedLinks[l];
       let link = links.find(i=>i.refId===item);
-      link.associated = false;
-      delete link.associated;
+      if (typeof link!=="undefined") {
+        link.associated = false;
+        delete link.associated;
+      }
     }
     associatedNodes = [];
     associatedLinks = [];
+    selectedNode.selected=false;
     delete selectedNode.selected;
     textContainer.removeChildren();
     redraw();
@@ -511,7 +524,6 @@ const PersonNetwork = props => {
     let outgoingLinks = links.filter(l=>l.source.id===selectedNode.id);
     incomingLinks = incomingLinks.map(l=>l.refId);
     outgoingLinks = outgoingLinks.map(l=>l.refId);
-
     let newAssociatedLinks = incomingLinks.concat(outgoingLinks.filter(i => incomingLinks.indexOf(i)===-1));
     let mergedAssociatedLinks = newAssociatedLinks.concat(props.relatedLinks.filter(i => newAssociatedLinks.indexOf(i)===-1));
     if (mergedAssociatedLinks.length>0) {
@@ -554,7 +566,40 @@ const PersonNetwork = props => {
     let target = e.target;
     let value = target.type === 'checkbox' ? target.checked : target.value;
     setSearchInput(value);
-    let visibleNodes = data.nodes.filter(n=>n.label.toLowerCase().includes(value.toLowerCase()));
+    let visibleNodes = data.nodes.filter(n=>{
+      if (searchInputType!=="") {
+        if (n.type===searchInputType && n.label.toLowerCase().includes(value.toLowerCase())) {
+          return true;
+        }
+      }
+      else if (n.label.toLowerCase().includes(value.toLowerCase())) {
+        return true;
+      }
+      return false;
+    });
+    let dataNodes = data.nodes;
+    for (let i=0;i<dataNodes.length; i++) {
+      let n = dataNodes[i];
+      if (visibleNodes.indexOf(n)>-1) {
+        n.visible = true;
+      }
+      else n.visible = false;
+    }
+    data.nodes = dataNodes;
+    setData(data);
+  }
+
+  const searchNodeType = (e) =>{
+    let target = e.target;
+    let value = target.type === 'checkbox' ? target.checked : target.value;
+    setSearchInputType(value);
+
+    let visibleNodes = data.nodes.filter(n=>{
+      if (n.type===value && n.label.toLowerCase().includes(searchInput.toLowerCase())) {
+        return true;
+      }
+      return false;
+    });
     let dataNodes = data.nodes;
     for (let i=0;i<dataNodes.length; i++) {
       let n = dataNodes[i];
@@ -569,6 +614,7 @@ const PersonNetwork = props => {
 
   const clearSearchNode = () => {
     setSearchInput("");
+    setSearchInputType("");
     let dataNodes = data.nodes;
     for (let i=0;i<dataNodes.length; i++) {
       let n = dataNodes[i];
@@ -668,7 +714,7 @@ const PersonNetwork = props => {
     for (let i=0;i<data.nodes.length; i++) {
       let n = data.nodes[i];
       if (typeof n.visible==="undefined" || n.visible===true) {
-        searchContainerNodes.push(<div key={i} onClick={()=>centerNode(n.id)}>{n.label}</div>);
+        searchContainerNodes.push(<div key={i} onClick={()=>centerNode(n.id)}>{n.label} <small>[{n.type}]</small></div>);
       }
     }
   }
@@ -677,14 +723,33 @@ const PersonNetwork = props => {
       <i className="fa fa-times" />
     </div>
     <FormGroup className="graph-search-input">
-      <Input type="text" name="text" placeholder="Search node..." value={searchInput} onChange={(e)=>searchNode(e)}/>
+      <Input type="text" name="search_node" placeholder="Search node..." value={searchInput} onChange={(e)=>searchNode(e)}/>
       <i className="fa fa-times-circle" onClick={()=>clearSearchNode()}/>
+    </FormGroup>
+    <FormGroup className="graph-search-input-type">
+      <Input type="select" name="search_node_type" value={searchInputType} onChange={(e)=>searchNodeType(e)}>
+        <option value="">All</option>
+        <option value="Classpiece">Classpiece</option>
+        <option value="Event">Event</option>
+        <option value="Organisation">Organisation</option>
+        <option value="Person">Person</option>
+        <option value="Resource">Resource</option>
+      </Input>
     </FormGroup>
     <div className="graph-search-container-nodes">
       {searchContainerNodes}
     </div>
   </div>
 
+  const legendPanel = <div className="graph-legend-panel">
+    <ul>
+      <li><span style={{borderColor: '#1e9dd8',backgroundColor: '#1ed8bf'}}></span> Classpiece</li>
+      <li><span style={{borderColor: '#c9730a',backgroundColor: '#f9cd1b'}}></span> Event</li>
+      <li><span style={{borderColor: '#5343b7',backgroundColor: '#9b8cf2'}}></span> Organisation</li>
+      <li><span style={{borderColor: '#519b1b',backgroundColor: '#5dc910'}}></span> Person</li>
+      <li><span style={{borderColor: '#0982a0',backgroundColor: '#00cbff'}}></span> Resource</li>
+    </ul>
+  </div>
   return (
     <div style={{position:"relative", display: "block"}}>
       <div className="graph-drawing">{drawingIndicator}</div>
@@ -697,6 +762,7 @@ const PersonNetwork = props => {
       </div>
       {detailsCard}
       {searchContainer}
+      {legendPanel}
     </div>
   )
 }
