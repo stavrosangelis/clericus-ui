@@ -295,7 +295,6 @@ export function updateFilters(type,params) {
     let organisationsData = params.organisations;
     let temporalsData = params.temporals;
     let spatialsData = params.spatials;
-
     if (type==="classpieces") {
       /*
       if(typeof params.events === "undefined") {
@@ -322,7 +321,7 @@ export function updateFilters(type,params) {
       };
     }else if (type==="people") {
       if(typeof params.events === "undefined") {
-        eventsData = Object.assign({}, getState().peopleFilters.events);
+        eventsData = Object.assign([], getState().peopleFilters.events);
       }
       if(typeof params.organisations === "undefined") {
         organisationsData = Object.assign({}, getState().peopleFilters.organisations);

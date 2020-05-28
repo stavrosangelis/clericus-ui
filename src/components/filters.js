@@ -4,6 +4,7 @@ import {
   updateFilters
 } from "../redux/actions";
 import Filter from "./filter";
+import FilterNew from "./filter-new";
 import FilterTemporal from "./filter-temporal";
 import FilterSpatial from "./filter-spatial";
 import PropTypes from 'prop-types';
@@ -68,11 +69,7 @@ class Filters extends React.Component {
     let payload = null;
     if(this.name === "people") {
       payload = {
-        events: {
-          type: {},
-          data: {},
-          dataName: {},
-        },
+        events: [],
         organisations:  {
           type: {},
           data: {},
@@ -159,18 +156,16 @@ class Filters extends React.Component {
         }
       }
       else if(props.filterType[i].name === "events") {
-        if ((!props.loadingEvents) && (props.decidingFilteringSet)) {
-          events = <Filter
-            key={this.name+"events"}
-            filtersSet={props.filtersSet.events}
-            relationshipSet={props.relationshipSet.events}
-            filtersType={props.filterType[i]}
-            items={props.events}
-            itemsType={props.eventsType}
-            label="Events"
-            updateFilters={this.updateFilters}
-          />
-        }
+        events = <FilterNew
+          key={this.name+"events"}
+          loading={props.loadingEventsType}
+          relationshipSet={props.relationshipSet.events}
+          filtersSet={props.filtersSet.events}
+          filtersType="events"
+          items={props.eventsType}
+          label="Events Types"
+          updateFilters={this.updateFilters}
+        />
       }
       else if(props.filterType[i].name === "People") {
         if (!props.loadingPeople) {

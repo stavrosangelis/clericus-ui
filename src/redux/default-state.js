@@ -10,12 +10,12 @@ export const defaultState = {
     limit:25,
     page:1
   },
-  
+
   eventsPagination: {
     limit:25,
     page:1
   },
-  
+
   organisationsPagination: {
     limit:25,
     page:1
@@ -54,14 +54,10 @@ export const defaultState = {
     //temporals: [],
     //spatials: [],
   },
-  
+
   peopleFilters: {
     //classpieces: [],
-    events: {
-      type: {},
-      data: {},
-      dataName: {},
-    },
+    events: [],
     organisations:  {
       type: {},
       data: {},
@@ -71,8 +67,6 @@ export const defaultState = {
     temporals: {
       startDate: null,
       endDate: null,
-      eventType: [],
-      eventID: [],
     },
     spatials: {
       eventID: [],
@@ -86,7 +80,7 @@ export const defaultState = {
     //temporals: [],
     //spatials: [],
   },
-  
+
   eventsFilters: {
     //classpieces: [],
     events: {
@@ -107,7 +101,7 @@ export const defaultState = {
     //temporals: [],
     //spatials: [],
   },
-  
+
   organisationsFilters: {
     //classpieces: [],
     //events: [],
@@ -131,7 +125,7 @@ export const defaultState = {
 
   loadingOrganisationsType: true,
   organisationsType: [],
-  
+
   loadingOrganisations: true,
   organisations: [],
 
@@ -140,10 +134,10 @@ export const defaultState = {
 
   loadingEventsType: true,
   eventsType: [],
-  
+
   loadingEvents: true,
   events: [],
-  
+
   loadingPeople: true,
   people: [],
 

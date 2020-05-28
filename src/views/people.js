@@ -77,7 +77,7 @@ class People extends Component {
     let /*eventsType,*/ eventsData = [], /*organisationsType,*/ organisationsData = [], temporals={};
     if(typeof this.props.peopleFilters.events !== "undefined") {
       //eventsType = getIDFromArray(this.props.peopleFilters.events.type);
-      eventsData = getIDFromArray(this.props.peopleFilters.events.data);
+      eventsData = this.props.peopleFilters.events;
     }
     if(typeof this.props.peopleFilters.organisations !== "undefined") {
       //organisationsType = getIDFromArray(this.props.peopleFilters.organisations.type);
@@ -150,26 +150,56 @@ class People extends Component {
         totalItems: responseData.totalItems,
         items: people
       });
-      this.updatePeopleRelationship(people);
+      this.updatePeopleRelationship();
     }
   }
 
-  async updatePeopleRelationship(people=null) {
-    if(people===null){
-      return false;
+  async updatePeopleRelationship() {
+    let /*eventsType,*/ eventsData = [], /*organisationsType,*/ organisationsData = [], temporals={};
+    if(typeof this.props.peopleFilters.events !== "undefined") {
+      //eventsType = getIDFromArray(this.props.peopleFilters.events.type);
+      eventsData = this.props.peopleFilters.events;
     }
-    let id_people = people.map(item =>{
-      return item._id;
-    });
+    if(typeof this.props.peopleFilters.organisations !== "undefined") {
+      //organisationsType = getIDFromArray(this.props.peopleFilters.organisations.type);
+      organisationsData = getIDFromArray(this.props.peopleFilters.organisations.data);
+    }
+    if(this.props.peopleFilters.temporals !=="undefined") {
+      temporals = this.props.peopleFilters.temporals;
+    }
+    if(this.props.peopleFilters.spatials.eventID.length > 0) {
+      for (let i=0;i<this.props.peopleFilters.spatials.eventID.length;i++) {
+        if(!eventsData.includes(this.props.peopleFilters.spatials.eventID[i])) {
+          eventsData.push(this.props.peopleFilters.spatials.eventID[i]);
+        }
+      }
+    }
     let params = {
-      _ids: id_people,
+      page: this.state.page,
+      limit: this.state.limit,
+      //eventType: eventsType,
+      events: eventsData,
+      organisations: organisationsData,
+      temporals: temporals
+      //organisationType: organisationsType,
+      //people: this.props.peopleFilters.people,
+      //resources: this.props.peopleFilters.classpieces,
     };
+    if (this.state.simpleSearchTerm!=="") {
+      params.label = this.state.simpleSearchTerm;
+    }
+    else if (this.state.advancedSearchInputs.length>0) {
+      for (let i=0; i<this.state.advancedSearchInputs.length; i++) {
+        let searchInput = this.state.advancedSearchInputs[i];
+        params[searchInput.select] = searchInput.input;
+      }
+    }
     let url = process.env.REACT_APP_APIPATH+'ui-person-active-filters';
     let responseData = await axios({
-      method: 'post',
+      method: 'get',
       url: url,
       crossDomain: true,
-      data: params
+      params: params
     })
 	  .then(function (response) {
       return response.data.data;
@@ -179,7 +209,7 @@ class People extends Component {
 	  });
 
     let payload = {
-      events: responseData.events.map(item=>{return item._id}),
+      events: responseData.events,
       organisations: responseData.organisations.map(item=>{return item._id}),
       people: responseData.people.map(item=>{return item._id}),
       classpieces: responseData.resources.map(item=>{return item._id}),
