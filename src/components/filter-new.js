@@ -6,40 +6,44 @@ import {
 import PropTypes from 'prop-types';
 
 const Filter = props => {
-  const [filterItems,setFilterItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState([]);
+  const [filterItems, setFilterItems] = useState([]);
 
   useEffect(()=>{
     const load = () => {
-      let items = props.items.map((item,i)=>{
-        item.checked = false;
-        return item;
-      });
-      setFilterItems(items);
+      for (let i=0;i<props.items.length; i++) {
+        let item = props.items[i];
+        if (props.filtersSet.indexOf(item._id)>-1) {
+          item.checked = true;
+        }
+        else {
+          item.checked = false;
+        }
+      }
+      setFilterItems(props.items);
+      setLoading(false);
     }
-    if (!props.loading) {
+    if (!props.loading && loading) {
       load();
     }
-  },[props.loading, props.items, props.filtersType]);
+  },[loading, props.loading, props.items, props.filtersType, props.filtersSet]);
 
   useEffect(()=>{
     if (props.filtersSet.length===0) {
-      let newFilterItems = filterItems;
-      for (let i=0;i<newFilterItems.length; i++) {
-        newFilterItems[i].checked = false;
+      for (let i=0;i<filterItems.length; i++) {
+        filterItems[i].checked = false;
       }
-      setFilterItems(newFilterItems);
     }
   },[props.filtersSet,filterItems])
 
   const clearFilters = () => {
-    let newFilterItems = filterItems;
-    for (let i=0;i<newFilterItems.length; i++) {
-      newFilterItems[i].checked = false;
+    for (let i=0;i<filterItems.length; i++) {
+      filterItems[i].checked = false;
     }
-    setFilterItems(newFilterItems);
     props.updateFilters(props.filtersType,[]);
   }
+
   const toggleFilter = (item) => {
     item.checked = !item.checked;
     let newFilters = filters;
@@ -54,10 +58,8 @@ const Filter = props => {
     props.updateFilters(props.filtersType,filters);
 
     // update render
-    let items = filterItems;
-    let itemIndex = items.indexOf(item);
-    items[itemIndex].checked = item.checked;
-    setFilterItems(items);
+    let itemIndex = filterItems.indexOf(item);
+    filterItems[itemIndex].checked = item.checked;
   }
 
   let filterItemsHTML = filterItems.map((item,i)=>{
@@ -69,11 +71,11 @@ const Filter = props => {
     }
     return <FormGroup key={i} className={hidden}>
       <Label>
-        <Input type="checkbox" name={props.filtersType} onClick={()=>toggleFilter(item)} onChange={()=>{}} disabled={disabled} checked={item.checked}/>{' '}
+        <Input type="checkbox" name={props.filtersType} onChange={()=>toggleFilter(item)} disabled={disabled} checked={item.checked} />{' '}
         <span className="filter-span">{item.label}</span>
       </Label>
     </FormGroup>
-  })
+  });
   return (
     <div className="filter-block">
       <Card>
