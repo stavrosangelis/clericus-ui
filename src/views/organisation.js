@@ -118,7 +118,7 @@ class Organisation extends Component {
     meta.push(peopleRow);
 
     //1.5 OrganisationDetails - OrganisationDetails include classpieces, events, organisations, and people
-    return <table key={"OrganisationDetails"} className="table table-borderless organisation-content-table">
+    return <table key={"OrganisationDetails"} className="table table-borderless item-content-table">
           <tbody>{meta}</tbody>
         </table>
   }
@@ -145,20 +145,20 @@ class Organisation extends Component {
     //2.3 description
     let descriptionRow = []
     if(typeof item.description!=="undefined" && item.description!==null && item.description!=="") {
-      let descriptionTitle = <h6 key={"descriptionTitle"} className="organisation-content-des-title">Description:</h6>;
+      let descriptionTitle = <h6 key={"descriptionTitle"} className="item-content-des-title">Description:</h6>;
       let descriptionData = <div className="person-des-content" key={"descriptionData"}>{item.description}</div>;
       descriptionRow.push(descriptionTitle,descriptionData);
     }
     
     let output = <Card>
       <CardBody>
-        <div className="organisation-container">
-          <div className="organisation-title-container">
-            <h4 className="organisation-label">{label}</h4>
+        <div className="item-container">
+          <div className="item-title-container">
+            <h4 className="item-label">{label}</h4>
           </div>
-          <div className="row organisation-content-container">
+          <div className="row item-content-container">
             <div className="col-xs-12 col-sm-6 col-md-8">
-              <div className="organisation-content-des">
+              <div className="item-content-des">
                 {descriptionRow}
               </div>
               {metaTable}

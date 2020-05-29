@@ -12,6 +12,7 @@ import Event from '../views/event';
 import Events from '../views/events';
 import Organisation from '../views/organisation';
 import Organisations from '../views/organisations';
+import Spatial from '../views/spatial';
 
 // visualisations
 import Heatmap from '../views/visualisations/heatmap';
@@ -87,6 +88,11 @@ var routes = [
     path: "/organisation/:_id",
     component: Organisation,
     name: "Organisation",
+  },
+  {
+    path: "/spatial/:_id",
+    component: Spatial,
+    name: "Spatial",
   },
   {
     path: "/heatmap/",

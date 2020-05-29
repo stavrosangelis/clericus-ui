@@ -19,6 +19,7 @@ export function setPaginationParams(type,params) {
         classpiecesPagination: {
           limit:params.limit,
           page:params.page,
+          //sort:params.sort,
         }
       };
     }else if (type==="people") {
@@ -26,6 +27,7 @@ export function setPaginationParams(type,params) {
         peoplePagination: {
           limit:params.limit,
           page:params.page,
+          sort:params.sort,
         }
       };
     }else if (type==="events") {
@@ -294,29 +296,31 @@ export function updateFilters(type,params) {
     let eventsData = params.events;
     let organisationsData = params.organisations;
     let temporalsData = params.temporals;
-    let spatialsData = params.spatials;
+    //let spatialsData = params.spatials;
     if (type==="classpieces") {
-      /*
       if(typeof params.events === "undefined") {
-        eventsData = Object.assign({}, getState().classpiecesFilters.events);
-      }*/
+        eventsData = Object.assign([], getState().classpiecesFilters.events);
+      }
       if(typeof params.organisations === "undefined") {
         organisationsData = Object.assign({}, getState().classpiecesFilters.organisations);
       }
       if(typeof params.temporals === "undefined") {
         temporalsData = Object.assign({}, getState().classpiecesFilters.temporals);
       }
+      /*
       if(typeof params.spatials === "undefined") {
-        spatialsData = Object.assign({}, getState().classpiecesFilters.spatials);
+        //spatialsData = Object.assign({}, getState().classpiecesFilters.spatials);
+        spatialsData = getState().peopleFilters.spatials;
       }
+      */
       payload = {
         classpiecesFilters: {
           //classpieces: params.classpieces,
-          //events: eventsData,
+          events: eventsData,
           organisations: organisationsData,
           //people: params.people,
           temporals: temporalsData,
-          spatials: spatialsData,
+          //spatials: spatialsData,
         }
       };
     }else if (type==="people") {
@@ -329,9 +333,12 @@ export function updateFilters(type,params) {
       if(typeof params.temporals === "undefined") {
         temporalsData = Object.assign({}, getState().peopleFilters.temporals);
       }
+      /*
       if(typeof params.spatials === "undefined") {
-        spatialsData = Object.assign({}, getState().peopleFilters.spatials);
+        //spatialsData = Object.assign({}, getState().peopleFilters.spatials);
+        spatialsData = getState().peopleFilters.spatials;
       }
+      */
       payload = {
         peopleFilters: {
           //classpieces: params.classpieces,
@@ -339,7 +346,7 @@ export function updateFilters(type,params) {
           organisations: organisationsData,
           //people: params.people,
           temporals: temporalsData,
-          spatials: spatialsData,
+          //spatials: spatialsData,
         }
       };
     }else if (type==="events") {

@@ -504,7 +504,8 @@ class Events extends Component {
           <div className="col-xs-12 col-sm-4">
             <Filters
               name="events"
-              filterType = {[{name: "events", layer: ["type","data"], compareData: {dataSet: "eventType", typeSet: "_id"}, typeFilterDisable: false}]}
+              filterType = {[]}
+              //filterType = {[{name: "events", layer: ["type","data"], compareData: {dataSet: "eventType", typeSet: "_id"}, typeFilterDisable: false}]}
               filtersSet={this.props.eventsFilters}
               relationshipSet={this.props.eventsRelationship}
               decidingFilteringSet={!this.state.loading}

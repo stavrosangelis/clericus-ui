@@ -77,11 +77,10 @@ class Filters extends React.Component {
         },
         temporals: {
           startDate: "",
-          endDate: ""
+          endDate: "",
+          dateType: "exact",
         },
-        spatials: {
-          eventID: [],
-        },
+        //spatials: [],
       }
     }
     else if (this.name === "classpieces") {
@@ -104,9 +103,7 @@ class Filters extends React.Component {
           eventType: [],
           eventID: [],
         },
-        spatials: {
-          eventID: [],
-        },
+        //spatials: [],
       }
     }
     else if (this.name === "events") {
@@ -129,6 +126,7 @@ class Filters extends React.Component {
     }
     let context = this;
     this.props.updateFilters(this.name,payload);
+    this.temporalFuncComRef();
     setTimeout(function() {
       context.props.updatedata();
     },10);
@@ -146,9 +144,9 @@ class Filters extends React.Component {
       if(props.filterType[i].name === "Classpieces") {
         if (!props.loadingClasspieces) {
           classpieces = <Filter
-            key={this.name+"classpieces"}
+            key={this.name+"_classpieces"}
             filtersSet={props.filtersSet.classpieces}
-            filtersType={"classpieces"}
+            filtersType="classpieces"
             items={props.classpieces}
             label="Classpieces"
             updateFilters={this.updateFilters}
@@ -170,7 +168,7 @@ class Filters extends React.Component {
       else if(props.filterType[i].name === "People") {
         if (!props.loadingPeople) {
           people = <Filter
-            key={this.name+"people"}
+            key={this.name+"_people"}
             filtersSet={props.filtersSet.people}
             filtersType={"people"}
             items={props.people}
@@ -182,7 +180,7 @@ class Filters extends React.Component {
       else if(props.filterType[i].name === "organisations") {
         if ((!props.loadingOrganisations) && (props.decidingFilteringSet)) {
           organisations = <Filter
-            key={this.name+"organisations"}
+            key={this.name+"_organisations"}
             filtersSet={props.filtersSet.organisations}
             relationshipSet={props.relationshipSet.organisations}
             filtersType={props.filterType[i]}
@@ -196,7 +194,8 @@ class Filters extends React.Component {
       else if(props.filterType[i].name === "temporals") {
         //if ((!props.loadingTemporals) && (props.decidingFilteringSet)) {
           temporals = <FilterTemporal
-            key={this.name+"temporals"}
+            resetStateForwardRef={c => { this.temporalFuncComRef = c }}
+            key={this.name+"_temporals"}
             filtersSet={props.filtersSet.temporals}
             relationshipSet={props.relationshipSet.events}
             filtersType={props.filterType[i]}
@@ -210,9 +209,9 @@ class Filters extends React.Component {
       else if(props.filterType[i].name === "spatials") {
         if ((!props.loadingSpatials) && (props.decidingFilteringSet)) {
           spatials = <FilterSpatial
-            key={this.name+"spatials"}
+            key={this.name+"_spatials"}
             filtersSet={props.filtersSet.spatials}
-            relationshipSet={props.relationshipSet.events}
+            relationshipSet={props.relationshipSet.spatials}
             filtersType={props.filterType[i]}
             items={props.spatials}
             label="Spatials"

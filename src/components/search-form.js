@@ -132,6 +132,14 @@ export default class SearchForm extends Component {
     advancedSearchRows = [
       advancedSearchRows[index],
     ];
+    
+    if (typeof this.props.searchElements!=="undefined" && this.props.searchElements.length>0) {
+      advancedSearchRows[0].select = this.props.searchElements[0].element;
+    }
+    advancedSearchRows[0].qualifier = 'contains';
+    advancedSearchRows[0].input = '';
+    advancedSearchRows[0].boolean = 'and';
+    
     this.setState({
       advancedSearchRows: advancedSearchRows,
     })

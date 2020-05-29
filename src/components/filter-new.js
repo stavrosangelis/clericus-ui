@@ -41,6 +41,7 @@ const Filter = props => {
     for (let i=0;i<filterItems.length; i++) {
       filterItems[i].checked = false;
     }
+    setFilters([]);
     props.updateFilters(props.filtersType,[]);
   }
 

@@ -7,36 +7,13 @@ export default class AdvancedSearchFormRow extends Component {
   constructor(props) {
     super(props);
     
-    let searchSelect = null;
-    if (typeof this.props.searchSelect !== "undefined") {
-      searchSelect = this.props.searchSelect;
-    }else {
-      searchSelect = this.props.searchElements[0].element;
-    }
-    
-    let searchInput = '';
-    if (typeof this.props.searchSelect !== "undefined") {
-      searchInput = this.props.searchInput;
-    }
-    
-    this.state = {
-      input: searchInput,
-      select: searchSelect,
-    }
-
     this.handleSearchSelectChange = this.handleSearchSelectChange.bind(this);
-    this.handleSearchInputChange = this.handleSearchInputChange.bind(this);
     this.renderSearchTerm = this.renderSearchTerm.bind(this);
   }
 
   handleSearchSelectChange(e) {
     let target = e.target;
     let value = target.type === 'checkbox' ? target.checked : target.value;
-    let name = target.name;
-    
-    this.setState({
-      [name]: value
-    });
     
     this.props.handleAdvancedSearchChange(e,this.props.rowId);
     
@@ -46,28 +23,12 @@ export default class AdvancedSearchFormRow extends Component {
     if(this.props.searchElements[searchTermRowIndex].inputType==="select") {
       inputValue = this.props.searchElements[searchTermRowIndex].inputData[0].value;
     }
-    
-    this.setState({
-      input: inputValue
-    });
 
     this.props.updateAdvancedSearchInputContent(this.props.rowId, "input", inputValue);
   }
   
-  handleSearchInputChange(e) {
-    let target = e.target;
-    let value = target.type === 'checkbox' ? target.checked : target.value;
-    let name = target.name;
-    
-    this.setState({
-      [name]: value
-    });
-    
-    this.props.handleAdvancedSearchChange(e,this.props.rowId);
-  }
-  
-  renderSearchTerm(stateData = null) {
-    let selectItem = stateData.select;
+  renderSearchTerm() {
+    let selectItem = this.props.searchSelect;
     let searchTermRow = this.props.searchElements.find(el=>el.element===selectItem);
     let searchTermRowIndex = this.props.searchElements.indexOf(searchTermRow);
     let optionData = null
@@ -78,12 +39,12 @@ export default class AdvancedSearchFormRow extends Component {
     }
     
     let classNameType = "";
-    let inputValue = stateData.input;
+    let inputValue = this.props.searchInput;
     if(this.props.searchElements[searchTermRowIndex].inputType==="text") {
       classNameType = "advanced-search-input";
     }else if(this.props.searchElements[searchTermRowIndex].inputType==="select") {
       classNameType = "advanced-search-select";
-      inputValue = stateData.input;
+      //inputValue = stateData.input;
     }
     
     return <div className={classNameType}>
@@ -92,7 +53,7 @@ export default class AdvancedSearchFormRow extends Component {
         type={this.props.searchElements[searchTermRowIndex].inputType}
         name="input"
         value={inputValue}
-        onChange={(e)=>this.handleSearchInputChange(e)}>
+        onChange={(e)=>this.props.handleAdvancedSearchChange(e,this.props.rowId)}>
       {optionData}
       </Input>
     </div>
@@ -108,7 +69,7 @@ export default class AdvancedSearchFormRow extends Component {
       </Button>
     }
 
-    let searchTerm = this.renderSearchTerm(this.state);
+    let searchTerm = this.renderSearchTerm();
 
     return(
       <div className="advanced-search-row">
@@ -128,7 +89,7 @@ export default class AdvancedSearchFormRow extends Component {
             value={this.props.searchQualifier}
             onChange={(e)=>this.props.handleAdvancedSearchChange(e,this.props.rowId)}>
             <option value="contains">Contains</option>
-            <option value="equals">Equals</option>
+            {/*<option value="equals">Equals</option>*/}
           </Input>
         </div>
         
@@ -141,7 +102,7 @@ export default class AdvancedSearchFormRow extends Component {
             value={this.props.searchBoolean}
             onChange={(e)=>this.props.handleAdvancedSearchChange(e,this.props.rowId)}>
             <option value="and">And</option>
-            <option value="or">Or</option>
+            {/*<option value="or">Or</option>*/}
           </Input>
         </div>
         <div className="advanced-search-button">

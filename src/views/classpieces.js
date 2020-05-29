@@ -6,7 +6,7 @@ import {
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getResourceThumbnailURL, getIDFromArray} from '../helpers/helpers';
+import {getResourceThumbnailURL, getInfoFromFilterObj} from '../helpers/helpers';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 
@@ -64,38 +64,18 @@ class Classpieces extends Component {
       classpiecesLoading: true
     })
     let context = this;
-    let /*eventsType,*/ eventsData = [], /*organisationsType,*/ organisationsData = [];
-    if(typeof this.props.classpiecesFilters.events !== "undefined") {
-      //eventsType = getIDFromArray(this.props.classpiecesFilters.events.type);
-      eventsData = getIDFromArray(this.props.classpiecesFilters.events.data);
-    }
-    if(typeof this.props.classpiecesFilters.organisations !== "undefined") {
-      //organisationsType = getIDFromArray(this.props.classpiecesFilters.organisations.type);
-      organisationsData = getIDFromArray(this.props.classpiecesFilters.organisations.data);
-    }
-    if(this.props.classpiecesFilters.temporals.eventID.length > 0) {
-      for (let i=0;i<this.props.classpiecesFilters.temporals.eventID.length;i++) {
-        if(!eventsData.includes(this.props.classpiecesFilters.temporals.eventID[i])) {
-          eventsData.push(this.props.classpiecesFilters.temporals.eventID[i]);
-        }
-      }
-    }
-    if(this.props.classpiecesFilters.spatials.eventID.length > 0) {
-      for (let i=0;i<this.props.classpiecesFilters.spatials.eventID.length;i++) {
-        if(!eventsData.includes(this.props.classpiecesFilters.spatials.eventID[i])) {
-          eventsData.push(this.props.classpiecesFilters.spatials.eventID[i]);
-        }
-      }
-    }
+    let filterInfo = getInfoFromFilterObj("classpieces", this.props.classpiecesFilters);
     let params = {
       page: this.state.page,
       limit: this.state.limit,
       //eventType: eventsType,
-      events: eventsData,
-      organisations: organisationsData,
+      events: filterInfo.events,
+      organisations: filterInfo.organisations,
+      temporals: filterInfo.temporals,
       //organisationType: organisationsType,
       //people: this.props.classpiecesFilters.people,
       //resources: this.props.classpiecesFilters.classpieces,
+      //spatial: this.props.classpiecesFilters.spatials,
     };
     let url = process.env.REACT_APP_APIPATH+'classpieces';
     axios({
@@ -129,38 +109,40 @@ class Classpieces extends Component {
           items: classpieces
         });
         
-        context.updateClasspiecesRelationship(classpieces);
+        context.updateClasspiecesRelationship();
       }
 	  })
 	  .catch(function (error) {
 	  });
   }
 
-  updateClasspiecesRelationship(classpieces=null) {
-    if(classpieces===null){
-      return false;
-    }
-    
-    let id_classpieces = classpieces.map(item =>{
-      return item._id;
-    })
-    
-    let context = this;
+  updateClasspiecesRelationship() {
+  	let context = this;
+    let filterInfo = getInfoFromFilterObj("classpieces", this.props.classpiecesFilters);
     let params = {
-      _ids: id_classpieces,
+      page: this.state.page,
+      limit: this.state.limit,
+      //eventType: eventsType,
+      events: filterInfo.events,
+      organisations: filterInfo.organisations,
+      temporals: filterInfo.temporals,
+      //organisationType: organisationsType,
+      //people: this.props.classpiecesFilters.people,
+      //resources: this.props.classpiecesFilters.classpieces,
+      //spatials: this.props.classpiecesFilters.spatials,
     };
     let url = process.env.REACT_APP_APIPATH+'classpieces-active-filters';
     axios({
-      method: 'post',
+      method: 'get',
       url: url,
       crossDomain: true,
-      data: params
+      params: params
     })
 	  .then(function (response) {
       let responseData = response.data.data;
       
       let payload = {
-        events: responseData.events.map(item=>{return item._id}),
+        events: responseData.events.map(item=>{return item}),
         organisations: responseData.organisations.map(item=>{return item._id}),
         people: responseData.people.map(item=>{return item._id}),
         classpieces: responseData.resources.map(item=>{return item._id}),
@@ -299,6 +281,7 @@ class Classpieces extends Component {
     if (!this.state.loading) {
       let pageActions = <PageActions
         limit={this.state.limit}
+        sort={null}
         current_page={this.state.page}
         gotoPageValue={this.state.gotoPage}
         total_pages={this.state.totalPages}
@@ -325,8 +308,8 @@ class Classpieces extends Component {
               name="classpieces"
               filterType = {[
                 {name: "organisations", layer: ["type","data"], compareData: {dataSet: "organisationType", typeSet: "labelId"}, typeFilterDisable: true},
-                //{name: "events", layer: ["type","data"], compareData: {dataSet: "eventType", typeSet: "_id"}, typeFilterDisable: true},
-                //{name: "temporals"},
+                {name: "events", layer: ["type","data"], compareData: {dataSet: "eventType", typeSet: "_id"}, typeFilterDisable: true},
+                {name: "temporals"},
                 //{name: "spatials"},
                 ]}
               filtersSet={this.props.classpiecesFilters}

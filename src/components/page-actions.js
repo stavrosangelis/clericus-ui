@@ -6,6 +6,7 @@ import {
   //Collapse
 } from 'reactstrap';
 import MainPagination from './pagination';
+import PropTypes from 'prop-types';
 
 export default class PageActions extends Component {
   constructor(props) {
@@ -43,6 +44,40 @@ export default class PageActions extends Component {
     if (this.props.limit===500) {
       limitActive3 = "active";
     }
+    
+    let sortItem = null;
+    if(this.props.sort !== null) {
+      let sortActive0 = "";
+      let sortActive1 = "";
+      let sortActive2 = "";
+      let sortActive3 = "";
+      if (this.props.sort==="asc_firstName") {
+        sortActive0 = "active";
+      }
+      if (this.props.sort==="asc_lastName") {
+        sortActive1 = "active";
+      }
+      if (this.props.sort==="desc_firstName") {
+        sortActive2 = "active";
+      }
+      if (this.props.sort==="desc_lastName") {
+        sortActive3 = "active";
+      }
+      
+      sortItem = <div className="filter-item">
+        <UncontrolledDropdown>
+          <DropdownToggle caret size="sm" outline>
+            Sort
+          </DropdownToggle>
+          <DropdownMenu right>
+            <DropdownItem className={sortActive0} onClick={this.props.updateSort.bind(this,"asc_firstName")}>ASC by First Name</DropdownItem>
+            <DropdownItem className={sortActive1} onClick={this.props.updateSort.bind(this,"asc_lastName")}>ASC by Last Name</DropdownItem>
+            <DropdownItem className={sortActive2} onClick={this.props.updateSort.bind(this,"desc_firstName")}>Desc by First Name</DropdownItem>
+            <DropdownItem className={sortActive3} onClick={this.props.updateSort.bind(this,"desc_lastName")}>Desc by Last Name</DropdownItem>
+          </DropdownMenu>
+        </UncontrolledDropdown>
+      </div>
+    }
 
     return (
       <div className="row">
@@ -79,6 +114,8 @@ export default class PageActions extends Component {
               </DropdownMenu>
             </UncontrolledDropdown>
           </div>
+          
+          {sortItem}
 
         </div>
       </div>
@@ -87,4 +124,12 @@ export default class PageActions extends Component {
     )
   }
 
+}
+
+PageActions.defaultProps = {
+  sort: null,
+}
+
+PageActions.propTypes = {
+  sort: PropTypes.object,
 }

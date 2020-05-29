@@ -120,3 +120,67 @@ export const getIDFromArray = (dataArray) => {
   }
   return result;
 }
+
+export const getInfoFromSort = (type=null,dataString=null) => {
+  let orderField = "", orderDesc = null;
+  if(dataString === "asc_firstName") {
+    orderField = "firstName";
+    orderDesc = false;
+  }
+  else if (dataString === "asc_lastName") {
+    orderField = "lastName";
+    orderDesc = false;
+  }
+  else if (dataString === "desc_firstName") {
+    orderField = "firstName";
+    orderDesc = true;
+  }
+  else if (dataString === "desc_lastName") {
+    orderField = "lastName";
+    orderDesc = true;
+  }
+  
+  if (type === "orderField") {
+    return orderField;
+  }
+  else if (type === "orderDesc") {
+    return orderDesc;
+  }
+  
+  return null;
+}
+
+export const getInfoFromFilterObj = (type=null,filtersData=null) => {
+  if ((type !== "people") && (type !== "classpieces")) {
+    return null;
+  }
+  
+  let result = {
+    /*eventsType,*/
+    events: [],
+    /*organisationsType,*/
+    organisations: [],
+    temporals: {},
+  }
+  if(typeof filtersData.events !== "undefined") {
+    //eventsType = getIDFromArray(filtersData.events.type);
+    result.events = filtersData.events;
+  }
+  if(typeof filtersData.organisations !== "undefined") {
+    //organisationsType = getIDFromArray(filtersData.organisations.type);
+    result.organisations = getIDFromArray(filtersData.organisations.data);
+  }
+  if(typeof filtersData.temporals !=="undefined") {
+    result.temporals = filtersData.temporals;
+  }
+  /*
+  if(filtersData.spatials.length > 0) {
+    for (let i=0;i<filtersData.spatials.length;i++) {
+      if(!events.includes(filtersData.spatials[i])) {
+        result.events.push(filtersData.spatials[i]);
+      }
+    }
+  }
+  */
+  return result;
+}

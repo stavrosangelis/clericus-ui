@@ -3,7 +3,8 @@ export const defaultState = {
 
   peoplePagination: {
     limit:25,
-    page:1
+    page:1,
+    sort: "asc_firstName",
   },
 
   classpiecesPagination: {
@@ -23,13 +24,7 @@ export const defaultState = {
 
   classpiecesFilters: {
     //classpieces: [],
-    /*
-    events: {
-      type: {},
-      data: {},
-      dataName: {},
-    },
-    */
+    events: [],
     organisations:  {
       type: {},
       data: {},
@@ -37,14 +32,11 @@ export const defaultState = {
     },
     //people: [],
     temporals: {
-      startDate: null,
-      endDate: null,
-      eventType: [],
-      eventID: [],
+      startDate: "",
+      endDate: "",
+      dateType: "exact",
     },
-    spatials: {
-      eventID: [],
-    },
+    //spatials: [],
   },
   classpiecesRelationship: {
     classpieces: [],
@@ -65,12 +57,11 @@ export const defaultState = {
     },
     //people: [],
     temporals: {
-      startDate: null,
-      endDate: null,
+      startDate: "",
+      endDate: "",
+      dateType: "exact",
     },
-    spatials: {
-      eventID: [],
-    },
+    //spatials: [],
   },
   peopleRelationship: {
     classpieces: [],

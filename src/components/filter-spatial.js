@@ -4,17 +4,18 @@ import {
   Card, CardBody
 } from 'reactstrap';
 import PropTypes from 'prop-types';
+import { Link} from 'react-router-dom';
 
 const FilterSpatial = props => {
   const [filterItems,setFilterItems] = useState([]);
   useEffect(()=> {
     const toggleFilter = (_id=null) => {
       let filters = props.filtersSet;
-      if (filters.eventID.includes(_id)===false) {
-        filters.eventID.push(_id);
+      if (filters.includes(_id)===false) {
+        filters.push(_id);
       }
       else{
-        filters.eventID.splice(filters.eventID.indexOf(_id), 1);
+        filters.splice(filters.indexOf(_id), 1);
       }
       props.updateFilters(props.filtersType.name,filters);
     }
@@ -26,25 +27,29 @@ const FilterSpatial = props => {
         let disabled = "", checked = "";
         let hidden = "";
         let item = props.items[i];
-        
-        if(props.relationshipSet.includes(item.event[0].ref._id)===false) {
+
+        if(props.relationshipSet.includes(item._id)===false) {
           disabled = "disabled";
           hidden = "hidden";
         }else {
           labelType = " filter-label";
         }
         
-        if(preFilterSet.eventID.length > 0) {
-          if(preFilterSet.eventID.includes(item.event[0].ref._id)===true) {
+        if(preFilterSet.length > 0) {
+          if(preFilterSet.includes(item._id)===true) {
             checked = "defaultChecked";
           }
         }
         
+        let link = "/spatial/"+item._id;
         let output = <FormGroup key={item._id}>
               <Label className={hidden+labelType}>
-                <Input type="checkbox" name={props.filtersType.name} onClick={()=>toggleFilter(item.event[0].ref._id)} onChange={()=>{}} disabled={disabled} checked={checked}/>{' '}
+                <Input type="checkbox" name={props.filtersType.name} onClick={()=>toggleFilter(item._id)} onChange={()=>{}} disabled={disabled} checked={checked}/>{' '}
                 <span className="filter-span">{item.label}</span>
               </Label>
+              <Link to={link} href={link} className={hidden}>
+                <i className={"fa fa-map-marker filter-spatial-marker"}/>
+              </Link>
             </FormGroup>
         filterItem.push(output);
       }
@@ -54,7 +59,7 @@ const FilterSpatial = props => {
   },[props])
 
   const clearFilters = () => {
-    props.updateFilters(props.filtersType.name,{eventID: []});
+    props.updateFilters(props.filtersType.name,[]);
   }
   return (
     <div className="filter-block">
@@ -73,7 +78,7 @@ const FilterSpatial = props => {
 }
 
 FilterSpatial.defaultProps = {
-  filtersSet: {},
+  filtersSet: [],
   relationshipSet: [],
   filtersType: {},
   items: [],
@@ -83,7 +88,7 @@ FilterSpatial.defaultProps = {
 }
 
 FilterSpatial.propTypes = {
-  filtersSet: PropTypes.object,
+  filtersSet: PropTypes.array,
   relationshipSet: PropTypes.array,
   filtersType: PropTypes.object.isRequired,
   items: PropTypes.array,

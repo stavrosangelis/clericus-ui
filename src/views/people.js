@@ -8,7 +8,7 @@ import {
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getPersonThumbnailURL, getIDFromArray} from '../helpers/helpers';
+import {getPersonThumbnailURL, getInfoFromSort, getInfoFromFilterObj} from '../helpers/helpers';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
@@ -48,6 +48,7 @@ class People extends Component {
       page: 1,
       gotoPage: 1,
       limit: 50,
+      sort: "asc_firstName",
       totalPages: 0,
       totalItems: 0,
       searchVisible: true,
@@ -61,48 +62,38 @@ class People extends Component {
     this.clearAdvancedSearch = this.clearAdvancedSearch.bind(this);
     this.updateAdvancedSearchInputs = this.updateAdvancedSearchInputs.bind(this);
     this.clearSearch = this.clearSearch.bind(this);
+    this.toggleSearch = this.toggleSearch.bind(this);
     this.updatePage = this.updatePage.bind(this);
     this.updateStorePagination = this.updateStorePagination.bind(this);
     this.updateLimit = this.updateLimit.bind(this);
+    this.updateSort = this.updateSort.bind(this);
     this.gotoPage = this.gotoPage.bind(this);
     this.renderItems = this.renderItems.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    this.toggleSearch = this.toggleSearch.bind(this);
+    this.updatePeopleRelationship = this.updatePeopleRelationship.bind(this);
   }
 
   async load() {
     this.setState({
       peopleLoading: true
     })
-    let /*eventsType,*/ eventsData = [], /*organisationsType,*/ organisationsData = [], temporals={};
-    if(typeof this.props.peopleFilters.events !== "undefined") {
-      //eventsType = getIDFromArray(this.props.peopleFilters.events.type);
-      eventsData = this.props.peopleFilters.events;
-    }
-    if(typeof this.props.peopleFilters.organisations !== "undefined") {
-      //organisationsType = getIDFromArray(this.props.peopleFilters.organisations.type);
-      organisationsData = getIDFromArray(this.props.peopleFilters.organisations.data);
-    }
-    if(this.props.peopleFilters.temporals !=="undefined") {
-      temporals = this.props.peopleFilters.temporals;
-    }
-    if(this.props.peopleFilters.spatials.eventID.length > 0) {
-      for (let i=0;i<this.props.peopleFilters.spatials.eventID.length;i++) {
-        if(!eventsData.includes(this.props.peopleFilters.spatials.eventID[i])) {
-          eventsData.push(this.props.peopleFilters.spatials.eventID[i]);
-        }
-      }
-    }
+    let filterInfo = getInfoFromFilterObj("people", this.props.peopleFilters);
+    let orderField = getInfoFromSort("orderField", this.state.sort);
+    let orderDesc = getInfoFromSort("orderDesc", this.state.sort);
+    
     let params = {
       page: this.state.page,
       limit: this.state.limit,
       //eventType: eventsType,
-      events: eventsData,
-      organisations: organisationsData,
-      temporals: temporals
+      events: filterInfo.events,
+      organisations: filterInfo.organisations,
+      temporals: filterInfo.temporals,
       //organisationType: organisationsType,
       //people: this.props.peopleFilters.people,
       //resources: this.props.peopleFilters.classpieces,
+      //spatial: this.props.peopleFilters.spatials,
+      orderField: orderField,
+      orderDesc: orderDesc,
     };
     if (this.state.simpleSearchTerm!=="") {
       params.label = this.state.simpleSearchTerm;
@@ -155,32 +146,14 @@ class People extends Component {
   }
 
   async updatePeopleRelationship() {
-    let /*eventsType,*/ eventsData = [], /*organisationsType,*/ organisationsData = [], temporals={};
-    if(typeof this.props.peopleFilters.events !== "undefined") {
-      //eventsType = getIDFromArray(this.props.peopleFilters.events.type);
-      eventsData = this.props.peopleFilters.events;
-    }
-    if(typeof this.props.peopleFilters.organisations !== "undefined") {
-      //organisationsType = getIDFromArray(this.props.peopleFilters.organisations.type);
-      organisationsData = getIDFromArray(this.props.peopleFilters.organisations.data);
-    }
-    if(this.props.peopleFilters.temporals !=="undefined") {
-      temporals = this.props.peopleFilters.temporals;
-    }
-    if(this.props.peopleFilters.spatials.eventID.length > 0) {
-      for (let i=0;i<this.props.peopleFilters.spatials.eventID.length;i++) {
-        if(!eventsData.includes(this.props.peopleFilters.spatials.eventID[i])) {
-          eventsData.push(this.props.peopleFilters.spatials.eventID[i]);
-        }
-      }
-    }
+    let filterInfo = getInfoFromFilterObj("people", this.props.peopleFilters);
     let params = {
       page: this.state.page,
       limit: this.state.limit,
       //eventType: eventsType,
-      events: eventsData,
-      organisations: organisationsData,
-      temporals: temporals
+      events: filterInfo.events,
+      organisations: filterInfo.organisations,
+      temporals: filterInfo.temporals,
       //organisationType: organisationsType,
       //people: this.props.peopleFilters.people,
       //resources: this.props.peopleFilters.classpieces,
@@ -208,8 +181,21 @@ class People extends Component {
       console.log(error);
 	  });
 
+    /*
+    let responseDataType = ["events","organisations","people","resources","spatials"];
+    let payload = {};
+    for(let i=0;i<responseDataType.length;i++) {
+      if(typeof responseData[`${responseDataType[i]}`] !== "undefined") {
+        let name =`${responseDataType[i]}`;
+        if(responseDataType[i]==="resources") {
+          name = "classpieces";
+        }
+        payload[name] = responseData[`${responseDataType[i]}`].map(item=>{return item._id});
+      }
+    }
+    */
     let payload = {
-      events: responseData.events,
+      events: responseData.events.map(item=>{return item}),
       organisations: responseData.organisations.map(item=>{return item._id}),
       people: responseData.people.map(item=>{return item._id}),
       classpieces: responseData.resources.map(item=>{return item._id}),
@@ -227,12 +213,22 @@ class People extends Component {
     this.setState({
       peopleLoading: true
     });
+    
+    let filterInfo = getInfoFromFilterObj("people", this.props.peopleFilters);
+    let orderField = getInfoFromSort("orderField", this.state.sort);
+    let orderDesc = getInfoFromSort("orderDesc", this.state.sort);
+
     let params = {
       label: this.state.simpleSearchTerm,
       page: this.state.page,
-      limit: this.state.limit
+      limit: this.state.limit,
+      orderField: orderField,
+      orderDesc: orderDesc,
+      events: filterInfo.events,
+      organisations: filterInfo.organisations,
+      temporals: filterInfo.temporals,
     };
-    let url = process.env.REACT_APP_APIPATH+'people';
+    let url = process.env.REACT_APP_APIPATH+'ui-people';
     let responseData = await axios({
       method: 'get',
       url: url,
@@ -275,6 +271,7 @@ class People extends Component {
         totalItems: responseData.totalItems,
         items: newPeople
       });
+      this.updatePeopleRelationship();
     }
   }
 
@@ -283,12 +280,20 @@ class People extends Component {
     this.setState({
       peopleLoading: true
     })
+    let filterInfo = getInfoFromFilterObj("people", this.props.peopleFilters);
+    let orderField = getInfoFromSort("orderField", this.state.sort);
+    let orderDesc = getInfoFromSort("orderDesc", this.state.sort);
     let params = {
       page: 1,
-      limit: this.state.limit
+      limit: this.state.limit,
+      orderField: orderField,
+      orderDesc: orderDesc,
+      events: filterInfo.events,
+      organisations: filterInfo.organisations,
+      temporals: filterInfo.temporals,
     };
+    //let queryRows = [];
     if (this.state.advancedSearchInputs.length>0) {
-      let queryRows = [];
       for (let i=0; i<this.state.advancedSearchInputs.length; i++) {
         let searchInput = this.state.advancedSearchInputs[i];
         /*
@@ -313,7 +318,7 @@ class People extends Component {
           params[`${searchInput.select}`] = searchInput.input;
         }
       }
-      params.query = queryRows;
+      //params.query = queryRows;
     }
     else {
       return false;
@@ -361,6 +366,7 @@ class People extends Component {
         totalItems: responseData.totalItems,
         items: newPeople
       });
+      this.updatePeopleRelationship();
     }
   }
 
@@ -401,16 +407,20 @@ class People extends Component {
     }
   }
 
-  updateStorePagination(limit=null, page=null) {
+  updateStorePagination(limit=null, page=null, sort=null) {
     if (limit===null) {
       limit = this.state.limit;
     }
     if (page===null) {
       page = this.state.page;
     }
+    if(sort===null) {
+      sort = this.state.sort;
+    }
     let payload = {
       limit:limit,
       page:page,
+      sort:sort,
     }
     this.props.setPaginationParams("people", payload);
   }
@@ -423,7 +433,7 @@ class People extends Component {
       this.setState({
         page: gotoPage
       })
-      this.updateStorePagination(null,gotoPage);
+      this.updateStorePagination(null,gotoPage,null);
       let context = this;
       setTimeout(function(){
         context.load();
@@ -435,7 +445,18 @@ class People extends Component {
     this.setState({
       limit: limit
     })
-    this.updateStorePagination(limit,null);
+    this.updateStorePagination(limit,null,null);
+    let context = this;
+    setTimeout(function(){
+      context.load();
+    },100)
+  }
+  
+  updateSort(sort) {
+    this.setState({
+      sort: sort
+    })
+    this.updateStorePagination(null,null,sort);
     let context = this;
     setTimeout(function(){
       context.load();
@@ -511,6 +532,7 @@ class People extends Component {
     if (!this.state.loading) {
       let pageActions = <PageActions
         limit={this.state.limit}
+        sort={this.state.sort}
         current_page={this.state.page}
         gotoPageValue={this.state.gotoPage}
         total_pages={this.state.totalPages}
@@ -518,6 +540,7 @@ class People extends Component {
         gotoPage={this.gotoPage}
         handleChange={this.handleChange}
         updateLimit={this.updateLimit}
+        updateSort={this.updateSort}
         pageType="people"
       />
       let people = <div className="row">
@@ -544,12 +567,14 @@ class People extends Component {
           inputType: "text", inputData: null},
         { element: "description", label: "Description",
           inputType: "text", inputData: null},
+        /*
         { element: "orderField", label: "Order Field",
           inputType: "select", inputData: [ {label: "First Name", value: "firstName"},
                                             {label: "Last Name", value: "lastName"} ]},
         { element: "orderDesc", label: "Order Desc",
           inputType: "select", inputData: [ {label: "True", value: "true"},
                                             {label: "False", value: "false"}]},
+        */
       ]
 
       let searchBox = <Collapse isOpen={this.state.searchVisible}>

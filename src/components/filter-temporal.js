@@ -11,8 +11,8 @@ import "react-datepicker/dist/react-datepicker.css";
 
 const FilterTemporal = props => {
   const [dateType,setDateType] = useState("exact");
-  const [startDate,setStartDate] = useState();
-  const [endDate,setEndDate] = useState();
+  const [startDate,setStartDate] = useState("");
+  const [endDate,setEndDate] = useState("");
 
   const updateDateType = (e) => {
     let val = e.target.value;
@@ -36,8 +36,14 @@ const FilterTemporal = props => {
   const submit = (e) => {
     e.preventDefault();
 
-    let newStartDate = new Intl.DateTimeFormat('en-US').format(startDate);
-    let newEndDate = new Intl.DateTimeFormat('en-US').format(endDate);
+    let newStartDate = startDate;
+    if(newStartDate!==""){
+      newStartDate = new Intl.DateTimeFormat('en-US').format(startDate);
+    }
+    let newEndDate = endDate;
+    if(newEndDate!==""){
+      newEndDate = new Intl.DateTimeFormat('en-US').format(endDate);
+    }
     let payload = {
       dateType: dateType,
       startDate: newStartDate,
@@ -45,6 +51,14 @@ const FilterTemporal = props => {
     }
     props.updateFilters("temporals",payload);
   }
+  
+  const resetState = () => {
+    setDateType("exact");
+    setStartDate("");
+    setEndDate("");
+  }
+  
+  props.resetStateForwardRef(() => resetState());
 
   let endDateVisible = " hidden";
   let endDateHidden = "";
@@ -61,7 +75,7 @@ const FilterTemporal = props => {
           </h4>
           <Form onSubmit={(e)=>submit(e)}>
             <FormGroup>
-              <Input type="select" name="dateType" onChange={(e)=>updateDateType(e)}>
+              <Input type="select" name="dateType" value={dateType} onChange={(e)=>updateDateType(e)}>
                 <option value="exact">Exact</option>
                 <option value="before">Before</option>
                 <option value="after">After</option>
