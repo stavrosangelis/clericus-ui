@@ -22,7 +22,6 @@ import {
   loadOrganisationsType,
   loadOrganisations,
   loadEventsType,
-  loadEvents,
   //loadPeople,
   //loadClasspieces,
   //loadTemporals,
@@ -34,7 +33,6 @@ function mapDispatchToProps(dispatch) {
     loadOrganisationsType: () => dispatch(loadOrganisationsType()),
     loadOrganisations: () => dispatch(loadOrganisations()),
     loadEventsType: () => dispatch(loadEventsType()),
-    //loadEvents: () => dispatch(loadEvents()),
     //loadPeople: () => dispatch(loadPeople()),
     //loadClasspieces: () => dispatch(loadClasspieces()),
     //loadTemporals: () => dispatch(loadTemporals()),
@@ -49,7 +47,6 @@ class App extends Component{
     this.props.loadOrganisationsType();
     this.props.loadOrganisations();
     this.props.loadEventsType();
-    //this.props.loadEvents();
     //this.props.loadPeople();
     //this.props.loadClasspieces();
     //this.props.loadTemporals();

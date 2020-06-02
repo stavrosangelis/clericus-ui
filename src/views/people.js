@@ -567,13 +567,10 @@ class People extends Component {
           inputType: "text", inputData: null},
         { element: "description", label: "Description",
           inputType: "text", inputData: null},
-        /*
+        /* select option templete
         { element: "orderField", label: "Order Field",
           inputType: "select", inputData: [ {label: "First Name", value: "firstName"},
                                             {label: "Last Name", value: "lastName"} ]},
-        { element: "orderDesc", label: "Order Desc",
-          inputType: "select", inputData: [ {label: "True", value: "true"},
-                                            {label: "False", value: "false"}]},
         */
       ]
 

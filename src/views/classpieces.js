@@ -281,7 +281,7 @@ class Classpieces extends Component {
     if (!this.state.loading) {
       let pageActions = <PageActions
         limit={this.state.limit}
-        sort={null}
+        sort={""}
         current_page={this.state.page}
         gotoPageValue={this.state.gotoPage}
         total_pages={this.state.totalPages}

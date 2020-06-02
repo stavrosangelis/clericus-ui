@@ -46,7 +46,7 @@ export default class PageActions extends Component {
     }
     
     let sortItem = null;
-    if(this.props.sort !== null) {
+    if(this.props.sort !== "") {
       let sortActive0 = "";
       let sortActive1 = "";
       let sortActive2 = "";
@@ -127,9 +127,9 @@ export default class PageActions extends Component {
 }
 
 PageActions.defaultProps = {
-  sort: null,
+  sort: "",
 }
 
 PageActions.propTypes = {
-  sort: PropTypes.object,
+  sort: PropTypes.string,
 }
