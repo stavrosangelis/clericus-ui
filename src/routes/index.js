@@ -17,6 +17,7 @@ import Spatial from '../views/spatial';
 // visualisations
 import Heatmap from '../views/visualisations/heatmap';
 import GraphNetwork from '../views/visualisations/graph-network';
+import Timeline from '../views/visualisations/timeline';
 
 var routes = [
   {
@@ -103,6 +104,11 @@ var routes = [
     path: "/network-graph/",
     component: GraphNetwork,
     name: "Graph network",
+  },
+  {
+    path: "/timeline/",
+    component: Timeline,
+    name: "Events timeline",
   },
 ];
 export default routes;
