@@ -62,6 +62,12 @@ const Filter = props => {
     let itemIndex = filterItems.indexOf(item);
     filterItems[itemIndex].checked = item.checked;
   }
+  
+  const resetState = () => {
+    setFilters([]);
+  }
+  
+  props.resetStateForwardRef(() => resetState());
 
   let filterItemsHTML = filterItems.map((item,i)=>{
     let disabled = false;

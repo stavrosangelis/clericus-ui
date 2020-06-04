@@ -34,6 +34,9 @@ const mapStateToProps = state => {
 
     loadingSpatials: state.loadingSpatials,
     spatials: state.spatials,
+    
+    loadingPeopleRelationship: state.loadingPeopleRelationship,
+    loadingClasspiecesRelationship: state.loadingClasspiecesRelationship,
    };
 };
 
@@ -70,11 +73,7 @@ class Filters extends React.Component {
     if(this.name === "people") {
       payload = {
         events: [],
-        organisations:  {
-          type: {},
-          data: {},
-          dataName: {},
-        },
+        organisations: [],
         temporals: {
           startDate: "",
           endDate: "",
@@ -85,18 +84,8 @@ class Filters extends React.Component {
     }
     else if (this.name === "classpieces") {
       payload = {
-        /*
-        events: {
-          type: {},
-          data: {},
-          dataName: {},
-        },
-        */
-        organisations:  {
-          type: {},
-          data: {},
-          dataName: {},
-        },
+        events: [],
+        organisations: [],
         temporals: {
           startDate: null,
           endDate: null,
@@ -126,6 +115,7 @@ class Filters extends React.Component {
     }
     let context = this;
     this.props.updateFilters(this.name,payload);
+    this.eventFuncComRef();
     this.temporalFuncComRef();
     setTimeout(function() {
       context.props.updatedata();
@@ -140,6 +130,15 @@ class Filters extends React.Component {
     let people = [];
     let temporals = [];
     let spatials = [];
+    
+    let loadingRelationship = null;
+    if(props.name === "people") {
+      loadingRelationship = props.loadingPeopleRelationship;
+    }
+    else if(props.name === "classpieces") {
+      loadingRelationship = props.loadingClasspiecesRelationship;
+    }
+    
     for (let i=0;i<props.filterType.length;i++) {
       if(props.filterType[i].name === "Classpieces") {
         if (!props.loadingClasspieces) {
@@ -156,6 +155,7 @@ class Filters extends React.Component {
       else if(props.filterType[i].name === "events") {
         events = <FilterNew
           key={this.name+"events"}
+          resetStateForwardRef={c => { this.eventFuncComRef = c }}
           loading={props.loadingEventsType}
           relationshipSet={props.relationshipSet.events}
           filtersSet={props.filtersSet.events}
@@ -178,9 +178,10 @@ class Filters extends React.Component {
         }
       }
       else if(props.filterType[i].name === "organisations") {
-        if ((!props.loadingOrganisations) && (props.decidingFilteringSet)) {
+        //if ((!props.loadingOrganisations) && (props.decidingFilteringSet)) {
           organisations = <Filter
             key={this.name+"_organisations"}
+            loading={loadingRelationship}
             filtersSet={props.filtersSet.organisations}
             relationshipSet={props.relationshipSet.organisations}
             filtersType={props.filterType[i]}
@@ -189,7 +190,7 @@ class Filters extends React.Component {
             label="Organisations"
             updateFilters={this.updateFilters}
           />
-        }
+        //}
       }
       else if(props.filterType[i].name === "temporals") {
         //if ((!props.loadingTemporals) && (props.decidingFilteringSet)) {
@@ -207,7 +208,7 @@ class Filters extends React.Component {
         //}
       }
       else if(props.filterType[i].name === "spatials") {
-        if ((!props.loadingSpatials) && (props.decidingFilteringSet)) {
+        //if ((!props.loadingSpatials) && (props.decidingFilteringSet)) {
           spatials = <FilterSpatial
             key={this.name+"_spatials"}
             filtersSet={props.filtersSet.spatials}
@@ -217,7 +218,7 @@ class Filters extends React.Component {
             label="Spatials"
             updateFilters={this.updateFilters}
           />
-        }
+        //}
       }
     }
 
@@ -242,7 +243,7 @@ Filters.propTypes = {
   filtersSet: PropTypes.object,
   filtersClasspieceType: PropTypes.string,
   relationshipSet: PropTypes.object,
-  decidingFilteringSet: PropTypes.bool,
+  //decidingFilteringSet: PropTypes.bool,
   updatedata: PropTypes.func,
 }
 

@@ -302,7 +302,7 @@ export function updateFilters(type,params) {
         eventsData = Object.assign([], getState().classpiecesFilters.events);
       }
       if(typeof params.organisations === "undefined") {
-        organisationsData = Object.assign({}, getState().classpiecesFilters.organisations);
+        organisationsData = Object.assign([], getState().classpiecesFilters.organisations);
       }
       if(typeof params.temporals === "undefined") {
         temporalsData = Object.assign({}, getState().classpiecesFilters.temporals);
@@ -321,14 +321,15 @@ export function updateFilters(type,params) {
           //people: params.people,
           temporals: temporalsData,
           //spatials: spatialsData,
-        }
+        },
+        loadingClasspiecesRelationship: true,
       };
     }else if (type==="people") {
       if(typeof params.events === "undefined") {
         eventsData = Object.assign([], getState().peopleFilters.events);
       }
       if(typeof params.organisations === "undefined") {
-        organisationsData = Object.assign({}, getState().peopleFilters.organisations);
+        organisationsData = Object.assign([], getState().peopleFilters.organisations);
       }
       if(typeof params.temporals === "undefined") {
         temporalsData = Object.assign({}, getState().peopleFilters.temporals);
@@ -347,7 +348,8 @@ export function updateFilters(type,params) {
           //people: params.people,
           temporals: temporalsData,
           //spatials: spatialsData,
-        }
+        },
+        loadingPeopleRelationship: true,
       };
     }else if (type==="events") {
       payload = {
@@ -399,7 +401,8 @@ export function setRelationshipParams(type,params) {
           people: params.people,
           //temporals: params.temporals,
           //spatials: params.spatials,
-        }
+        },
+        loadingClasspiecesRelationship: false,
       };
     }else if (type==="people") {
       payload = {
@@ -410,7 +413,8 @@ export function setRelationshipParams(type,params) {
           people: params.people,
           //temporals: params.temporals,
           //spatials: params.spatials,
-        }
+        },
+        loadingPeopleRelationship: false,
       };
     }else if (type==="events") {
       payload = {

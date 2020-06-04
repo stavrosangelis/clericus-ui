@@ -25,11 +25,7 @@ export const defaultState = {
   classpiecesFilters: {
     //classpieces: [],
     events: [],
-    organisations:  {
-      type: {},
-      data: {},
-      dataName: {},
-    },
+    organisations:  [],
     //people: [],
     temporals: {
       startDate: "",
@@ -46,15 +42,12 @@ export const defaultState = {
     //temporals: [],
     //spatials: [],
   },
+  loadingClasspiecesRelationship: true,
 
   peopleFilters: {
     //classpieces: [],
     events: [],
-    organisations:  {
-      type: {},
-      data: {},
-      dataName: {},
-    },
+    organisations:  [],
     //people: [],
     temporals: {
       startDate: "",
@@ -71,14 +64,11 @@ export const defaultState = {
     //temporals: [],
     //spatials: [],
   },
+  loadingPeopleRelationship: true,
 
   eventsFilters: {
     //classpieces: [],
-    events: {
-      type: {},
-      data: {},
-      dataName: {},
-    },
+    events: [],
     //organisations: [],
     //people: [],
     //temporals: [],
@@ -96,11 +86,7 @@ export const defaultState = {
   organisationsFilters: {
     //classpieces: [],
     //events: [],
-    organisations: {
-      type: {},
-      data: {},
-      dataName: {},
-    },
+    organisations: [],
     //people: [],
     //temporals: [],
     //spatials: [],

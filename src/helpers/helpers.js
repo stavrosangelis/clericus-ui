@@ -168,7 +168,7 @@ export const getInfoFromFilterObj = (type=null,filtersData=null) => {
   }
   if(typeof filtersData.organisations !== "undefined") {
     //organisationsType = getIDFromArray(filtersData.organisations.type);
-    result.organisations = getIDFromArray(filtersData.organisations.data);
+    result.organisations = filtersData.organisations;
   }
   if(typeof filtersData.temporals !=="undefined") {
     result.temporals = filtersData.temporals;
