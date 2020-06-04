@@ -1994,6 +1994,11 @@ section {
 .home-visualisation-thumb {
   margin-bottom: 15px;
 }
+@media screen and (max-width: 767px) {
+  .home-visualisation-block {
+    margin-bottom: 15px;
+  }
+}
 .graph-legend-panel {
   position: absolute;
   bottom: 10px;

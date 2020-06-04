@@ -82,6 +82,7 @@ const drawNodes = async () => {
         d.gfx = new PIXI.Graphics();
         d.gfx.interactive = true;
         d.gfx.on("click", ()=>publicFunctions.clickNode(d))
+        d.gfx.on("tap", ()=>publicFunctions.clickNode(d))
         let lineWidth = 1;
         let strokeStyle = hexColor(d.strokeColor);
         //d.visible = true;
@@ -98,10 +99,12 @@ const drawNodes = async () => {
           lineWidth = 1;
         }
         d.gfx.beginFill(hexColor(d.color));
-        d.gfx.lineStyle(lineWidth,strokeStyle);
+        if (container.scaled>0.3) {
+          d.gfx.lineStyle(lineWidth,strokeStyle);
+        }
         d.gfx.drawCircle(x, y, radius);
         nodesContainer.addChild(d.gfx);
-        if (d.label!=="") {
+        if (d.label!=="" && container.scaled>0.3) {
           let label = d.label.trim().replace(/  +/g," ");
           let spaces = label.split(" ");
           let minusY = spaces.length/2;
