@@ -20,6 +20,7 @@ import Resources from '../views/resources';
 import Heatmap from '../views/visualisations/heatmap';
 import GraphNetwork from '../views/visualisations/graph-network';
 import Timeline from '../views/visualisations/timeline';
+import ItemTimeline from '../views/visualisations/item-timeline';
 
 var routes = [
   {
@@ -121,6 +122,11 @@ var routes = [
     path: "/timeline/",
     component: Timeline,
     name: "Events timeline",
+  },
+  {
+    path: "/item-timeline/:type/:_id",
+    component: ItemTimeline,
+    name: "Item timeline",
   },
 ];
 export default routes;

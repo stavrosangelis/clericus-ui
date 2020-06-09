@@ -18,6 +18,7 @@ const APIPath = process.env.REACT_APP_APIPATH;
 
 const Timeline = props =>{
   const [loading, setLoading] = useState(true);
+  const [item,setItem] = useState(null);
   const [items,setItems] = useState([]);
   const [eventsContainerVisible,setEventsContainerVisible] = useState(false);
   const [eventsContainerTop,setEventsContainerTop] = useState(0);
@@ -284,24 +285,63 @@ const Timeline = props =>{
   }
 
   useEffect(()=> {
+    let url = null;
+    let type = props.match.params.type;
+    let params = {};
+    if (type==="person") {
+      url = `${APIPath}ui-person`;
+      params = {_id:props.match.params._id};
+    }
+    if (type==="classpiece") {
+      url = `${APIPath}classpiece`;
+      params = {_id:props.match.params._id};
+    }
+    if (type==="resource") {
+      url = `${APIPath}classpiece`;
+      params = {_id:props.match.params._id};
+    }
+    if (type==="event") {
+      url = `${APIPath}ui-event`;
+      params = {_id:props.match.params._id};
+    }
+    if (type==="organisation") {
+      url = `${APIPath}ui-organisation`;
+      params = {_id:props.match.params._id};
+    }
+    if (url===null) {
+      return ;
+    }
     const load = async() => {
       setLoading(false);
       let responseData = await axios({
         method: 'get',
-        url: APIPath+'timeline',
+        url: url,
         crossDomain: true,
+        params: params
       })
       .then(function (response) {
         return response.data;
       })
       .catch(function (error) {
       });
-      setItems(responseData.data);
+      setItem(responseData.data);
+      let eventsData = await axios({
+        method: 'get',
+        url: `${APIPath}item-timeline`,
+        crossDomain: true,
+        params: params
+      })
+      .then(function (response) {
+        return response.data;
+      })
+      .catch(function (error) {
+      });
+      setItems(eventsData.data)
     }
     if (loading) {
       load();
     }
-  },[loading]);
+  },[loading, props.match.params]);
 
   useEffect(()=>{
     var resizeTimer;
@@ -495,10 +535,21 @@ const Timeline = props =>{
     setZoom(zoomValues[newIndex]);
   }
 
-  let heading = "Events timeline";
-  let breadcrumbsItems = [
-    {label: heading, icon: "pe-7s-hourglass", active: true, path: ""}
-  ];
+  let heading = "";
+  let breadcrumbsItems = [];
+  if (!loading && item!==null && props.match.params.type==="person") {
+    let label = item.firstName;
+    if (typeof item.middleName!=="undefined" && item.middleName!==null && item.middleName!=="") {
+      label += " "+item.middleName;
+    }
+    label += " "+item.lastName;
+    breadcrumbsItems = [
+      {label: "People", icon: "pe-7s-users", active: false, path: "/people"},
+      {label: label, icon: "pe-7s-user", active: false, path: `/person/${props.match.params._id}`},
+      {label: "Timeline", icon: "pe-7s-hourglass", active: true, path: ""}
+    ];
+    heading = `${label} Timeline`;
+  }
 
   let content = <div className="row">
       <div className="col-12">

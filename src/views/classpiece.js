@@ -224,6 +224,12 @@ class Classpiece extends Component {
 
     if (!this.state.loading) {
       let itemCard = this.renderItem(this.state);
+      let timelineLink = [];
+      if (this.state.item.events.length>0) {
+        timelineLink = <div className="col-xs-12 col-sm-4">
+          <Link href={`/item-timeline/classpiece/${this.props.match.params._id}`} to={`/item-timeline/classpiece/${this.props.match.params._id}`} className="person-component-link" title="Person graph network"><i className="pe-7s-hourglass" /></Link>
+        </div>
+      }
       content = <div>
         <Card>
           <CardBody>
@@ -233,6 +239,7 @@ class Classpiece extends Component {
               </div>
             </div>
             <div className="row">
+              {timelineLink}
               <div className="col-xs-12 col-sm-4">
                 <Link href={`/classpiece-graph/${this.props.match.params._id}`} to={`/classpiece-graph/${this.props.match.params._id}`} className="person-component-link" title="Classpiece graph network"><i className="pe-7s-graph1" /></Link>
               </div>

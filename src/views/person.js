@@ -187,6 +187,12 @@ class Person extends Component {
 
     if (!this.state.loading) {
       let personCard = this.renderItem(this.state);
+      let timelineLink = [];
+      if (this.state.item.events.length>0) {
+        timelineLink = <div className="col-xs-12 col-sm-4">
+          <Link href={`/item-timeline/person/${this.props.match.params._id}`} to={`/item-timeline/person/${this.props.match.params._id}`} className="person-component-link" title="Person graph network"><i className="pe-7s-hourglass" /></Link>
+        </div>
+      }
       content = <div>
         <Card>
           <CardBody>
@@ -196,6 +202,7 @@ class Person extends Component {
               </div>
             </div>
             <div className="row">
+              {timelineLink}
               <div className="col-xs-12 col-sm-4">
                 <Link href={`/person-graph/${this.props.match.params._id}`} to={`/person-graph/${this.props.match.params._id}`} className="person-component-link" title="Person graph network"><i className="pe-7s-graph1" /></Link>
               </div>

@@ -2413,3 +2413,20 @@ section {
 .show-resource {
   cursor: pointer;
 }
+.badge-organisation {
+  background-color: #9A8CF1;
+  color: #fff;
+}
+.badge-resource {
+  background-color: #07CBFF;
+  color: #fff;
+}
+.badge-classpiece {
+  background-color: #1FD8BF;
+  color: #444;
+}
+.badge-resource img, .badge-classpiece img {
+  display: block;
+  max-width: 50px;
+  margin: 0 auto 5px auto;
+}
