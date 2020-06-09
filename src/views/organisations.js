@@ -8,7 +8,7 @@ import {
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getOrganisationThumbnailURL, getIDFromArray} from '../helpers/helpers';
+import {getOrganisationThumbnailURL} from '../helpers/helpers';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
@@ -73,14 +73,12 @@ class Organisations extends Component {
       organisationsLoading: true
     })
     let context = this;
-    let organisationsType = getIDFromArray(this.props.organisationsFilters.organisations.type);
-    //let organisationsData = getIDFromArray(this.props.organisationsFilters.organisations.data);
     let params = {
       page: this.state.page,
       limit: this.state.limit,
       //events: this.props.organisationsFilters.events,
       //organisations: organisationsData,
-      organisationType: organisationsType,
+      organisationType: this.props.organisationsFilters.organisations,
       //people: this.props.organisationsFilters.people,
       //resources: this.props.organisationsFilters.classpieces,
     };
@@ -126,15 +124,17 @@ class Organisations extends Component {
           items: organisations,
         });
 
-        //context.updateOrganisationsRelationship(organisations);
+        context.updateOrganisationsRelationship(organisations);
       }
 	  })
 	  .catch(function (error) {
 	  });
   }
 
-  /*
   updateOrganisationsRelationship(organisations=null) {
+    let payload = this.props.organisationsRelationship;
+    this.props.setRelationshipParams("organisations",payload);
+    /*
     if(organisations===null){
       return false;
     }
@@ -173,8 +173,8 @@ class Organisations extends Component {
 	  })
 	  .catch(function (error) {
 	  });
+    */
   }
-  */
   
   simpleSearch(e) {
     e.preventDefault();
@@ -504,11 +504,12 @@ class Organisations extends Component {
           <div className="col-xs-12 col-sm-4">
             <Filters
               name="organisations"
-              filterType = {[{name: "organisations", layer: ["type","data"], compareData: {dataSet: "organisationType", typeSet: "labelId"}, typeFilterDisable: false}]}
+              filterType = {[{name: "dataTypes", layer: ["type"], compareData: {dataSet: "organisationType", typeSet: "labelId"}, typeFilterDisable: false}]}
               filtersSet={this.props.organisationsFilters}
               relationshipSet={this.props.organisationsRelationship}
               decidingFilteringSet={!this.state.loading}
-              updatedata={this.load}/>
+              updatedata={this.load}
+              items={this.state.items}/>
           </div>
           <div className="col-xs-12 col-sm-8">
             <h2>{heading}

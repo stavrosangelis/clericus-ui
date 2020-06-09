@@ -21,6 +21,11 @@ export const defaultState = {
     limit:25,
     page:1
   },
+  
+  resourcesPagination: {
+    limit:25,
+    page:1
+  },
 
   classpiecesFilters: {
     //classpieces: [],
@@ -82,6 +87,7 @@ export const defaultState = {
     //temporals: [],
     //spatials: [],
   },
+  loadingEventsRelationship: true,
 
   organisationsFilters: {
     //classpieces: [],
@@ -99,6 +105,30 @@ export const defaultState = {
     //temporals: [],
     //spatials: [],
   },
+  loadingOrganisationsRelationship: true,
+
+  resourcesFilters: {
+    //classpieces: [],
+    //events: [],
+    //organisations: [],
+    //people: [],
+    //temporals: [],
+    //spatials: [],
+    resources: [],
+  },
+  resourcesRelationship: {
+    //classpieces: [],
+    //events: [],
+    //organisations: [],
+    //people: [],
+    //temporals: [],
+    //spatials: [],
+    resources: [],
+  },
+  loadingResourcesRelationship: true,
+
+  loadingResourcesType: true,
+  resourcesType: [],
 
   loadingOrganisationsType: true,
   organisationsType: [],

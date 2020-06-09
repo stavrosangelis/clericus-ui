@@ -7,6 +7,7 @@ import Filter from "./filter";
 import FilterNew from "./filter-new";
 import FilterTemporal from "./filter-temporal";
 import FilterSpatial from "./filter-spatial";
+import FilterDataTypes from "./filter-data-types";
 import PropTypes from 'prop-types';
 
 const mapStateToProps = state => {
@@ -35,8 +36,14 @@ const mapStateToProps = state => {
     loadingSpatials: state.loadingSpatials,
     spatials: state.spatials,
     
+    loadingResourcesType: state.loadingResourcesType,
+    resourcesType: state.resourcesType,
+    
     loadingPeopleRelationship: state.loadingPeopleRelationship,
     loadingClasspiecesRelationship: state.loadingClasspiecesRelationship,
+    loadingEventsRelationship: state.loadingEventsRelationship,
+    loadingOrganisationsRelationship: state.loadingOrganisationsRelationship,
+    loadingResourcesRelationship: state.loadingResourcesRelationship,
    };
 };
 
@@ -97,26 +104,30 @@ class Filters extends React.Component {
     }
     else if (this.name === "events") {
       payload = {
-        events: {
-          type: {},
-          data: {},
-          dataName: {},
-        },
+        events: [],
       }
     }
     else if (this.name === "organisations") {
       payload = {
-        organisations: {
-          type: {},
-          data: {},
-          dataName: {},
-        },
+        organisations: [],
+      }
+    }
+    else if (this.name === "resources") {
+      payload = {
+        resources: [],
       }
     }
     let context = this;
     this.props.updateFilters(this.name,payload);
-    this.eventFuncComRef();
-    this.temporalFuncComRef();
+    
+    if((this.name === "people") || (this.name === "classpieces")){
+      this.eventFuncComRef();
+      this.temporalFuncComRef();
+    }else if((this.name === "events") || (this.name === "organisations")
+      || (this.name === "resources")){
+      this.dataTypesFuncComRef();
+    }
+    
     setTimeout(function() {
       context.props.updatedata();
     },10);
@@ -130,6 +141,7 @@ class Filters extends React.Component {
     let people = [];
     let temporals = [];
     let spatials = [];
+    let dataTypes = [];
     
     let loadingRelationship = null;
     if(props.name === "people") {
@@ -137,6 +149,15 @@ class Filters extends React.Component {
     }
     else if(props.name === "classpieces") {
       loadingRelationship = props.loadingClasspiecesRelationship;
+    }
+    else if(props.name === "events") {
+      loadingRelationship = props.loadingEventsRelationship;
+    }
+    else if(props.name === "organisations") {
+      loadingRelationship = props.loadingOrganisationsRelationship;
+    }
+    else if(props.name === "resources") {
+      loadingRelationship = props.loadingResourcesRelationship;
     }
     
     for (let i=0;i<props.filterType.length;i++) {
@@ -220,6 +241,43 @@ class Filters extends React.Component {
           />
         //}
       }
+      else if(props.filterType[i].name === "dataTypes") {
+        let filtersSet = null;
+        let itemsType = null;
+        let label = "";
+        let loadingType = null;
+        if(props.name === "events") {
+          filtersSet = props.filtersSet.events;
+          itemsType = props.eventsType;
+          label="Event Types";
+          loadingType = props.loadingEventsType;
+        }
+        else if(props.name === "organisations") {
+          filtersSet = props.filtersSet.organisations;
+          itemsType = props.organisationsType;
+          label="Organisation Types";
+          loadingType = props.loadingOrganisationsType;
+        }
+        else if(props.name === "resources") {
+          filtersSet = props.filtersSet.resources;
+          itemsType = props.resourcesType;
+          label="Resource Types";
+          loadingType = props.loadingResourcesType;
+        }
+        dataTypes = <FilterDataTypes
+          key={this.name+"dataTypes"}
+          resetStateForwardRef={c => { this.dataTypesFuncComRef = c }}
+          name={props.name}
+          loading={loadingRelationship}
+          loadingType={loadingType}
+          filtersSet={filtersSet}
+          filtersType={props.filterType[i]}
+          items={props.items}
+          itemsType={itemsType}
+          label={label}
+          updateFilters={this.updateFilters}
+        />
+      }
     }
 
     return(
@@ -233,6 +291,7 @@ class Filters extends React.Component {
         {people}
         {temporals}
         {spatials}
+        {dataTypes}
       </div>
     )
   }
@@ -245,6 +304,7 @@ Filters.propTypes = {
   relationshipSet: PropTypes.object,
   //decidingFilteringSet: PropTypes.bool,
   updatedata: PropTypes.func,
+  items: PropTypes.array,
 }
 
 export default Filters = connect(mapStateToProps, mapDispatchToProps)(Filters);

@@ -8,7 +8,7 @@ import {
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getPersonThumbnailURL, getInfoFromSort, getInfoFromFilterObj} from '../helpers/helpers';
+import {getResourceThumbnailURL, /*getInfoFromFilterObj*/} from '../helpers/helpers';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
@@ -20,12 +20,12 @@ import {
 } from "../redux/actions";
 
 const mapStateToProps = state => {
-  let peopleFilters = state.peopleFilters || null;
-  let peopleRelationship = state.peopleRelationship || null;
+  let resourcesFilters = state.resourcesFilters || null;
+  let resourcesRelationship = state.resourcesRelationship || null;
   return {
-    peoplePagination: state.peoplePagination,
-    peopleFilters: peopleFilters,
-    peopleRelationship: peopleRelationship
+    resourcesPagination: state.resourcesPagination,
+    resourcesFilters: resourcesFilters,
+    resourcesRelationship: resourcesRelationship
    };
 };
 
@@ -37,18 +37,18 @@ function mapDispatchToProps(dispatch) {
 }
 
 
-class People extends Component {
+class Resources extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       loading: true,
-      peopleLoading: true,
+      resourcesLoading: true,
       items: [],
       page: 1,
       gotoPage: 1,
       limit: 50,
-      sort: "asc_firstName",
+      sort: "asc_label",
       totalPages: 0,
       totalItems: 0,
       searchVisible: true,
@@ -70,30 +70,29 @@ class People extends Component {
     this.gotoPage = this.gotoPage.bind(this);
     this.renderItems = this.renderItems.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    this.updatePeopleRelationship = this.updatePeopleRelationship.bind(this);
+    this.updateResourcesRelationship = this.updateResourcesRelationship.bind(this);
   }
 
   async load() {
     this.setState({
-      peopleLoading: true
+      resourcesLoading: true
     })
-    let filterInfo = getInfoFromFilterObj("people", this.props.peopleFilters);
-    let orderField = getInfoFromSort("orderField", this.state.sort);
-    let orderDesc = getInfoFromSort("orderDesc", this.state.sort);
-    
+    //let filterInfo = getInfoFromFilterObj("resources", this.props.resourcesFilters);
+    //let orderField = getInfoFromSort("orderField", this.state.sort);
+    //let orderDesc = getInfoFromSort("orderDesc", this.state.sort);
     let params = {
       page: this.state.page,
       limit: this.state.limit,
-      //eventType: eventsType,
-      events: filterInfo.events,
-      organisations: filterInfo.organisations,
-      temporals: filterInfo.temporals,
+      systemType: this.props.resourcesFilters.resources,
+      //events: filterInfo.events,
+      //organisations: filterInfo.organisations,
+      //temporals: filterInfo.temporals,
       //organisationType: organisationsType,
-      //people: this.props.peopleFilters.people,
-      //resources: this.props.peopleFilters.classpieces,
-      //spatial: this.props.peopleFilters.spatials,
-      orderField: orderField,
-      orderDesc: orderDesc,
+      //people: this.props.resourcesFilters.people,
+      //resources: this.props.resourcesFilters.classpieces,
+      //spatial: this.props.resourcesFilters.spatials,
+      //orderField: orderField,
+      //orderDesc: orderDesc,
     };
     if (this.state.simpleSearchTerm!=="") {
       params.label = this.state.simpleSearchTerm;
@@ -104,7 +103,7 @@ class People extends Component {
         params[searchInput.select] = searchInput.input;
       }
     }
-    let url = process.env.REACT_APP_APIPATH+'ui-people';
+    let url = process.env.REACT_APP_APIPATH+'resources';
     let responseData = await axios({
       method: 'get',
       url: url,
@@ -117,7 +116,7 @@ class People extends Component {
 	  .catch(function (error) {
       console.log(error);
 	  });
-    let people = responseData.data;
+    let resources = responseData.data;
     let currentPage = 1;
     if (responseData.currentPage>0) {
       currentPage = responseData.currentPage;
@@ -135,18 +134,21 @@ class People extends Component {
     else {
       this.setState({
         loading: false,
-        peopleLoading: false,
+        resourcesLoading: false,
         page: responseData.currentPage,
         totalPages: responseData.totalPages,
         totalItems: responseData.totalItems,
-        items: people
+        items: resources
       });
-      this.updatePeopleRelationship();
+      this.updateResourcesRelationship();
     }
   }
 
-  async updatePeopleRelationship() {
-    let filterInfo = getInfoFromFilterObj("people", this.props.peopleFilters);
+  async updateResourcesRelationship() {
+    let payload = this.props.resourcesRelationship;
+    this.props.setRelationshipParams("resources",payload);
+    /*
+    let filterInfo = getInfoFromFilterObj("resources", this.props.resourcesFilters);
     let params = {
       page: this.state.page,
       limit: this.state.limit,
@@ -155,8 +157,8 @@ class People extends Component {
       organisations: filterInfo.organisations,
       temporals: filterInfo.temporals,
       //organisationType: organisationsType,
-      //people: this.props.peopleFilters.people,
-      //resources: this.props.peopleFilters.classpieces,
+      //people: this.props.resourcesFilters.people,
+      //resources: this.props.resourcesFilters.classpieces,
     };
     if (this.state.simpleSearchTerm!=="") {
       params.label = this.state.simpleSearchTerm;
@@ -167,7 +169,7 @@ class People extends Component {
         params[searchInput.select] = searchInput.input;
       }
     }
-    let url = process.env.REACT_APP_APIPATH+'ui-person-active-filters';
+    let url = process.env.REACT_APP_APIPATH+'ui-resource-active-filters';
     let responseData = await axios({
       method: 'get',
       url: url,
@@ -181,19 +183,6 @@ class People extends Component {
       console.log(error);
 	  });
 
-    /*
-    let responseDataType = ["events","organisations","people","resources","spatials"];
-    let payload = {};
-    for(let i=0;i<responseDataType.length;i++) {
-      if(typeof responseData[`${responseDataType[i]}`] !== "undefined") {
-        let name =`${responseDataType[i]}`;
-        if(responseDataType[i]==="resources") {
-          name = "classpieces";
-        }
-        payload[name] = responseData[`${responseDataType[i]}`].map(item=>{return item._id});
-      }
-    }
-    */
     let payload = {
       events: responseData.events.map(item=>{return item}),
       organisations: responseData.organisations.map(item=>{return item._id}),
@@ -202,33 +191,35 @@ class People extends Component {
       //temporals: responseData.temporals.map(item=>{return item._id}),
       //spatials: responseData.spatials.map(item=>{return item._id}),
     }
-    this.props.setRelationshipParams("people",payload);
+    this.props.setRelationshipParams("resources",payload);
+    */
   }
-
+  
   async simpleSearch(e) {
     e.preventDefault();
     if (this.state.simpleSearchTerm.length<2) {
       return false;
     }
     this.setState({
-      peopleLoading: true
+      resourcesLoading: true
     });
     
-    let filterInfo = getInfoFromFilterObj("people", this.props.peopleFilters);
-    let orderField = getInfoFromSort("orderField", this.state.sort);
-    let orderDesc = getInfoFromSort("orderDesc", this.state.sort);
+    //let filterInfo = getInfoFromFilterObj("resources", this.props.resourcesFilters);
+    //let orderField = getInfoFromSort("orderField", this.state.sort);
+    //let orderDesc = getInfoFromSort("orderDesc", this.state.sort);
 
     let params = {
       label: this.state.simpleSearchTerm,
       page: this.state.page,
       limit: this.state.limit,
-      orderField: orderField,
-      orderDesc: orderDesc,
-      events: filterInfo.events,
-      organisations: filterInfo.organisations,
-      temporals: filterInfo.temporals,
+      //orderField: orderField,
+      //orderDesc: orderDesc,
+      //events: filterInfo.events,
+      //organisations: filterInfo.organisations,
+      //temporals: filterInfo.temporals,
+      systemType: this.props.resourcesFilters.resources,
     };
-    let url = process.env.REACT_APP_APIPATH+'ui-people';
+    let url = process.env.REACT_APP_APIPATH+'resources';
     let responseData = await axios({
       method: 'get',
       url: url,
@@ -241,12 +232,12 @@ class People extends Component {
 	  .catch(function (error) {
 	  });
 
-    let people = responseData.data;
-    let newPeople = [];
-    for (let i=0;i<people.length; i++) {
-      let person = people[i];
-      person.checked = false;
-      newPeople.push(person);
+    let resources = responseData.data;
+    let newResources = [];
+    for (let i=0;i<resources.length; i++) {
+      let resource = resources[i];
+      resource.checked = false;
+      newResources.push(resource);
     }
     let currentPage = 1;
     if (responseData.currentPage>0) {
@@ -265,32 +256,33 @@ class People extends Component {
     else {
       this.setState({
         loading: false,
-        peopleLoading: false,
+        resourcesLoading: false,
         page: responseData.currentPage,
         totalPages: responseData.totalPages,
         totalItems: responseData.totalItems,
-        items: newPeople
+        items: newResources
       });
-      this.updatePeopleRelationship();
+      this.updateResourcesRelationship();
     }
   }
 
   async advancedSearchSubmit(e) {
     e.preventDefault();
     this.setState({
-      peopleLoading: true
+      resourcesLoading: true
     })
-    let filterInfo = getInfoFromFilterObj("people", this.props.peopleFilters);
-    let orderField = getInfoFromSort("orderField", this.state.sort);
-    let orderDesc = getInfoFromSort("orderDesc", this.state.sort);
+    //let filterInfo = getInfoFromFilterObj("resources", this.props.resourcesFilters);
+    //let orderField = getInfoFromSort("orderField", this.state.sort);
+    //let orderDesc = getInfoFromSort("orderDesc", this.state.sort);
     let params = {
       page: 1,
       limit: this.state.limit,
-      orderField: orderField,
-      orderDesc: orderDesc,
-      events: filterInfo.events,
-      organisations: filterInfo.organisations,
-      temporals: filterInfo.temporals,
+      //orderField: orderField,
+      //orderDesc: orderDesc,
+      //events: filterInfo.events,
+      //organisations: filterInfo.organisations,
+      //temporals: filterInfo.temporals,
+      systemType: this.props.resourcesFilters.resources,
     };
     //let queryRows = [];
     if (this.state.advancedSearchInputs.length>0) {
@@ -323,7 +315,7 @@ class People extends Component {
     else {
       return false;
     }
-    let url = process.env.REACT_APP_APIPATH+'ui-people';
+    let url = process.env.REACT_APP_APIPATH+'resources';
     let responseData = await axios({
       method: 'get',
       url: url,
@@ -336,12 +328,12 @@ class People extends Component {
 	  .catch(function (error) {
 	  });
 
-    let people = responseData.data;
-    let newPeople = [];
-    for (let i=0;i<people.length; i++) {
-      let person = people[i];
-      person.checked = false;
-      newPeople.push(person);
+    let resources = responseData.data;
+    let newResources = [];
+    for (let i=0;i<resources.length; i++) {
+      let resource = resources[i];
+      resource.checked = false;
+      newResources.push(resource);
     }
     let currentPage = 1;
     if (responseData.currentPage>0) {
@@ -360,13 +352,13 @@ class People extends Component {
     else {
       this.setState({
         loading: false,
-        peopleLoading: false,
+        resourcesLoading: false,
         page: responseData.currentPage,
         totalPages: responseData.totalPages,
         totalItems: responseData.totalItems,
-        items: newPeople
+        items: newResources
       });
-      this.updatePeopleRelationship();
+      this.updateResourcesRelationship();
     }
   }
 
@@ -422,7 +414,7 @@ class People extends Component {
       page:page,
       sort:sort,
     }
-    this.props.setPaginationParams("people", payload);
+    this.props.setPaginationParams("resources", payload);
   }
 
   gotoPage(e) {
@@ -467,24 +459,22 @@ class People extends Component {
     let output = [];
     for (let i=0;i<this.state.items.length; i++) {
       let item = this.state.items[i];
-      let label = item.firstName;
-      if (typeof item.middleName!=="undefined" && item.middleName!==null && item.middleName!=="") {
-        label += " "+item.middleName;
-      }
-      label += " "+item.lastName;
+      let label = item.label;
+      
       let thumbnailImage = [];
-      let thumbnailURL = getPersonThumbnailURL(item);
+      let thumbnailURL = getResourceThumbnailURL(item);
       if (thumbnailURL!==null) {
-        thumbnailImage = <img src={thumbnailURL} className="people-list-thumbnail img-fluid img-thumbnail" alt={label} />
+        thumbnailImage = <img src={thumbnailURL} className="resources-list-thumbnail img-fluid img-thumbnail" alt={label} />
       }
-      let link = "/person/"+item._id;
+      
+      let link = "/resource/"+item._id;
       let outputItem = <ListGroupItem key={i}>
         <Link to={link} href={link}>{thumbnailImage}</Link>
         <Link to={link} href={link}>{label}</Link>
       </ListGroupItem>;
       output.push(outputItem);
     }
-    return <div className="people-list"><ListGroup>{output}</ListGroup></div>;
+    return <div className="resources-list"><ListGroup>{output}</ListGroup></div>;
   }
 
   handleChange(e) {
@@ -507,7 +497,7 @@ class People extends Component {
   }
 
   render() {
-    let heading = "People";
+    let heading = "Resources";
     let breadcrumbsItems = [
       {label: heading, icon: "pe-7s-users", active: true, path: ""}
     ];
@@ -532,7 +522,7 @@ class People extends Component {
     if (!this.state.loading) {
       let pageActions = <PageActions
         limit={this.state.limit}
-        sort={this.state.sort}
+        sort={""}//sort={this.state.sort}
         current_page={this.state.page}
         gotoPageValue={this.state.gotoPage}
         total_pages={this.state.totalPages}
@@ -541,37 +531,23 @@ class People extends Component {
         handleChange={this.handleChange}
         updateLimit={this.updateLimit}
         updateSort={this.updateSort}
-        pageType="people"
+        pageType="resources"
       />
-      let people = <div className="row">
+      let resources = <div className="row">
         <div className="col-12">
           <div style={{padding: '40pt',textAlign: 'center'}}>
             <Spinner type="grow" color="info" /> <i>loading...</i>
           </div>
         </div>
       </div>
-      if (!this.state.peopleLoading) {
-        people = this.renderItems();
+      if (!this.state.resourcesLoading) {
+        resources = this.renderItems();
       }
       let searchElements = [
-        { element: "honorificPrefix", label: "Honorific prefix",
-          inputType: "text", inputData: null},
-        { element: "firstName", label: "First name",
-          inputType: "text", inputData: null},
-        //{element: "middleName", label: "Middle name", inputType: "text", inputData: null},
-        { element: "lastName", label: "Last name",
-          inputType: "text", inputData: null},
-        { element: "fnameSoundex", label: "First name sounds like",
-          inputType: "text", inputData: null},
-        { element: "lnameSoundex", label: "Last name sounds like",
+        { element: "label", label: "Label",
           inputType: "text", inputData: null},
         { element: "description", label: "Description",
           inputType: "text", inputData: null},
-        /* select option templete
-        { element: "orderField", label: "Order Field",
-          inputType: "select", inputData: [ {label: "First Name", value: "firstName"},
-                                            {label: "Last Name", value: "lastName"} ]},
-        */
       ]
 
       let searchBox = <Collapse isOpen={this.state.searchVisible}>
@@ -593,17 +569,13 @@ class People extends Component {
         <div className="row">
           <div className="col-xs-12 col-sm-4">
             <Filters
-              name="people"
-              filterType = {[
-                {name: "organisations", layer: ["type","data"], compareData: {dataSet: "organisationType", typeSet: "labelId"}, typeFilterDisable: true},
-                {name: "events", layer: ["type"], compareData: {dataSet: "eventType", typeSet: "_id"}, typeFilterDisable: true},
-                {name: "temporals"},
-                //{name: "spatials"},
-                ]}
-              filtersSet={this.props.peopleFilters}
-              relationshipSet={this.props.peopleRelationship}
+              name="resources"
+              filterType = {[{name: "dataTypes", layer: ["type"], compareData: {dataSet: "systemType", typeSet: "_id"}, typeFilterDisable: false}]}
+              filtersSet={this.props.resourcesFilters}
+              relationshipSet={this.props.resourcesRelationship}
               decidingFilteringSet={!this.state.loading}
-              updatedata={this.load}/>
+              updatedata={this.load}
+              items={this.state.items}/>
           </div>
           <div className="col-xs-12 col-sm-8">
             <h2>{heading}
@@ -619,7 +591,7 @@ class People extends Component {
             </h2>
             {searchBox}
             {pageActions}
-            {people}
+            {resources}
             {pageActions}
           </div>
         </div>
@@ -635,4 +607,4 @@ class People extends Component {
   }
 }
 
-export default People = connect(mapStateToProps, mapDispatchToProps)(People);
+export default Resources = connect(mapStateToProps, mapDispatchToProps)(Resources);

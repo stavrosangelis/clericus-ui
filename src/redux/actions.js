@@ -3,17 +3,15 @@ import axios from 'axios';
 export function setPaginationParams(type,params) {
   return (dispatch,getState) => {
     let payload = null;
-    /*
     if (type==="resources") {
       payload = {
         resourcesPagination: {
           limit:params.limit,
-          activeSystemType:params.activeSystemType,
+          //activeSystemType:params.activeSystemType,
           page:params.page,
         }
       };
     }
-    */
     if (type==="classpieces") {
       payload = {
         classpiecesPagination: {
@@ -290,6 +288,33 @@ export function loadSpatials() {
   }
 }
 
+export function loadResourcesType() {
+  return (dispatch,getState) => {
+    let params = {
+      systemType: "resourceSystemTypes",
+      flat: true,
+    }
+    axios({
+      method: 'get',
+      url: process.env.REACT_APP_APIPATH+'taxonomy',
+      crossDomain: true,
+      params: params
+    })
+	  .then(function (response) {
+      let payload = {
+        loadingResourcesType: false,
+        resourcesType: response.data.data.taxonomyterms,
+      }
+      dispatch({
+        type: "GENERIC_UPDATE",
+        payload: payload
+      });
+	  })
+	  .catch(function (error) {
+	  });
+  }
+}
+
 export function updateFilters(type,params) {
   return (dispatch,getState) => {
     let payload = null;
@@ -360,7 +385,8 @@ export function updateFilters(type,params) {
           //people: params.people,
           //temporals: params.temporals,
           //spatials: params.spatials,
-        }
+        },
+        loadingEventsRelationship: true,
       };
     }else if (type==="organisations") {
       payload = {
@@ -371,7 +397,21 @@ export function updateFilters(type,params) {
           //people: params.people,
           //temporals: params.temporals,
           //spatials: params.spatials,
-        }
+        },
+        loadingOrganisationsRelationship: true,
+      };
+    }else if (type==="resources") {
+      payload = {
+        resourcesFilters: {
+          //classpieces: params.classpieces,
+          //events: eventsData,
+          //organisations: params.organisations,
+          //people: params.people,
+          //temporals: params.temporals,
+          //spatials: params.spatials,
+          resources: params.resources,
+        },
+        loadingResourcesRelationship: true,
       };
     }
     else {
@@ -425,7 +465,8 @@ export function setRelationshipParams(type,params) {
           people: params.people,
           temporals: params.temporals,
           spatials: params.spatials,
-        }
+        },
+        loadingEventsRelationship: false,
       };
     }else if (type==="organisations") {
       payload = {
@@ -436,7 +477,22 @@ export function setRelationshipParams(type,params) {
           people: params.people,
           temporals: params.temporals,
           spatials: params.spatials,
-        }
+        },
+        loadingOrganisationsRelationship: false,
+      };
+    }
+    else if (type==="resources") {
+      payload = {
+        resourcesRelationship: {
+          classpieces: params.classpieces,
+          events: params.events,
+          organisations: params.organisations,
+          people: params.people,
+          temporals: params.temporals,
+          spatials: params.spatials,
+          resources: params.resources,
+        },
+        loadingResourcesRelationship: false,
       };
     }
     else {

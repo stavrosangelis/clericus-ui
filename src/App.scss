@@ -2372,3 +2372,44 @@ section {
 .filter-unseleted-container {
   margin-top: 10px;
 }
+
+.resources-list {
+  margin-bottom: 10px;
+}
+.resources-list-thumbnail {
+  max-width: 40px;
+  margin-right: 10px;
+}
+.resource-details-container {
+  border-bottom: 1px solid #eee;
+  margin-top: 15px;
+}
+.resource-details-description {
+  margin-bottom: 20px;
+}
+.resource-details-table {
+  margin-bottom: 20px;
+  width: 100%;
+  empty-cells: show;
+}
+.resource-details-table th {
+  vertical-align: top;
+  padding: 2px;
+  border-bottom: 1px solid #ededed;
+
+  font-weight: 400;
+  width: 15%;
+}
+.resource-details-table td {
+  vertical-align: top;
+  padding: 2px;
+  border-bottom: 1px solid #ededed;
+
+  width: 85%;
+}
+.resource-details-table tr:last-child th, .resource-details-table tr:last-child td {
+  border-bottom: none;
+}
+.show-resource {
+  cursor: pointer;
+}

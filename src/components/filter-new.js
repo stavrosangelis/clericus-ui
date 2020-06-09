@@ -5,7 +5,7 @@ import {
 } from 'reactstrap';
 import PropTypes from 'prop-types';
 
-const Filter = props => {
+const FilterNew = props => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState([]);
   const [filterItems, setFilterItems] = useState([]);
@@ -99,7 +99,7 @@ const Filter = props => {
   )
 }
 
-Filter.defaultProps = {
+FilterNew.defaultProps = {
   filtersSet: {},
   relationshipSet: [],
   filtersType: {},
@@ -109,7 +109,7 @@ Filter.defaultProps = {
   relationType: "",
 }
 
-Filter.propTypes = {
+FilterNew.propTypes = {
   filtersSet: PropTypes.array,
   relationshipSet: PropTypes.array,
   filtersType: PropTypes.string.isRequired,
@@ -120,4 +120,4 @@ Filter.propTypes = {
   updateFilters: PropTypes.func,
 }
 
-export default Filter;
+export default FilterNew;

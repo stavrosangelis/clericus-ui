@@ -25,7 +25,8 @@ import {
   //loadPeople,
   //loadClasspieces,
   //loadTemporals,
-  loadSpatials,
+  //loadSpatials,
+  loadResourcesType,
 } from "./redux/actions";
 
 function mapDispatchToProps(dispatch) {
@@ -36,7 +37,8 @@ function mapDispatchToProps(dispatch) {
     //loadPeople: () => dispatch(loadPeople()),
     //loadClasspieces: () => dispatch(loadClasspieces()),
     //loadTemporals: () => dispatch(loadTemporals()),
-    loadSpatials: () => dispatch(loadSpatials()),
+    //loadSpatials: () => dispatch(loadSpatials()),
+    loadResourcesType: () => dispatch(loadResourcesType()),
   }
 }
 
@@ -50,7 +52,8 @@ class App extends Component{
     //this.props.loadPeople();
     //this.props.loadClasspieces();
     //this.props.loadTemporals();
-    this.props.loadSpatials();
+    //this.props.loadSpatials();
+    this.props.loadResourcesType();
   }
 
   render() {

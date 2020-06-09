@@ -161,6 +161,7 @@ export const getInfoFromFilterObj = (type=null,filtersData=null) => {
     /*organisationsType,*/
     organisations: [],
     temporals: {},
+    resources: [],
   }
   if(typeof filtersData.events !== "undefined") {
     //eventsType = getIDFromArray(filtersData.events.type);
