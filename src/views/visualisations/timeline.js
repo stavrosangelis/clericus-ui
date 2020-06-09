@@ -31,9 +31,10 @@ const Timeline = props =>{
   const [relatedOpen,setRelatedOpen] = useState({events:false,organisations:false,people:false,resources:false});
   const [searchContainerVisible, setSearchContainerVisible] = useState(false);
   const [startDate,setStartDate] = useState("");
-  const zoomValues = ['day', 'year', '10', '50', '100'];
-  const [zoomVal,setZoomVal] = useState(2);
-  const [zoom,setZoom] = useState("year");
+  const zoomValues = ['100', '50', '10', 'year', 'day'];
+  const zoomIndex = 4;
+  const [zoomVal,setZoomVal] = useState(zoomIndex);
+  const [zoom,setZoom] = useState(zoomValues[(zoomIndex-1)]);
 
   const groupByDay = (data) => {
     let itemsHTML = [];
