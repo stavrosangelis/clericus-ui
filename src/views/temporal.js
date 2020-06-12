@@ -7,10 +7,10 @@ import {
 
 import {Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getOrganisationThumbnailURL} from '../helpers/helpers';
-import TagPeopleSearch from '../components/tag-people-search.js';
+//import {getEventThumbnailURL} from '../helpers/helpers';
+//import TagPeopleSearch from '../components/tag-people-search.js';
 
-class Organisation extends Component {
+class Temporal extends Component {
   constructor(props) {
     super(props);
 
@@ -21,7 +21,7 @@ class Organisation extends Component {
 
     this.load = this.load.bind(this);
     this.renderItem = this.renderItem.bind(this);
-    this.renderOrganisationDetails = this.renderOrganisationDetails.bind(this);
+    this.renderTemporalDetails = this.renderTemporalDetails.bind(this);
   }
 
   load() {
@@ -36,7 +36,7 @@ class Organisation extends Component {
     let params = {
       _id: _id,
     };
-    let url = process.env.REACT_APP_APIPATH+'ui-organisation';
+    let url = process.env.REACT_APP_APIPATH+'temporal';
     axios({
       method: 'get',
       url: url,
@@ -45,45 +45,34 @@ class Organisation extends Component {
     })
 	  .then(function (response) {
       let responseData = response.data;
-      let organisationdata = responseData.data;
+      let temporaldata = responseData.data;
       context.setState({
         loading: false,
-        item: organisationdata
+        item: temporaldata
       });
 	  })
 	  .catch(function (error) {
 	  });
   }
 
-  renderOrganisationDetails(stateData=null) {
+  renderTemporalDetails(stateData=null) {
     let item = stateData.item;
-    
-    //1. OrganisationDetails
+
+    //1. TemporalDetails
     let meta = [];
-    
-    //1.0 OrganisationDetails - classpieces
-    let classpiecesRow = [];
-    if (typeof item.resources!=="undefined" && item.resources!==null && item.resources!=="") {
-      let classpiecesData = item.resources.map(eachItem =>{
-        if(eachItem.term.label==="hasRepresentationObject"){
-          return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/classpiece/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
-        }
-        else {
-          return null;
-        }
-      })
-      classpiecesRow = <tr key={"classpiecesRow"}><th>Classpieces</th><td><ul className="tag-list">{classpiecesData}</ul></td></tr>;
+    let dateOrder = {
+      name:  ["startDate","endDate"],
+      label: ["Start Date","End Date"]
     }
-    meta.push(classpiecesRow);
-        
-    //1.1 OrganisationDetails - events
+    
+    //1.0 TemporalDetails - events
     let eventsRow = [];
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
       //item.events = []
       if(Object.keys(item.events).length === 0){
         eventsRow = <tr key={"eventsRow"}><th>Events</th><td/></tr>;
       }
-      //item.events = {...} 
+      //item.events = {...}
       else {
         let eventsData = item.events.map(eachItem =>{
           return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/event/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
@@ -92,73 +81,65 @@ class Organisation extends Component {
       }
     }
     meta.push(eventsRow);
-    
-    //1.2 OrganisationDetails - organisations
-    let organisationsRow = [];
-    if (typeof item.organisations!=="undefined" && item.organisations!==null && item.organisations!=="") {
-      //item.organisations = []
-      if(Object.keys(item.organisations).length === 0){
-        organisationsRow = <tr key={"organisationsRow"}><th>Organisations</th><td/></tr>;
-      }
-      //item.organisations = {...} 
-      else {
-        let organisationsData = item.organisations.map(eachItem =>{
-          return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/organisation/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
-        })
-        organisationsRow = <tr key={"organisationsRow"}><th>Organisations</th><td><ul className="tag-list">{organisationsData}</ul></td></tr>;
-      }
-    }
-    meta.push(organisationsRow);
-    
-    //1.3 OrganisationDetails - people   
-    let peopleRow = <TagPeopleSearch
-      key ={"organisationTagPeopleSearch"}
-      name = {"organisation"}
-      peopleItem = {item.people}
-    />
-    meta.push(peopleRow);
 
-    //1.5 OrganisationDetails - OrganisationDetails include classpieces, events, organisations, and people
-    return <table key={"OrganisationDetails"} className="table table-borderless item-content-table">
+    //1.1 TemporalDetails - dateOrder
+    for(let i=0;i<dateOrder.name.length;i++) {
+      let dataRow = [];
+      let dataItem = item[`${dateOrder.name[i]}`];
+      if (typeof dataItem!=="undefined" && dataItem!==null && dataItem!=="") {
+        dataRow = <tr key={dateOrder.name[i]}><th>{dateOrder.label[i]}</th><td>{dataItem}</td></tr>;
+      }
+      meta.push(dataRow);
+    }
+
+    //1.5 TemporalDetails - TemporalDetails include all elements of the dateOrder
+    return <table key={"TemporalDetails"} className="table table-borderless spatial-content-table">
           <tbody>{meta}</tbody>
         </table>
   }
 
   renderItem(stateData=null) {
     let item = stateData.item;
-    
-    //1.1 Organisation label
+
+    //1.1 Temporal label
     let label = item.label;
-    
+
     //2.1 meta
     //let metaTable = <Table><tbody>{meta}</tbody></Table>
-    let metaTable = this.renderOrganisationDetails(stateData);
-    
+    let metaTable = this.renderTemporalDetails(stateData);
+
     //2.2 thumbnailImage
     let thumbnailImage = [];
-    let thumbnailURL = getOrganisationThumbnailURL(item);
+    /*
+    let thumbnailURL = null;//getEventThumbnailURL(item);
     if (thumbnailURL!==null) {
       thumbnailImage = <div key={"thumbnailImage"} className="show-classpiece" onClick={()=>this.toggleViewer()}>
         <img src={thumbnailURL} className="people-thumbnail img-fluid img-thumbnail" alt={label} />
       </div>
     }
-    
+    */
+
     //2.3 description
     let descriptionRow = []
+    /*
     if(typeof item.description!=="undefined" && item.description!==null && item.description!=="") {
       let descriptionTitle = <h6 key={"descriptionTitle"} className="item-content-des-title">Description:</h6>;
       let descriptionData = <div className="person-des-content" key={"descriptionData"}>{item.description}</div>;
       descriptionRow.push(descriptionTitle,descriptionData);
     }
+    */
     
-    let labelGraph = "organisation-graph";
-    let _idGraph = this.props.match.params._id;
-    
-    let timelineLink = [];
-    if (this.state.item.events.length>0) {
-      timelineLink = <div className="col-xs-12 col-sm-4">
-        <Link href={`/item-timeline/organisation/${this.props.match.params._id}`} to={`/item-timeline/organisation/${this.props.match.params._id}`} className="person-component-link" title="Organisation graph network"><i className="pe-7s-hourglass" /></Link>
-      </div>
+    let relationshipGraph = null;
+    if (typeof this.state.item.status !== "undefined") {
+      if (this.state.item.status !== "private") {
+        let labelGraph = "temporal-graph";
+        let _idGraph = this.props.match.params._id;
+        relationshipGraph = <div className="row">
+          <div className="col-xs-12 col-md-4">
+            <Link href={`/${labelGraph}/${_idGraph}`} to={`/${labelGraph}/${_idGraph}`} className="person-component-link" title="Temporal graph network"><i className="pe-7s-graph1" /></Link>
+          </div>
+        </div>
+      }
     }
 
     let output = <Card>
@@ -178,12 +159,7 @@ class Organisation extends Component {
               {thumbnailImage}
             </div>
           </div>
-          <div className="row">
-            {timelineLink}
-            <div className="col-xs-12 col-md-4">
-              <Link href={`/${labelGraph}/${_idGraph}`} to={`/${labelGraph}/${_idGraph}`} className="person-component-link" title="Organisation graph network"><i className="pe-7s-graph1" /></Link>
-            </div>
-          </div>
+          {relationshipGraph}
         </div>
       </CardBody>
     </Card>
@@ -206,11 +182,11 @@ class Organisation extends Component {
     </div>
 
     if (!this.state.loading) {
-      let organisationCard = this.renderItem(this.state);
+      let temporalCard = this.renderItem(this.state);
       content = <div>
         <div className="row">
           <div className="col-12">
-            {organisationCard}
+            {temporalCard}
           </div>
         </div>
       </div>
@@ -218,8 +194,8 @@ class Organisation extends Component {
 
     let label = this.state.item.label;
     let breadcrumbsItems = [
-      {label: "Organisations", icon: "pe-7s-culture", active: false, path: "/organisations"},
-      {label: label, icon: "pe-7s-culture", active: true, path: ""},
+      {label: "Temporals", icon: "pe-7s-date", active: false, path: "/temporals"},
+      {label: label, icon: "pe-7s-date", active: true, path: ""},
     ];
     return (
       <div className="container">
@@ -231,4 +207,4 @@ class Organisation extends Component {
   }
 }
 
-export default Organisation;
+export default Temporal;

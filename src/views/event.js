@@ -5,6 +5,7 @@ import {
   Card, CardBody,
 } from 'reactstrap';
 
+import {Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
 import {getEventThumbnailURL} from '../helpers/helpers';
 import TagPeopleSearch from '../components/tag-people-search.js';
@@ -149,6 +150,16 @@ class Event extends Component {
       let descriptionData = <div className="person-des-content" key={"descriptionData"}>{item.description}</div>;
       descriptionRow.push(descriptionTitle,descriptionData);
     }
+    
+    let labelGraph = "event-graph";
+    let _idGraph = this.props.match.params._id;
+    
+    let timelineLink = [];
+    if (this.state.item.events.length>0) {
+      timelineLink = <div className="col-xs-12 col-sm-4">
+        <Link href={`/item-timeline/event/${this.props.match.params._id}`} to={`/item-timeline/event/${this.props.match.params._id}`} className="person-component-link" title="Event graph network"><i className="pe-7s-hourglass" /></Link>
+      </div>
+    }
 
     let output = <Card>
       <CardBody>
@@ -165,6 +176,12 @@ class Event extends Component {
             </div>
             <div className="col-xs-12 col-sm-6 col-md-4">
               {thumbnailImage}
+            </div>
+          </div>
+          <div className="row">
+            {timelineLink}
+            <div className="col-xs-12 col-md-4">
+              <Link href={`/${labelGraph}/${_idGraph}`} to={`/${labelGraph}/${_idGraph}`} className="person-component-link" title="Event graph network"><i className="pe-7s-graph1" /></Link>
             </div>
           </div>
         </div>
@@ -202,7 +219,7 @@ class Event extends Component {
     let label = this.state.item.label;
     let breadcrumbsItems = [
       {label: "Events", icon: "pe-7s-date", active: false, path: "/events"},
-      {label: label, active: true, path: ""},
+      {label: label, icon: "pe-7s-date", active: true, path: ""},
     ];
     return (
       <div className="container">

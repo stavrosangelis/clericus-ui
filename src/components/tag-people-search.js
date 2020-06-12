@@ -6,6 +6,7 @@ import {
 } from 'reactstrap';
 
 const TagPeopleSearch = props => {
+  const [searchExited, setSearchExited] = useState(true);
   const [searchVisible, setSearchVisible] = useState(false);
   const [peopleDataVisible, setPeopleDataVisible] = useState(false);
   const [simpleSearchSet, setSimpleSearchSet] = useState('');
@@ -39,7 +40,16 @@ const TagPeopleSearch = props => {
   }
   
   const toggleSearch = () => {
-    setSearchVisible(!searchVisible);
+    if(searchVisible) {
+      setSearchVisible(!searchVisible);
+      setSearchExited(!searchExited);
+    }
+    else {
+      setSearchExited(!searchExited);
+      setTimeout(function() {
+        setSearchVisible(!searchVisible);
+      },10);
+    }
   }
 
   let peopleRow = [];
@@ -75,6 +85,31 @@ const TagPeopleSearch = props => {
         return <li key={nameComponent+eachItem.ref._id} ><a className="tag-bg tag-item" href={"/person/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
       })
       
+      let searchBar = null;
+      if (!searchExited) {
+        searchBar = <Collapse isOpen={searchVisible}>
+          <Form>
+            <InputGroup size="sm" className="search-dropdown-inputgroup classpiece-people-search-input">
+                <Input className="simple-search-input" list="data" type="text" id="simpleSearchTerm" name="simpleSearchTerm" onChange={handleSearchTermChange} placeholder="Search..." value={simpleSearchTerm}/>
+                  <datalist id="data">
+                    {props.peopleItem.map((item, key) =>
+                      <option key={nameComponent+key} value={item.ref.label} />
+                    )}
+                  </datalist>
+                
+                <InputGroupAddon addonType="append">
+                  <Button size="sm" outline type="button" onClick={clearSearch} className="clear-search">
+                    <i className="fa fa-times-circle" />
+                  </Button>
+                  <Button size="sm" type="submit" onClick={simpleSearch}>
+                    <i className="fa fa-search" />
+                  </Button>
+              </InputGroupAddon>
+            </InputGroup>
+          </Form>
+        </Collapse>
+      }
+      
       peopleRow = <tr key={nameComponent+"peopleRow"}>
                     <th>People</th>
                     <td>
@@ -89,27 +124,7 @@ const TagPeopleSearch = props => {
                           </div>
                         </div>
                         
-                        <Collapse isOpen={searchVisible}>
-                          <Form>
-                            <InputGroup size="sm" className="search-dropdown-inputgroup classpiece-people-search-input">
-                                <Input className="simple-search-input" list="data" type="text" id="simpleSearchTerm" name="simpleSearchTerm" onChange={handleSearchTermChange} placeholder="Search..." value={simpleSearchTerm}/>
-                                  <datalist id="data">
-                                    {props.peopleItem.map((item, key) =>
-                                      <option key={nameComponent+key} value={item.ref.label} />
-                                    )}
-                                  </datalist>
-                                
-                                <InputGroupAddon addonType="append">
-                                  <Button size="sm" outline type="button" onClick={clearSearch} className="clear-search">
-                                    <i className="fa fa-times-circle" />
-                                  </Button>
-                                  <Button size="sm" type="submit" onClick={simpleSearch}>
-                                    <i className="fa fa-search" />
-                                  </Button>
-                              </InputGroupAddon>
-                            </InputGroup>
-                          </Form>
-                        </Collapse>
+                        {searchBar}
                         
                         <ul className="tag-list tag-list-people">
                           {peopleDataExpand}{peopleData}

@@ -4,6 +4,7 @@ import {
   Spinner,
   Card, CardBody,
 } from 'reactstrap';
+import {Link} from 'react-router-dom';
 import { Map, Marker, Popup, TileLayer } from 'react-leaflet'
 //import markerIconPath from '../assets/leaflet/images/marker-icon-2x.png';
 import L from 'leaflet';
@@ -67,8 +68,25 @@ class Spatial extends Component {
       label: ["Street Address","Locality","Region","Country","Postal Code",
               "Latitude","Longitude","LocationType"]
     }
+    
+    //1.0 SpatialDetails - events
+    let eventsRow = [];
+    if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
+      //item.events = []
+      if(Object.keys(item.events).length === 0){
+        eventsRow = <tr key={"eventsRow"}><th>Events</th><td/></tr>;
+      }
+      //item.events = {...}
+      else {
+        let eventsData = item.events.map(eachItem =>{
+          return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/event/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
+        })
+        eventsRow = <tr key={"eventsRow"}><th>Events</th><td><ul className="tag-list">{eventsData}</ul></td></tr>;
+      }
+    }
+    meta.push(eventsRow);
 
-    //1.0 SpatialDetails - dateOrder
+    //1.1 SpatialDetails - dateOrder
     for(let i=0;i<dateOrder.name.length;i++) {
       let dataRow = [];
       let dataItem = item[`${dateOrder.name[i]}`];
@@ -104,7 +122,7 @@ class Spatial extends Component {
           />
           <Marker position={position}>
             <Popup>
-              A pretty CSS3 popup. <br/> Easily customizable.
+              {item.label}
             </Popup>
           </Marker>
         </Map>
@@ -134,6 +152,19 @@ class Spatial extends Component {
     if ((item.latitude !== "") && (item.longitude!== "")) {
       map = this.renderMap(stateData);
     }
+    
+    let relationshipGraph = null;
+    if (typeof this.state.item.status !== "undefined") {
+      if (this.state.item.status !== "private") {
+        let labelGraph = "spatial-graph";
+        let _idGraph = this.props.match.params._id;
+        relationshipGraph = <div className="row">
+          <div className="col-xs-12 col-md-4">
+            <Link href={`/${labelGraph}/${_idGraph}`} to={`/${labelGraph}/${_idGraph}`} className="person-component-link" title="Spatial graph network"><i className="pe-7s-graph1" /></Link>
+          </div>
+        </div>
+      }
+    }
 
     let output = <Card>
       <CardBody>
@@ -152,6 +183,7 @@ class Spatial extends Component {
               {map}
             </div>
           </div>
+          {relationshipGraph}
         </div>
       </CardBody>
     </Card>

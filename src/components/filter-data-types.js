@@ -12,19 +12,15 @@ const FilterDataTypes = props => {
 
   useEffect(()=>{
     const load = () => {
-      console.log(props.items)
-      console.log(props.itemsType)
       for (let i=0;i<props.itemsType.length; i++) {
         let itemType = props.itemsType[i];
         if (props.filtersSet.indexOf(itemType[`${props.filtersType.compareData.typeSet}`])>-1) {
           itemType.checked = true;
           itemType.hidden = "";
-          console.log(1,i)
         }
         else {
           itemType.hidden = "hidden";
           itemType.checked = false;
-          console.log(2,i)
           let typeSet = itemType[`${props.filtersType.compareData.typeSet}`];
           for (let j=0;j<props.items.length;j++) {
             let dataSet = props.items[j][`${props.filtersType.compareData.dataSet}`];

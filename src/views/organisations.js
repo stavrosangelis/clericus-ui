@@ -178,9 +178,11 @@ class Organisations extends Component {
   
   simpleSearch(e) {
     e.preventDefault();
+    /*
     if (this.state.simpleSearchTerm.length<2) {
       return false;
     }
+    */
     this.setState({
       organisationsLoading: true
     })

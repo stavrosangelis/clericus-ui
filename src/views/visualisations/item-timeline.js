@@ -297,7 +297,7 @@ const Timeline = props =>{
       params = {_id:props.match.params._id};
     }
     if (type==="resource") {
-      url = `${APIPath}classpiece`;
+      url = `${APIPath}resource`;
       params = {_id:props.match.params._id};
     }
     if (type==="event") {
@@ -336,7 +336,7 @@ const Timeline = props =>{
       })
       .catch(function (error) {
       });
-      setItems(eventsData.data)
+      setItems(eventsData.data);
     }
     if (loading) {
       load();

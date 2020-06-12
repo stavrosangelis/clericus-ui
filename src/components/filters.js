@@ -117,6 +117,16 @@ class Filters extends React.Component {
         resources: [],
       }
     }
+    else if (this.name === "temporals") {
+      payload = {
+        temporals: {
+          startDate: null,
+          endDate: null,
+          eventType: [],
+          eventID: [],
+        },
+      }
+    }
     let context = this;
     this.props.updateFilters(this.name,payload);
     
@@ -126,6 +136,8 @@ class Filters extends React.Component {
     }else if((this.name === "events") || (this.name === "organisations")
       || (this.name === "resources")){
       this.dataTypesFuncComRef();
+    }else if(this.name === "temporals") {
+      this.temporalFuncComRef();
     }
     
     setTimeout(function() {

@@ -207,9 +207,11 @@ class People extends Component {
 
   async simpleSearch(e) {
     e.preventDefault();
+    /*
     if (this.state.simpleSearchTerm.length<2) {
       return false;
     }
+    */
     this.setState({
       peopleLoading: true
     });

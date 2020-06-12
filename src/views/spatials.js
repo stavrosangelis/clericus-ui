@@ -7,8 +7,9 @@ import {
   Tooltip
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
+import { Map, Marker, Popup, TileLayer } from 'react-leaflet'
+import L from 'leaflet';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getEventThumbnailURL} from '../helpers/helpers';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
@@ -21,9 +22,9 @@ import {
 
 const mapStateToProps = state => {
   return {
-    eventsPagination: state.eventsPagination,
-    eventsFilters: state.eventsFilters,
-    eventsRelationship: state.eventsRelationship,
+    spatialsPagination: state.spatialsPagination,
+    spatialsFilters: state.spatialsFilters,
+    spatialsRelationship: state.spatialsRelationship,
    };
 };
 
@@ -35,13 +36,13 @@ function mapDispatchToProps(dispatch) {
 }
 
 
-class Events extends Component {
+class Spatials extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       loading: true,
-      eventsLoading: true,
+      spatialsLoading: true,
       items: [],
       page: 1,
       gotoPage: 1,
@@ -52,6 +53,8 @@ class Events extends Component {
       simpleSearchTerm: '',
       advancedSearchInputs: [],
     }
+
+    this.filtersDisable = true;
 
     this.load = this.load.bind(this);
     this.simpleSearch = this.simpleSearch.bind(this);
@@ -66,22 +69,23 @@ class Events extends Component {
     this.renderItems = this.renderItems.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.toggleSearch = this.toggleSearch.bind(this);
-    this.updateEventsRelationship = this.updateEventsRelationship.bind(this);
+    this.updateSpatialsRelationship = this.updateSpatialsRelationship.bind(this);
+    this.renderMap = this.renderMap.bind(this);
   }
 
   load() {
     this.setState({
-      eventsLoading: true
+      spatialsLoading: true
     })
     let context = this;
     let params = {
       page: this.state.page,
       limit: this.state.limit,
-      eventType: this.props.eventsFilters.events,
+      eventType: this.props.spatialsFilters.events,
       //events: eventsData,
-      //organisations: this.props.eventsFilters.organisations,
-      //people: this.props.eventsFilters.people,
-      //resources: this.props.eventsFilters.classpieces,
+      //organisations: this.props.spatialsFilters.organisations,
+      //people: this.props.spatialsFilters.people,
+      //resources: this.props.spatialsFilters.classpieces,
     };
     if (this.state.simpleSearchTerm!=="") {
       params.label = this.state.simpleSearchTerm;
@@ -92,7 +96,7 @@ class Events extends Component {
         params[searchInput.select] = searchInput.input;
       }
     }
-    let url = process.env.REACT_APP_APIPATH+'ui-events';
+    let url = process.env.REACT_APP_APIPATH+'spatials';
     axios({
       method: 'get',
       url: url,
@@ -101,7 +105,7 @@ class Events extends Component {
     })
 	  .then(function (response) {
       let responseData = response.data.data;
-      let events = responseData.data;
+      let spatials = responseData.data;
       let currentPage = 1;
       if (responseData.currentPage>0) {
         currentPage = responseData.currentPage;
@@ -118,37 +122,37 @@ class Events extends Component {
       else {
         context.setState({
           loading: false,
-          eventsLoading: false,
+          spatialsLoading: false,
           page: responseData.currentPage,
           totalPages: responseData.totalPages,
           totalItems: responseData.totalItems,
-          items: events
+          items: spatials
         });
 
-        context.updateEventsRelationship(events);
+        context.updateSpatialsRelationship(spatials);
       }
 	  })
 	  .catch(function (error) {
 	  });
   }
 
-  updateEventsRelationship(events=null) {
-    let payload = this.props.eventsRelationship;
-    this.props.setRelationshipParams("events",payload);
+  updateSpatialsRelationship(spatials=null) {
+    let payload = this.props.spatialsRelationship;
+    this.props.setRelationshipParams("spatials",payload);
     /*
-    if(events===null){
+    if(spatials===null){
       return false;
     }
 
-    let id_events = events.map(item =>{
+    let id_spatials = spatials.map(item =>{
       return item._id;
     });
 
     let context = this;
     let params = {
-      _ids: id_events,
+      _ids: id_spatials,
     };
-    let url = process.env.REACT_APP_APIPATH+'ui-events-active-filters';
+    let url = process.env.REACT_APP_APIPATH+'ui-spatials-active-filters';
     axios({
       method: 'post',
       url: url,
@@ -168,7 +172,7 @@ class Events extends Component {
       }
 
       setTimeout(function() {
-        context.props.setRelationshipParams("events",payload);
+        context.props.setRelationshipParams("spatials",payload);
       },10)
 
 	  })
@@ -186,7 +190,7 @@ class Events extends Component {
     }
     */
     this.setState({
-      eventsLoading: true
+      spatialsLoading: true
     })
     let context = this;
     let params = {
@@ -194,7 +198,7 @@ class Events extends Component {
       page: this.state.page,
       limit: this.state.limit
     };
-    let url = process.env.REACT_APP_APIPATH+'ui-events';
+    let url = process.env.REACT_APP_APIPATH+'spatials';
     axios({
       method: 'get',
       url: url,
@@ -203,12 +207,12 @@ class Events extends Component {
     })
 	  .then(function (response) {
       let responseData = response.data.data;
-      let events = responseData.data;
-      let newEvents = [];
-      for (let i=0;i<events.length; i++) {
-        let eventData = events[i];
-        eventData.checked = false;
-        newEvents.push(eventData);
+      let spatials = responseData.data;
+      let newSpatials = [];
+      for (let i=0;i<spatials.length; i++) {
+        let spatialData = spatials[i];
+        spatialData.checked = false;
+        newSpatials.push(spatialData);
       }
       let currentPage = 1;
       if (responseData.currentPage>0) {
@@ -226,13 +230,13 @@ class Events extends Component {
       else {
         context.setState({
           loading: false,
-          eventsLoading: false,
+          spatialsLoading: false,
           page: responseData.currentPage,
           totalPages: responseData.totalPages,
           totalItems: responseData.totalItems,
-          items: newEvents
+          items: newSpatials
         });
-        context.updateEventsRelationship(newEvents);
+        context.updateSpatialsRelationship(newSpatials);
       }
 	  })
 	  .catch(function (error) {
@@ -242,7 +246,7 @@ class Events extends Component {
   advancedSearchSubmit(e) {
     e.preventDefault();
     this.setState({
-      eventsLoading: true
+      spatialsLoading: true
     })
     let context = this;
     let postData = {
@@ -277,7 +281,7 @@ class Events extends Component {
     else {
       return false;
     }
-    let url = process.env.REACT_APP_APIPATH+'ui-events';
+    let url = process.env.REACT_APP_APIPATH+'spatials';
     axios({
       method: 'post',
       url: url,
@@ -286,12 +290,12 @@ class Events extends Component {
     })
 	  .then(function (response) {
       let responseData = response.data.data;
-      let events = responseData.data;
-      let newEvents = [];
-      for (let i=0;i<events.length; i++) {
-        let eventData = events[i];
-        eventData.checked = false;
-        newEvents.push(eventData);
+      let spatials = responseData.data;
+      let newSpatials = [];
+      for (let i=0;i<spatials.length; i++) {
+        let spatialData = spatials[i];
+        spatialData.checked = false;
+        newSpatials.push(spatialData);
       }
       let currentPage = 1;
       if (responseData.currentPage>0) {
@@ -309,13 +313,13 @@ class Events extends Component {
       else {
         context.setState({
           loading: false,
-          eventsLoading: false,
+          spatialsLoading: false,
           page: responseData.currentPage,
           totalPages: responseData.totalPages,
           totalItems: responseData.totalItems,
-          items: newEvents
+          items: newSpatials
         });
-        context.updateEventsRelationship(newEvents);
+        context.updateSpatialsRelationship(newSpatials);
       }
 	  })
 	  .catch(function (error) {
@@ -370,7 +374,7 @@ class Events extends Component {
       limit:limit,
       page:page,
     }
-    this.props.setPaginationParams("events", payload);
+    this.props.setPaginationParams("spatials", payload);
   }
 
   gotoPage(e) {
@@ -399,6 +403,39 @@ class Events extends Component {
       context.load();
     },100)
   }
+  
+  renderMap() {
+    let zoom = 9;
+    delete L.Icon.Default.prototype._getIconUrl;
+
+    L.Icon.Default.mergeOptions({
+        iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+        iconUrl: require('leaflet/dist/images/marker-icon.png'),
+        shadowUrl: require('leaflet/dist/images/marker-shadow.png')
+    });
+    
+    let link_href = "/spatial/";
+    //center here maynooth
+    let output = <div className="spatial-map-container">
+        <Map center={[53.381290, -6.591850]} zoom={zoom} maxZoom={18}>
+          <TileLayer
+            attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {this.state.items.map((element, index) =>
+            <Marker
+              key={index}
+              position={[element.latitude, element.longitude]}
+              >
+              <Popup>
+                <Link to={link_href+element._id} href={link_href+element._id}>{element.label}</Link>
+              </Popup>
+            </Marker>
+          )}
+        </Map>
+      </div>
+    return output;
+  }
 
   renderItems() {
     let output = [];
@@ -407,11 +444,11 @@ class Events extends Component {
       let label = item.label;
 
       let thumbnailImage = [];
-      let thumbnailURL = getEventThumbnailURL(item);
+      let thumbnailURL = null;//getEventThumbnailURL(item);
       if (thumbnailURL!==null) {
         thumbnailImage = <img src={thumbnailURL} className="events-list-thumbnail img-fluid img-thumbnail" alt={label} />
       }
-      let link = "/event/"+item._id;
+      let link = "/spatial/"+item._id;
       let outputItem = <ListGroupItem key={i}>
         <Link to={link} href={link}>{thumbnailImage}</Link>
         <Link to={link} href={link}>{label}</Link>
@@ -441,7 +478,7 @@ class Events extends Component {
   }
 
   render() {
-    let heading = "Events";
+    let heading = "Spatials";
     let breadcrumbsItems = [
       {label: heading, icon: "pe-7s-users", active: true, path: ""}
     ];
@@ -473,17 +510,17 @@ class Events extends Component {
         gotoPage={this.gotoPage}
         handleChange={this.handleChange}
         updateLimit={this.updateLimit}
-        pageType="events"
+        pageType="spatials"
       />
-      let events = <div className="row">
+      let spatials = <div className="row">
         <div className="col-12">
           <div style={{padding: '40pt',textAlign: 'center'}}>
             <Spinner type="grow" color="info" /> <i>loading...</i>
           </div>
         </div>
       </div>
-      if (!this.state.eventsLoading) {
-        events = this.renderItems();
+      if (!this.state.spatialsLoading) {
+        spatials = this.renderItems();
       }
       let searchElements = [
         {element: "label", label: "Label", inputType: "text", inputData: null},
@@ -491,7 +528,7 @@ class Events extends Component {
 
       let searchBox = <Collapse isOpen={this.state.searchVisible}>
         <SearchForm
-          name="events"
+          name="spatials"
           searchElements={searchElements}
           simpleSearchTerm={this.state.simpleSearchTerm}
           simpleSearch={this.simpleSearch}
@@ -505,18 +542,27 @@ class Events extends Component {
           />
       </Collapse>
 
+      let filters = null;
+      if (!this.filtersDisable) {
+        filters = <Filters
+          name="spatials"
+          filterType = {[]}
+          //filterType = {[{name: "dataTypes", layer: ["type"], compareData: {dataSet: "eventType", typeSet: "_id"}, typeFilterDisable: false}]}
+          filtersSet={this.props.spatialsFilters}
+          relationshipSet={this.props.spatialsRelationship}
+          decidingFilteringSet={!this.state.loading}
+          updatedata={this.load}
+          items={this.state.items}/>
+      }
+      
+      //map
+      let map = this.renderMap();
+
       content = <div>
         <div className="row">
           <div className="col-xs-12 col-sm-4">
-            <Filters
-              name="events"
-              //filterType = {[]}
-              filterType = {[{name: "dataTypes", layer: ["type"], compareData: {dataSet: "eventType", typeSet: "_id"}, typeFilterDisable: false}]}
-              filtersSet={this.props.eventsFilters}
-              relationshipSet={this.props.eventsRelationship}
-              decidingFilteringSet={!this.state.loading}
-              updatedata={this.load}
-              items={this.state.items}/>
+            {map}
+            {filters}
           </div>
           <div className="col-xs-12 col-sm-8">
             <h2>{heading}
@@ -532,7 +578,7 @@ class Events extends Component {
             </h2>
             {searchBox}
             {pageActions}
-            {events}
+            {spatials}
             {pageActions}
           </div>
         </div>
@@ -548,4 +594,4 @@ class Events extends Component {
   }
 }
 
-export default Events = connect(mapStateToProps, mapDispatchToProps)(Events);
+export default Spatials = connect(mapStateToProps, mapDispatchToProps)(Spatials);

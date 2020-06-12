@@ -12,7 +12,7 @@ export function setPaginationParams(type,params) {
         }
       };
     }
-    if (type==="classpieces") {
+    else if (type==="classpieces") {
       payload = {
         classpiecesPagination: {
           limit:params.limit,
@@ -20,7 +20,8 @@ export function setPaginationParams(type,params) {
           //sort:params.sort,
         }
       };
-    }else if (type==="people") {
+    }
+    else if (type==="people") {
       payload = {
         peoplePagination: {
           limit:params.limit,
@@ -28,16 +29,34 @@ export function setPaginationParams(type,params) {
           sort:params.sort,
         }
       };
-    }else if (type==="events") {
+    }
+    else if (type==="events") {
       payload = {
         eventsPagination: {
           limit:params.limit,
           page:params.page,
         }
       };
-    }else if (type==="organisations") {
+    }
+    else if (type==="organisations") {
       payload = {
         organisationsPagination: {
+          limit:params.limit,
+          page:params.page,
+        }
+      };
+    }
+    else if (type==="temporals") {
+      payload = {
+        temporalsPagination: {
+          limit:params.limit,
+          page:params.page,
+        }
+      };
+    }
+    else if (type==="spatials") {
+      payload = {
+        spatialsPagination: {
           limit:params.limit,
           page:params.page,
         }
@@ -413,6 +432,32 @@ export function updateFilters(type,params) {
         },
         loadingResourcesRelationship: true,
       };
+    }else if (type==="temporals") {
+      payload = {
+        temporalsFilters: {
+          //classpieces: params.classpieces,
+          //events: eventsData,
+          //organisations: params.organisations,
+          //people: params.people,
+          temporals: params.temporals,
+          //spatials: params.spatials,
+          //resources: params.resources,
+        },
+        loadingTemporalsRelationship: true,
+      };
+    }else if (type==="spatials") {
+      payload = {
+        spatialsFilters: {
+          //classpieces: params.classpieces,
+          //events: eventsData,
+          //organisations: params.organisations,
+          //people: params.people,
+          //temporals: params.temporals,
+          spatials: params.spatials,
+          //resources: params.resources,
+        },
+        loadingSpatialsRelationship: true,
+      };
     }
     else {
       return false;
@@ -493,6 +538,34 @@ export function setRelationshipParams(type,params) {
           resources: params.resources,
         },
         loadingResourcesRelationship: false,
+      };
+    }
+    else if (type==="temporals") {
+      payload = {
+        temporalsRelationship: {
+          classpieces: params.classpieces,
+          events: params.events,
+          organisations: params.organisations,
+          people: params.people,
+          temporals: params.temporals,
+          spatials: params.spatials,
+          resources: params.resources,
+        },
+        loadingTemporalsRelationship: false,
+      };
+    }
+    else if (type==="spatials") {
+      payload = {
+        spatialsRelationship: {
+          classpieces: params.classpieces,
+          events: params.events,
+          organisations: params.organisations,
+          people: params.people,
+          temporals: params.temporals,
+          spatials: params.spatials,
+          resources: params.resources,
+        },
+        loadingSpatialsRelationship: false,
       };
     }
     else {
