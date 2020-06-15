@@ -190,7 +190,7 @@ class Person extends Component {
       let timelineLink = [];
       if (this.state.item.events.length>0) {
         timelineLink = <div className="col-xs-12 col-sm-4">
-          <Link href={`/item-timeline/person/${this.props.match.params._id}`} to={`/item-timeline/person/${this.props.match.params._id}`} className="person-component-link" title="Person graph network"><i className="pe-7s-hourglass" /></Link>
+          <Link href={`/item-timeline/person/${this.props.match.params._id}`} to={`/item-timeline/person/${this.props.match.params._id}`} className="person-component-link" title="Person graph timeline"><i className="pe-7s-hourglass" /></Link>
         </div>
       }
       content = <div>

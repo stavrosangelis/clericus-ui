@@ -157,7 +157,7 @@ class Event extends Component {
     let timelineLink = [];
     if (this.state.item.events.length>0) {
       timelineLink = <div className="col-xs-12 col-sm-4">
-        <Link href={`/item-timeline/event/${this.props.match.params._id}`} to={`/item-timeline/event/${this.props.match.params._id}`} className="person-component-link" title="Event graph network"><i className="pe-7s-hourglass" /></Link>
+        <Link href={`/item-timeline/event/${this.props.match.params._id}`} to={`/item-timeline/event/${this.props.match.params._id}`} className="person-component-link" title="Event graph timeline"><i className="pe-7s-hourglass" /></Link>
       </div>
     }
 

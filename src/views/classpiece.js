@@ -227,7 +227,7 @@ class Classpiece extends Component {
       let timelineLink = [];
       if (this.state.item.events.length>0) {
         timelineLink = <div className="col-xs-12 col-sm-4">
-          <Link href={`/item-timeline/classpiece/${this.props.match.params._id}`} to={`/item-timeline/classpiece/${this.props.match.params._id}`} className="person-component-link" title="Classpiece graph network"><i className="pe-7s-hourglass" /></Link>
+          <Link href={`/item-timeline/classpiece/${this.props.match.params._id}`} to={`/item-timeline/classpiece/${this.props.match.params._id}`} className="person-component-link" title="Classpiece graph timeline"><i className="pe-7s-hourglass" /></Link>
         </div>
       }
       content = <div>
