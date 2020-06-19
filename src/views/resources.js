@@ -12,6 +12,7 @@ import {getResourceThumbnailURL, /*getInfoFromFilterObj*/} from '../helpers/help
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
+import {updateDocumentTitle} from '../helpers/helpers';
 
 import {connect} from "react-redux";
 import {
@@ -194,7 +195,7 @@ class Resources extends Component {
     this.props.setRelationshipParams("resources",payload);
     */
   }
-  
+
   async simpleSearch(e) {
     e.preventDefault();
     if (this.state.simpleSearchTerm.length<2) {
@@ -203,7 +204,7 @@ class Resources extends Component {
     this.setState({
       resourcesLoading: true
     });
-    
+
     //let filterInfo = getInfoFromFilterObj("resources", this.props.resourcesFilters);
     //let orderField = getInfoFromSort("orderField", this.state.sort);
     //let orderDesc = getInfoFromSort("orderDesc", this.state.sort);
@@ -443,7 +444,7 @@ class Resources extends Component {
       context.load();
     },100)
   }
-  
+
   updateSort(sort) {
     this.setState({
       sort: sort
@@ -460,13 +461,13 @@ class Resources extends Component {
     for (let i=0;i<this.state.items.length; i++) {
       let item = this.state.items[i];
       let label = item.label;
-      
+
       let thumbnailImage = [];
       let thumbnailURL = getResourceThumbnailURL(item);
       if (thumbnailURL!==null) {
         thumbnailImage = <img src={thumbnailURL} className="resources-list-thumbnail img-fluid img-thumbnail" alt={label} />
       }
-      
+
       let link = "/resource/"+item._id;
       let outputItem = <ListGroupItem key={i}>
         <Link to={link} href={link}>{thumbnailImage}</Link>
@@ -501,6 +502,7 @@ class Resources extends Component {
     let breadcrumbsItems = [
       {label: heading, icon: "pe-7s-users", active: true, path: ""}
     ];
+    updateDocumentTitle(heading);
     let content = <div>
       <div className="row">
         <div className="col-xs-12 col-sm-4">

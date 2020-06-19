@@ -9,6 +9,7 @@ import {Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
 import {getPersonThumbnailURL} from '../helpers/helpers';
 import TagPeopleSearch from '../components/tag-people-search.js';
+import {updateDocumentTitle} from '../helpers/helpers';
 
 class Person extends Component {
   constructor(props) {
@@ -221,6 +222,8 @@ class Person extends Component {
       {label: "People", icon: "pe-7s-users", active: false, path: "/people"},
       {label: label, icon: "pe-7s-user", active: true, path: ""},
     ];
+    let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+    updateDocumentTitle(documentTitle);
     return (
       <div className="container">
         <Breadcrumbs items={breadcrumbsItems} />

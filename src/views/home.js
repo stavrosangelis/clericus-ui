@@ -6,11 +6,12 @@ import About from '../components/home/about';
 import HighLights from '../components/home/highlights';
 import News from '../components/home/news';
 import Visualisations from '../components/home/visualisations';
+import {updateDocumentTitle} from '../helpers/helpers';
 
 class Home extends Component {
 
   render() {
-
+    updateDocumentTitle();
     return (
       <div className="container-fluid">
         <HomeSlider />

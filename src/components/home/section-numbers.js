@@ -45,7 +45,7 @@ class SectionNumbers extends Component {
 
   increment(stateName, statsValue) {
     let i = this.state[stateName];
-    let incrementTime = 750/statsValue;
+    let incrementTime = 50/statsValue;
   	let interval = setInterval(()=>this.incrementItem(stateName, statsValue), incrementTime);
     let intervals = this.state.intervals;
     intervals.push(interval)

@@ -11,6 +11,7 @@ import {Breadcrumbs} from '../components/breadcrumbs';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
+import {updateDocumentTitle} from '../helpers/helpers';
 
 import {connect} from "react-redux";
 import {
@@ -51,7 +52,7 @@ class Temporals extends Component {
       simpleSearchTerm: '',
       advancedSearchInputs: [],
     }
-    
+
     this.conductingFilterAtFrontEnd = true;
 
     this.load = this.load.bind(this);
@@ -177,8 +178,8 @@ class Temporals extends Component {
 	  });
     */
   }
-  
-  
+
+
   simpleSearch(e) {
     e.preventDefault();
     /*
@@ -404,7 +405,7 @@ class Temporals extends Component {
   renderItems() {
     let output = [];
     let filters = {};
-    if ((this.conductingFilterAtFrontEnd === true) && 
+    if ((this.conductingFilterAtFrontEnd === true) &&
         (this.props.temporalsFilters.temporals.startDate !== "")) {
       filters = {
         dateType: this.props.temporalsFilters.temporals.dateType,
@@ -414,14 +415,14 @@ class Temporals extends Component {
     }
     for (let i=0;i<this.state.items.length; i++) {
       let item = this.state.items[i];
-      
-      if ((this.conductingFilterAtFrontEnd === true) && 
+
+      if ((this.conductingFilterAtFrontEnd === true) &&
           (this.props.temporalsFilters.temporals.startDate !== "")) {
         //let itemStartDate = Date.parse(item.startDate);
         let dateParts = item.startDate.split("-");
         // month is 0-based, that's why we need dataParts[1] - 1
-        let itemStartDate = Date.parse(new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])); 
-        
+        let itemStartDate = Date.parse(new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]));
+
         if (filters.dateType === "exact") {
           if(!(itemStartDate === filters.startDate)) {
             continue;
@@ -441,13 +442,13 @@ class Temporals extends Component {
           //let itemEndDate = Date.parse(item.endDate);
           dateParts = item.endDate.split("-");
           // month is 0-based, that's why we need dataParts[1] - 1
-          let itemEndDate = Date.parse(new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])); 
+          let itemEndDate = Date.parse(new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]));
           if (!((itemStartDate >= filters.startDate) && (itemEndDate <= filters.endDate))) {
             continue;
           }
         }
       }
-      
+
       let label = item.label;
 
       let thumbnailImage = [];
@@ -489,6 +490,7 @@ class Temporals extends Component {
     let breadcrumbsItems = [
       {label: heading, icon: "pe-7s-users", active: true, path: ""}
     ];
+    updateDocumentTitle(heading);
     let content = <div>
       <div className="row">
         <div className="col-xs-12 col-sm-4">

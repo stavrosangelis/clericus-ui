@@ -7,6 +7,7 @@ import {
 
 import {Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
+import {updateDocumentTitle} from '../helpers/helpers';
 //import {getEventThumbnailURL} from '../helpers/helpers';
 //import TagPeopleSearch from '../components/tag-people-search.js';
 
@@ -64,7 +65,7 @@ class Temporal extends Component {
       name:  ["startDate","endDate"],
       label: ["Start Date","End Date"]
     }
-    
+
     //1.0 TemporalDetails - events
     let eventsRow = [];
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
@@ -128,7 +129,7 @@ class Temporal extends Component {
       descriptionRow.push(descriptionTitle,descriptionData);
     }
     */
-    
+
     let relationshipGraph = null;
     if (typeof this.state.item.status !== "undefined") {
       if (this.state.item.status !== "private") {
@@ -197,6 +198,8 @@ class Temporal extends Component {
       {label: "Temporals", icon: "pe-7s-date", active: false, path: "/temporals"},
       {label: label, icon: "pe-7s-date", active: true, path: ""},
     ];
+    let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+    updateDocumentTitle(documentTitle);
     return (
       <div className="container">
         <Breadcrumbs items={breadcrumbsItems} />

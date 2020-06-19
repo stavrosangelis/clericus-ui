@@ -12,6 +12,7 @@ import {getResourceThumbnailURL, getResourceFullsizeURL} from '../helpers/helper
 import {parseMetadata} from '../helpers/parse-metadata';
 import Viewer from '../components/image-viewer-resource.js';
 import TagPeopleSearch from '../components/tag-people-search.js';
+import {updateDocumentTitle} from '../helpers/helpers';
 
 const mapStateToProps = state => {
   let loadingResourcesType = state.loadingResourcesType || null;
@@ -52,7 +53,7 @@ class Resource extends Component {
     if (this.state.pageID !== null) {
       _id = this.state.pageID;
     }
-    
+
     if (typeof _id==="undefined" || _id===null || _id==="") {
       return false;
     }
@@ -97,7 +98,7 @@ class Resource extends Component {
       viewerVisible: !this.state.viewerVisible
     });
   }
-  
+
   setResourceID(_id) {
     this.setState({
       pageID: _id,
@@ -112,7 +113,7 @@ class Resource extends Component {
   componentDidMount() {
     this.load();
   }
-  
+
   getSystemType() {
     for(let i=0;i<this.props.resourcesType.length;i++) {
       if(this.state.item.systemType === this.props.resourcesType[i]._id) {
@@ -303,7 +304,7 @@ class Resource extends Component {
     if (!this.state.loading && !this.props.loadingResourcesType) {
       let systemType = this.getSystemType();
       let itemCard = this.renderItem(this.state, systemType);
-      
+
       let labelGraph = "resource-graph";
       let _idGraph = this.props.match.params._id;
 
@@ -313,7 +314,7 @@ class Resource extends Component {
           <Link href={`/item-timeline/resource/${this.props.match.params._id}`} to={`/item-timeline/resource/${this.props.match.params._id}`} className="person-component-link" title="Resource graph timeline"><i className="pe-7s-hourglass" /></Link>
         </div>
       }
-      
+
       content = <div>
         <Card>
           <CardBody>
@@ -338,11 +339,13 @@ class Resource extends Component {
       {label: "Resources", icon: "pe-7s-photo", active: false, path: "/resources"},
       {label: label, icon: "pe-7s-photo", active: true, path: ""},
     ];
+    let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+    updateDocumentTitle(documentTitle);
     let imgViewer = [];
     let fullsizePath = getResourceFullsizeURL(resource);
     if (fullsizePath!==null && resource.resourceType==="image") {
       let fullsizePath = getResourceFullsizeURL(resource);
-      
+
       imgViewer = <Viewer
         visible={this.state.viewerVisible}
         path={fullsizePath}

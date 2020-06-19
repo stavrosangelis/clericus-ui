@@ -6,6 +6,7 @@ import {
 } from 'reactstrap';
 import {Breadcrumbs} from '../components/breadcrumbs';
 import { Link } from 'react-router-dom';
+import {updateDocumentTitle} from '../helpers/helpers';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
@@ -59,6 +60,7 @@ const Search = props => {
 
 
   let breadcrumbsItems = [{label: "Search", icon: "fa fa-search", active: true, path: ""}];
+  updateDocumentTitle("Search");
   let content = <div style={{padding: '40pt',textAlign: 'center'}}>
     <Spinner type="grow" color="info" /> <i>loading...</i>
   </div>

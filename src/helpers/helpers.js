@@ -139,14 +139,14 @@ export const getInfoFromSort = (type=null,dataString=null) => {
     orderField = "lastName";
     orderDesc = true;
   }
-  
+
   if (type === "orderField") {
     return orderField;
   }
   else if (type === "orderDesc") {
     return orderDesc;
   }
-  
+
   return null;
 }
 
@@ -154,7 +154,7 @@ export const getInfoFromFilterObj = (type=null,filtersData=null) => {
   if ((type !== "people") && (type !== "classpieces")) {
     return null;
   }
-  
+
   let result = {
     /*eventsType,*/
     events: [],
@@ -184,4 +184,12 @@ export const getInfoFromFilterObj = (type=null,filtersData=null) => {
   }
   */
   return result;
+}
+
+export const updateDocumentTitle = (title=null) => {
+  let documentTitle = "Clericus";
+  if (title!==null) {
+    documentTitle += ` / ${title}`;
+  }
+  document.title = documentTitle;
 }

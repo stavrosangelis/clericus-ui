@@ -4,13 +4,14 @@ import PersonNetwork from '../../components/visualisations/person-network-pixi';
 import {Breadcrumbs} from '../../components/breadcrumbs';
 import { Spinner } from 'reactstrap';
 import { useSelector } from "react-redux";
+import {updateDocumentTitle} from '../../helpers/helpers';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
 const ResourceGraph = props => {
   const [loading, setLoading] = useState(true);
   const [resource, setResource] = useState(null);
-  
+
   const loadingResourcesType = useSelector(state => state.loadingResourcesType);
   const resourcesType = useSelector(state => state.resourcesType);
 
@@ -38,7 +39,7 @@ const ResourceGraph = props => {
       load();
     }
   },[loading,props.match.params._id, loadingResourcesType]);
-  
+
   const getSystemType = () => {
     for(let i=0;i<resourcesType.length;i++) {
       if(resource.systemType === resourcesType[i]._id) {
@@ -61,13 +62,14 @@ const ResourceGraph = props => {
         _idGraph = resource.people[0].ref._id;
       }
     }
-    
+
     let label = resource.label;
     heading = `${label} network`;
     breadcrumbsItems.push(
       {label: label, icon: "pe-7s-photo", active: false, path: `/resource/${props.match.params._id}`},
       {label: "Network", icon: "pe-7s-graph1", active: true, path: ""});
-
+    let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+    updateDocumentTitle(documentTitle);
     content = <div className="graph-container" id="graph-container">
       <PersonNetwork _id={_idGraph} relatedLinks={[]} relatedNodes={[]} />
     </div>;

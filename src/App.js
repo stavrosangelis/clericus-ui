@@ -16,6 +16,7 @@ import Header from './components/header';
 import Footer from './components/footer';
 
 import mainRoutes from "./routes/";
+import NotFound from './views/404.js';
 
 import {connect} from "react-redux";
 import {
@@ -69,6 +70,8 @@ class App extends Component{
       }
       routes.push(newRoute);
     }
+    let noMatch = <Route component={NotFound} key="not-found"/>
+    routes.push(noMatch);
     return (
       <Router basename='/'>
         <div className="app-body">

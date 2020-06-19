@@ -11,6 +11,7 @@ import {Link} from 'react-router-dom';
 import DatePicker from "react-datepicker";
 import moment from "moment";
 import {getResourceThumbnailURL} from '../../helpers/helpers';
+import {updateDocumentTitle} from '../../helpers/helpers';
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -499,7 +500,7 @@ const Timeline = props =>{
   let breadcrumbsItems = [
     {label: heading, icon: "pe-7s-hourglass", active: true, path: ""}
   ];
-
+  updateDocumentTitle(heading);
   let content = <div className="row">
       <div className="col-12">
         <div style={{padding: '40pt',textAlign: 'center'}}>

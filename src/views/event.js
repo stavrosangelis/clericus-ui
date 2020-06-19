@@ -9,6 +9,7 @@ import {Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
 import {getEventThumbnailURL} from '../helpers/helpers';
 import TagPeopleSearch from '../components/tag-people-search.js';
+import {updateDocumentTitle} from '../helpers/helpers';
 
 class Event extends Component {
   constructor(props) {
@@ -150,10 +151,10 @@ class Event extends Component {
       let descriptionData = <div className="person-des-content" key={"descriptionData"}>{item.description}</div>;
       descriptionRow.push(descriptionTitle,descriptionData);
     }
-    
+
     let labelGraph = "event-graph";
     let _idGraph = this.props.match.params._id;
-    
+
     let timelineLink = [];
     if (this.state.item.events.length>0) {
       timelineLink = <div className="col-xs-12 col-sm-4">
@@ -221,6 +222,8 @@ class Event extends Component {
       {label: "Events", icon: "pe-7s-date", active: false, path: "/events"},
       {label: label, icon: "pe-7s-date", active: true, path: ""},
     ];
+    let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+    updateDocumentTitle(documentTitle);
     return (
       <div className="container">
         <Breadcrumbs items={breadcrumbsItems} />

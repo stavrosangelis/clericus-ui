@@ -33,16 +33,26 @@ const FilterTemporal = props => {
     props.updateFilters("temporals",payload);
   }
 
+  const normalizeDate = (date) => {
+    let dateArr = date.split("/");
+    let m = dateArr[0];
+    let d = dateArr[1];
+    let y = dateArr[2];
+    return `${d}/${m}/${y}`;
+  }
+
   const submit = (e) => {
     e.preventDefault();
 
     let newStartDate = startDate;
     if(newStartDate!==""){
       newStartDate = new Intl.DateTimeFormat('en-US').format(startDate);
+      newStartDate = normalizeDate(newStartDate);
     }
     let newEndDate = endDate;
     if(newEndDate!==""){
       newEndDate = new Intl.DateTimeFormat('en-US').format(endDate);
+      newEndDate = normalizeDate(newEndDate);
     }
     let payload = {
       dateType: dateType,
@@ -51,13 +61,13 @@ const FilterTemporal = props => {
     }
     props.updateFilters("temporals",payload);
   }
-  
+
   const resetState = () => {
     setDateType("exact");
     setStartDate("");
     setEndDate("");
   }
-  
+
   props.resetStateForwardRef(() => resetState());
 
   let endDateVisible = " hidden";

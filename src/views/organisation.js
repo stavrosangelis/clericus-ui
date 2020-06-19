@@ -9,6 +9,7 @@ import {Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
 import {getOrganisationThumbnailURL} from '../helpers/helpers';
 import TagPeopleSearch from '../components/tag-people-search.js';
+import {updateDocumentTitle} from '../helpers/helpers';
 
 class Organisation extends Component {
   constructor(props) {
@@ -57,10 +58,10 @@ class Organisation extends Component {
 
   renderOrganisationDetails(stateData=null) {
     let item = stateData.item;
-    
+
     //1. OrganisationDetails
     let meta = [];
-    
+
     //1.0 OrganisationDetails - classpieces
     let classpiecesRow = [];
     if (typeof item.resources!=="undefined" && item.resources!==null && item.resources!=="") {
@@ -75,7 +76,7 @@ class Organisation extends Component {
       classpiecesRow = <tr key={"classpiecesRow"}><th>Classpieces</th><td><ul className="tag-list">{classpiecesData}</ul></td></tr>;
     }
     meta.push(classpiecesRow);
-        
+
     //1.1 OrganisationDetails - events
     let eventsRow = [];
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
@@ -83,7 +84,7 @@ class Organisation extends Component {
       if(Object.keys(item.events).length === 0){
         eventsRow = <tr key={"eventsRow"}><th>Events</th><td/></tr>;
       }
-      //item.events = {...} 
+      //item.events = {...}
       else {
         let eventsData = item.events.map(eachItem =>{
           return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/event/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
@@ -92,7 +93,7 @@ class Organisation extends Component {
       }
     }
     meta.push(eventsRow);
-    
+
     //1.2 OrganisationDetails - organisations
     let organisationsRow = [];
     if (typeof item.organisations!=="undefined" && item.organisations!==null && item.organisations!=="") {
@@ -100,7 +101,7 @@ class Organisation extends Component {
       if(Object.keys(item.organisations).length === 0){
         organisationsRow = <tr key={"organisationsRow"}><th>Organisations</th><td/></tr>;
       }
-      //item.organisations = {...} 
+      //item.organisations = {...}
       else {
         let organisationsData = item.organisations.map(eachItem =>{
           return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/organisation/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
@@ -109,8 +110,8 @@ class Organisation extends Component {
       }
     }
     meta.push(organisationsRow);
-    
-    //1.3 OrganisationDetails - people   
+
+    //1.3 OrganisationDetails - people
     let peopleRow = <TagPeopleSearch
       key ={"organisationTagPeopleSearch"}
       name = {"organisation"}
@@ -126,14 +127,14 @@ class Organisation extends Component {
 
   renderItem(stateData=null) {
     let item = stateData.item;
-    
+
     //1.1 Organisation label
     let label = item.label;
-    
+
     //2.1 meta
     //let metaTable = <Table><tbody>{meta}</tbody></Table>
     let metaTable = this.renderOrganisationDetails(stateData);
-    
+
     //2.2 thumbnailImage
     let thumbnailImage = [];
     let thumbnailURL = getOrganisationThumbnailURL(item);
@@ -142,7 +143,7 @@ class Organisation extends Component {
         <img src={thumbnailURL} className="people-thumbnail img-fluid img-thumbnail" alt={label} />
       </div>
     }
-    
+
     //2.3 description
     let descriptionRow = []
     if(typeof item.description!=="undefined" && item.description!==null && item.description!=="") {
@@ -150,10 +151,10 @@ class Organisation extends Component {
       let descriptionData = <div className="person-des-content" key={"descriptionData"}>{item.description}</div>;
       descriptionRow.push(descriptionTitle,descriptionData);
     }
-    
+
     let labelGraph = "organisation-graph";
     let _idGraph = this.props.match.params._id;
-    
+
     let timelineLink = [];
     if (this.state.item.events.length>0) {
       timelineLink = <div className="col-xs-12 col-sm-4">
@@ -221,6 +222,8 @@ class Organisation extends Component {
       {label: "Organisations", icon: "pe-7s-culture", active: false, path: "/organisations"},
       {label: label, icon: "pe-7s-culture", active: true, path: ""},
     ];
+    let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+    updateDocumentTitle(documentTitle);
     return (
       <div className="container">
         <Breadcrumbs items={breadcrumbsItems} />

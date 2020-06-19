@@ -7,6 +7,7 @@ import {
 } from 'reactstrap';
 import { Link, Redirect } from 'react-router-dom';
 import TopMenu from "./top-menu.js";
+import logosrc from "../assets/images/cos-logo-bw.png";
 
 export default class Header extends React.Component {
   constructor(props) {
@@ -107,14 +108,7 @@ export default class Header extends React.Component {
             <Link to="/" href="/" className="logo-container">
 
                 <div className="bw-logo">
-                  <div className="simple-text icon">
-                    <div className="bw-container">
-                      <div className="triangle-left"></div>
-                      <div className="triangle-left-inner"></div>
-                      <div className="triangle-right"></div>
-                      <div className="triangle-right-inner"></div>
-                    </div>
-                  </div>
+                  <img src={logosrc} className="logo-img" alt="Clericus logo" />
                   <div className="simple-text bw-normal">Clericus</div>
                 </div>
 

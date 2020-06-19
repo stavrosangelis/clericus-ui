@@ -5,7 +5,8 @@ import {
   Card, CardBody,
 } from 'reactstrap';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import { Link} from 'react-router-dom';
+import {updateDocumentTitle} from '../helpers/helpers';
+import {Link} from 'react-router-dom';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
@@ -80,7 +81,8 @@ const Articles = props => {
     });
     breadcrumbsItems = [...categories, ...breadcrumbsItems];
     breadcrumbsItems.push({label: category.label, icon: "", active: true, path: ""});
-
+    let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+    updateDocumentTitle(documentTitle);
     let articlesHTML = articles.map(article=>{
       let featuredImage = article.featuredImageDetails;
       let thumbPath = [];

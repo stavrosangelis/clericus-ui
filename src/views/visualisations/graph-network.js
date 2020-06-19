@@ -1,10 +1,12 @@
 import React from 'react';
 import GraphNetwork from '../../components/visualisations/graph-network-pixi';
 import {Breadcrumbs} from '../../components/breadcrumbs';
+import {updateDocumentTitle} from '../../helpers/helpers';
 
 const NetworkGraph = props => {
   let heading = "Network graph";
   let breadcrumbsItems = [{label: heading, icon: "pe-7s-graph1", active: true, path: ""}];
+  updateDocumentTitle(heading);
   let content = <div className="graph-container" id="graph-container">
       <GraphNetwork relatedLinks={[]} relatedNodes={[]} />
     </div>;

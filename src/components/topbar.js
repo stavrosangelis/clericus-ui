@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import {Link} from 'react-router-dom';
 
 export default class Topbar extends Component {
   render() {
@@ -16,19 +17,21 @@ export default class Topbar extends Component {
             </span>
           </li>
           <li>
-            <span className="social-icon">
-              <i className="fa fa-envelope" />
-            </span>
+            <Link href="/contact" to="/contact">
+              <span className="social-icon">
+                <i className="fa fa-envelope" />
+              </span>
+            </Link>
           </li>
         </ul>
 
-        <ul className="pull-right top-bar-list">
+        {/*<ul className="pull-right top-bar-list">
           <li>
             <span className="top-bar-link">
               <i className="fa fa-user" /> <span>Login/Register</span>
             </span>
           </li>
-        </ul>
+        </ul>*/}
       </div>
     );
   }

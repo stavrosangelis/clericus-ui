@@ -3,6 +3,7 @@ import axios from 'axios';
 import PersonNetwork from '../../components/visualisations/person-network-pixi';
 import {Breadcrumbs} from '../../components/breadcrumbs';
 import { Spinner } from 'reactstrap';
+import {updateDocumentTitle} from '../../helpers/helpers';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
@@ -47,7 +48,8 @@ const EventGraph = props => {
     breadcrumbsItems.push(
       {label: label, icon: "pe-7s-date", active: false, path: `/event/${props.match.params._id}`},
       {label: "Network", icon: "pe-7s-graph1", active: true, path: ""});
-
+    let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+    updateDocumentTitle(documentTitle);
     content = <div className="graph-container" id="graph-container">
       <PersonNetwork _id={props.match.params._id} relatedLinks={[]} relatedNodes={[]} />
     </div>;

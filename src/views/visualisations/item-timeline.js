@@ -10,7 +10,7 @@ import {Breadcrumbs} from '../../components/breadcrumbs';
 import {Link} from 'react-router-dom';
 import DatePicker from "react-datepicker";
 import moment from "moment";
-import {getResourceThumbnailURL} from '../../helpers/helpers';
+import {getResourceThumbnailURL, updateDocumentTitle} from '../../helpers/helpers';
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -548,6 +548,8 @@ const Timeline = props =>{
       {label: label, icon: "pe-7s-user", active: false, path: `/person/${props.match.params._id}`},
       {label: "Timeline", icon: "pe-7s-hourglass", active: true, path: ""}
     ];
+    let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+    updateDocumentTitle(documentTitle);
     heading = `${label} Timeline`;
   }
 

@@ -10,6 +10,7 @@ import { Map, Marker, Popup, TileLayer } from 'react-leaflet'
 import L from 'leaflet';
 import {Breadcrumbs} from '../components/breadcrumbs';
 //import TagPeopleSearch from '../components/tag-people-search.js';
+import {updateDocumentTitle} from '../helpers/helpers';
 
 class Spatial extends Component {
   constructor(props) {
@@ -68,7 +69,7 @@ class Spatial extends Component {
       label: ["Street Address","Locality","Region","Country","Postal Code",
               "Latitude","Longitude","LocationType"]
     }
-    
+
     //1.0 SpatialDetails - events
     let eventsRow = [];
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
@@ -101,7 +102,7 @@ class Spatial extends Component {
           <tbody>{meta}</tbody>
         </table>
   }
-  
+
   renderMap(stateData=null) {
     let item = stateData.item;
     let position = [item.latitude, item.longitude];
@@ -113,7 +114,7 @@ class Spatial extends Component {
         iconUrl: require('leaflet/dist/images/marker-icon.png'),
         shadowUrl: require('leaflet/dist/images/marker-shadow.png')
     });
-    
+
     let output = <div className="spatial-map-container">
         <Map center={position} zoom={zoom} maxZoom={18}>
           <TileLayer
@@ -146,13 +147,13 @@ class Spatial extends Component {
       let noteData = <div className="spatial-note-content" key={"noteData"}>{item.note}</div>;
       noteRow.push(noteData);
     }
-    
+
     //2.4 spatial map
     let map = null;
     if ((item.latitude !== "") && (item.longitude!== "")) {
       map = this.renderMap(stateData);
     }
-    
+
     let relationshipGraph = null;
     if (typeof this.state.item.status !== "undefined") {
       if (this.state.item.status !== "private") {
@@ -221,6 +222,8 @@ class Spatial extends Component {
       {label: "Spatials", icon: "pe-7s-date", active: false, path: "/spatials"},
       {label: label, active: true, path: ""},
     ];
+    let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+    updateDocumentTitle(documentTitle);
     return (
       <div className="container">
         <Breadcrumbs items={breadcrumbsItems} />

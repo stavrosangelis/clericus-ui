@@ -379,13 +379,16 @@ h1, h2, h3, h4, h5 {
 .logo-container {
   display: block;
 }
+.logo-img {
+  height: 28px;
+}
 .bw-logo .simple-text {
   color: #333;
   text-transform: uppercase;
   display: inline-block;
   font-size: 19px;
   line-height: 19px;
-  vertical-align: top;
+  vertical-align: middle;
 }
 .bw-logo .simple-text.icon {
   position: relative;
@@ -2429,4 +2432,15 @@ section {
   display: block;
   max-width: 50px;
   margin: 0 auto 5px auto;
+}
+.error-container {
+  border: 2px solid #f97054;
+  color: #f97054;
+  padding: 5px 15px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+.contact-form-success {
+  padding: 60px 0;
+  font-size: 18px;
 }

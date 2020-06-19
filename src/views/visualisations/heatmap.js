@@ -12,6 +12,7 @@ import '../../assets/leaflet/leaflet.css';
 import markerIconPath from '../../assets/leaflet/images/marker-icon.png';
 import MarkerClusterGroup from '../../components/markercluster';
 import L from 'leaflet';
+import {updateDocumentTitle} from '../../helpers/helpers';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
@@ -92,6 +93,7 @@ const Heatmap = props => {
   let breadcrumbsItems = [
     {label: heading, icon: "pe-7s-map", active: true, path: ""}
   ];
+  updateDocumentTitle(heading);
   let content = <div className="row">
       <div className="col-12">
         <div style={{padding: '40pt',textAlign: 'center'}}>

@@ -12,6 +12,7 @@ import {getPersonThumbnailURL, getInfoFromSort, getInfoFromFilterObj} from '../h
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
+import {updateDocumentTitle} from '../helpers/helpers';
 
 import {connect} from "react-redux";
 import {
@@ -80,7 +81,7 @@ class People extends Component {
     let filterInfo = getInfoFromFilterObj("people", this.props.peopleFilters);
     let orderField = getInfoFromSort("orderField", this.state.sort);
     let orderDesc = getInfoFromSort("orderDesc", this.state.sort);
-    
+
     let params = {
       page: this.state.page,
       limit: this.state.limit,
@@ -215,7 +216,7 @@ class People extends Component {
     this.setState({
       peopleLoading: true
     });
-    
+
     let filterInfo = getInfoFromFilterObj("people", this.props.peopleFilters);
     let orderField = getInfoFromSort("orderField", this.state.sort);
     let orderDesc = getInfoFromSort("orderDesc", this.state.sort);
@@ -453,7 +454,7 @@ class People extends Component {
       context.load();
     },100)
   }
-  
+
   updateSort(sort) {
     this.setState({
       sort: sort
@@ -513,6 +514,7 @@ class People extends Component {
     let breadcrumbsItems = [
       {label: heading, icon: "pe-7s-users", active: true, path: ""}
     ];
+    updateDocumentTitle(heading);
     let content = <div>
       <div className="row">
         <div className="col-xs-12 col-sm-4">

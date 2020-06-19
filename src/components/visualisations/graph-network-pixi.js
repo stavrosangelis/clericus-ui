@@ -311,6 +311,9 @@ const PersonNetwork = props => {
       });
       d3.select("#graph-zoom-out")
       .on("click", function() {
+        if(container.scaled<0.15) {
+          return false;
+        }
         container.zoomPercent(-0.25, true);
         zoomedEnd();
       });

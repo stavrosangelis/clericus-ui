@@ -4,7 +4,9 @@ import Articles from '../views/articles';
 import Classpieces from '../views/classpieces';
 import Classpiece from '../views/classpiece';
 import ClasspieceGraph from '../views/visualisations/classpiece-graph';
+import ContactForm from '../views/contact-form';
 import GenericSearch from '../views/generic-search';
+import NotFound from '../views/404.js';
 import People from '../views/people';
 import Person from '../views/person';
 import PersonGraph from '../views/visualisations/person-graph';
@@ -60,6 +62,11 @@ var routes = [
     path: "/classpiece-graph/:_id",
     component: ClasspieceGraph,
     name: "classpiece graph",
+  },
+  {
+    path: "/contact/",
+    component: ContactForm,
+    name: "contact",
   },
   {
     path: "/search/:term",
@@ -175,6 +182,11 @@ var routes = [
     path: "/item-timeline/:type/:_id",
     component: ItemTimeline,
     name: "Item timeline",
+  },
+  {
+    path: "/404",
+    component: NotFound,
+    name: "Not Found",
   },
 ];
 export default routes;

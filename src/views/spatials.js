@@ -13,6 +13,7 @@ import {Breadcrumbs} from '../components/breadcrumbs';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
+import {updateDocumentTitle} from '../helpers/helpers';
 
 import {connect} from "react-redux";
 import {
@@ -180,8 +181,8 @@ class Spatials extends Component {
 	  });
     */
   }
-  
-  
+
+
   simpleSearch(e) {
     e.preventDefault();
     /*
@@ -403,7 +404,7 @@ class Spatials extends Component {
       context.load();
     },100)
   }
-  
+
   renderMap() {
     let zoom = 9;
     delete L.Icon.Default.prototype._getIconUrl;
@@ -413,7 +414,7 @@ class Spatials extends Component {
         iconUrl: require('leaflet/dist/images/marker-icon.png'),
         shadowUrl: require('leaflet/dist/images/marker-shadow.png')
     });
-    
+
     let link_href = "/spatial/";
     //center here maynooth
     let output = <div className="spatial-map-container">
@@ -482,6 +483,7 @@ class Spatials extends Component {
     let breadcrumbsItems = [
       {label: heading, icon: "pe-7s-users", active: true, path: ""}
     ];
+    updateDocumentTitle(heading);
     let content = <div>
       <div className="row">
         <div className="col-xs-12 col-sm-4">
@@ -554,7 +556,7 @@ class Spatials extends Component {
           updatedata={this.load}
           items={this.state.items}/>
       }
-      
+
       //map
       let map = this.renderMap();
 

@@ -9,6 +9,7 @@ import {Breadcrumbs} from '../components/breadcrumbs';
 import {getResourceThumbnailURL, getInfoFromFilterObj} from '../helpers/helpers';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
+import {updateDocumentTitle} from '../helpers/helpers';
 
 import {connect} from "react-redux";
 import {
@@ -108,7 +109,7 @@ class Classpieces extends Component {
           totalPages: responseData.totalPages,
           items: classpieces
         });
-        
+
         context.updateClasspiecesRelationship();
       }
 	  })
@@ -140,7 +141,7 @@ class Classpieces extends Component {
     })
 	  .then(function (response) {
       let responseData = response.data.data;
-      
+
       let payload = {
         events: responseData.events.map(item=>{return item}),
         organisations: responseData.organisations.map(item=>{return item._id}),
@@ -149,9 +150,9 @@ class Classpieces extends Component {
         //temporals: responseData.temporals.map(item=>{return item._id}),
         //spatials: responseData.spatials.map(item=>{return item._id}),
       }
-      
+
       context.props.setRelationshipParams("classpieces",payload);
-      
+
 	  })
 	  .catch(function (error) {
 	  });
@@ -260,6 +261,7 @@ class Classpieces extends Component {
     let breadcrumbsItems = [
       {label: heading, icon: "pe-7s-photo", active: true, path: ""}
     ];
+    updateDocumentTitle(heading);
     let content = <div>
       <div className="row">
         <div className="col-xs-12">

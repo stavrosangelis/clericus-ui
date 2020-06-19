@@ -11,6 +11,7 @@ import {getResourceThumbnailURL, getResourceFullsizeURL} from '../helpers/helper
 import {parseMetadata} from '../helpers/parse-metadata';
 import Viewer from '../components/image-viewer.js';
 import TagPeopleSearch from '../components/tag-people-search.js';
+import {updateDocumentTitle} from '../helpers/helpers';
 
 class Classpiece extends Component {
   constructor(props) {
@@ -254,6 +255,8 @@ class Classpiece extends Component {
       {label: "Classpieces", icon: "pe-7s-photo", active: false, path: "/classpieces"},
       {label: label, icon: "pe-7s-photo", active: true, path: ""},
     ];
+    let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+    updateDocumentTitle(documentTitle);
     let imgViewer = [];
     let fullsizePath = getResourceFullsizeURL(resource);
     if (fullsizePath!==null && resource.resourceType==="image") {

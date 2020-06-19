@@ -12,6 +12,7 @@ import {getOrganisationThumbnailURL} from '../helpers/helpers';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
+import {updateDocumentTitle} from '../helpers/helpers';
 
 import {connect} from "react-redux";
 import {
@@ -175,7 +176,7 @@ class Organisations extends Component {
 	  });
     */
   }
-  
+
   simpleSearch(e) {
     e.preventDefault();
     /*
@@ -441,6 +442,7 @@ class Organisations extends Component {
     let breadcrumbsItems = [
       {label: heading, icon: "pe-7s-users", active: true, path: ""}
     ];
+    updateDocumentTitle(heading);
     let content = <div>
       <div className="row">
         <div className="col-xs-12 col-sm-4">

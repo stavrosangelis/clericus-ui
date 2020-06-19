@@ -5,6 +5,7 @@ import {
   Card, CardBody,
 } from 'reactstrap';
 import {Breadcrumbs} from '../components/breadcrumbs';
+import {updateDocumentTitle} from '../helpers/helpers';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
@@ -55,6 +56,7 @@ const Article = props => {
     </div>
 
   if (!loading && article!==null) {
+    updateDocumentTitle(article.label);
     let categories = article.categories.map(c=> {
       return {label: c.label, icon: "", active: false, path: `/article-category/${c.permalink}`}
     });
