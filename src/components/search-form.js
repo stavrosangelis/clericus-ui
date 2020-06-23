@@ -6,6 +6,8 @@ import {
 } from 'reactstrap';
 import AdvancedSearchFormRow from './advanced-search-row.js';
 
+
+
 export default class SearchForm extends Component {
   constructor(props) {
     super(props);
@@ -13,12 +15,11 @@ export default class SearchForm extends Component {
     if (typeof this.props.searchElements!=="undefined" && this.props.searchElements.length>0) {
       advancedSearchElement = this.props.searchElements[0].element;
     }
+    let defaultRowInit = {_id: 'default', select: advancedSearchElement, qualifier: 'contains', input: '', default: true, boolean: 'and'};
     this.state = {
       simpleSearchVisible: true,
       advancedSearchVisible: false,
-      advancedSearchRows: [
-        {_id: 'default', select: advancedSearchElement, qualifier: 'contains', input: '', default: true, boolean: 'and'},
-      ],
+      advancedSearchRows: [defaultRowInit],
       advancedSearchElement: advancedSearchElement,
     };
 
@@ -47,7 +48,7 @@ export default class SearchForm extends Component {
 
   addAdvancedSearchRow() {
     let newId = this.randomString(7);
-    let advancedSearchRows = this.state.advancedSearchRows;
+    let advancedSearchRows = Object.assign([],this.state.advancedSearchRows);
     let defaultRow = advancedSearchRows.find(el=>el._id==='default');
     let defaultRowIndex = advancedSearchRows.indexOf(defaultRow);
     let newRow = {_id: newId, select: defaultRow.select, qualifier:defaultRow.qualifier, input: defaultRow.input, default: false, boolean: defaultRow.boolean};
@@ -57,6 +58,13 @@ export default class SearchForm extends Component {
     defaultRow.boolean = 'and';
     advancedSearchRows[defaultRowIndex] = defaultRow;
     advancedSearchRows.push(newRow);
+    // set default values
+    let advancedSearchElement = null;
+    if (typeof this.props.searchElements!=="undefined" && this.props.searchElements.length>0) {
+      advancedSearchElement = this.props.searchElements[0].element;
+    }
+    let defaultRowInit = {_id: 'default', select: advancedSearchElement, qualifier: 'contains', input: '', default: true, boolean: 'and'};
+    advancedSearchRows[defaultRowIndex] = defaultRowInit;
     this.setState({
       advancedSearchRows: advancedSearchRows
     });
@@ -78,14 +86,14 @@ export default class SearchForm extends Component {
   }
 
   removeAdvancedSearchRow(rowId) {
-    let advancedSearchRows = this.state.advancedSearchRows;
+    let advancedSearchRows = Object.assign([],this.state.advancedSearchRows);
     let advancedSearchRowsFiltered = advancedSearchRows.filter((el)=> {
       return el._id!==rowId;
     });
     this.setState({
       advancedSearchRows: advancedSearchRowsFiltered
     })
-    this.props.updateAdvancedSearchInputs(advancedSearchRows)
+    this.props.updateAdvancedSearchInputs(advancedSearchRowsFiltered);
   }
 
   handleChange(e) {
@@ -111,7 +119,7 @@ export default class SearchForm extends Component {
     });
     this.props.updateAdvancedSearchInputs(advancedSearchRows)
   }
-  
+
   updateAdvancedSearchInputContent(rowId, name, value) {
     let advancedSearchRows = this.state.advancedSearchRows;
     let advancedSearchRow = advancedSearchRows.find(el=>el._id===rowId);
@@ -132,14 +140,14 @@ export default class SearchForm extends Component {
     advancedSearchRows = [
       advancedSearchRows[index],
     ];
-    
+
     if (typeof this.props.searchElements!=="undefined" && this.props.searchElements.length>0) {
       advancedSearchRows[0].select = this.props.searchElements[0].element;
     }
     advancedSearchRows[0].qualifier = 'contains';
     advancedSearchRows[0].input = '';
     advancedSearchRows[0].boolean = 'and';
-    
+
     this.setState({
       advancedSearchRows: advancedSearchRows,
     })

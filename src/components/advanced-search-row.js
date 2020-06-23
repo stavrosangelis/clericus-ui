@@ -6,7 +6,7 @@ import {
 export default class AdvancedSearchFormRow extends Component {
   constructor(props) {
     super(props);
-    
+
     this.handleSearchSelectChange = this.handleSearchSelectChange.bind(this);
     this.renderSearchTerm = this.renderSearchTerm.bind(this);
   }
@@ -14,9 +14,9 @@ export default class AdvancedSearchFormRow extends Component {
   handleSearchSelectChange(e) {
     let target = e.target;
     let value = target.type === 'checkbox' ? target.checked : target.value;
-    
+
     this.props.handleAdvancedSearchChange(e,this.props.rowId);
-    
+
     let searchTermRow = this.props.searchElements.find(el=>el.element===value);
     let searchTermRowIndex = this.props.searchElements.indexOf(searchTermRow);
     let inputValue = ""
@@ -26,7 +26,7 @@ export default class AdvancedSearchFormRow extends Component {
 
     this.props.updateAdvancedSearchInputContent(this.props.rowId, "input", inputValue);
   }
-  
+
   renderSearchTerm() {
     let selectItem = this.props.searchSelect;
     let searchTermRow = this.props.searchElements.find(el=>el.element===selectItem);
@@ -37,7 +37,7 @@ export default class AdvancedSearchFormRow extends Component {
         return <option key={dataItem.value} value={dataItem.value}>{dataItem.label}</option>
       })
     }
-    
+
     let classNameType = "";
     let inputValue = this.props.searchInput;
     if(this.props.searchElements[searchTermRowIndex].inputType==="text") {
@@ -46,7 +46,7 @@ export default class AdvancedSearchFormRow extends Component {
       classNameType = "advanced-search-select";
       //inputValue = stateData.input;
     }
-    
+
     return <div className={classNameType}>
       <Input
         placeholder="Search term..."
@@ -89,12 +89,14 @@ export default class AdvancedSearchFormRow extends Component {
             value={this.props.searchQualifier}
             onChange={(e)=>this.props.handleAdvancedSearchChange(e,this.props.rowId)}>
             <option value="contains">Contains</option>
-            {/*<option value="equals">Equals</option>*/}
+            <option value="equals">Is exact</option>
+            <option value="not_equals">Not equal to</option>
+            <option value="not_contains">Doesn't contain</option>
           </Input>
         </div>
-        
+
         {searchTerm}
-        
+
         <div className="advanced-search-boolean">
           <Input
             type="select"

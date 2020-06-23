@@ -107,10 +107,10 @@ class People extends Component {
     }
     let url = process.env.REACT_APP_APIPATH+'ui-people';
     let responseData = await axios({
-      method: 'get',
+      method: 'post',
       url: url,
       crossDomain: true,
-      params: params
+      data: params
     })
 	  .then(function (response) {
       return response.data.data;
@@ -170,10 +170,10 @@ class People extends Component {
     }
     let url = process.env.REACT_APP_APIPATH+'ui-person-active-filters';
     let responseData = await axios({
-      method: 'get',
+      method: 'post',
       url: url,
       crossDomain: true,
-      params: params
+      data: params
     })
 	  .then(function (response) {
       return response.data.data;
@@ -233,10 +233,10 @@ class People extends Component {
     };
     let url = process.env.REACT_APP_APIPATH+'ui-people';
     let responseData = await axios({
-      method: 'get',
+      method: 'post',
       url: url,
       crossDomain: true,
-      params: params
+      data: params
     })
 	  .then(function (response) {
       return response.data.data;
@@ -297,41 +297,18 @@ class People extends Component {
     };
     //let queryRows = [];
     if (this.state.advancedSearchInputs.length>0) {
-      for (let i=0; i<this.state.advancedSearchInputs.length; i++) {
-        let searchInput = this.state.advancedSearchInputs[i];
-        /*
-        if (searchInput._id!=="default") {
-          let queryRow = {};
-          queryRow.field = searchInput.select;
-          queryRow.qualifier = searchInput.qualifier;
-          queryRow.term = searchInput.input;
-          queryRow.boolean = searchInput.boolean;
-          queryRows.push(queryRow);
-        }
-        */
-        if(searchInput.input!==""){
-          /*
-          let queryRow = {};
-          queryRow.field = searchInput.select;
-          queryRow.qualifier = searchInput.qualifier;
-          queryRow.term = searchInput.input;
-          queryRow.boolean = searchInput.boolean;
-          queryRows.push(queryRow);
-          */
-          params[`${searchInput.select}`] = searchInput.input;
-        }
-      }
-      //params.query = queryRows;
+      let advancedParams = this.state.advancedSearchInputs.filter(i=>i.input!=="").map(item=>item);
+      params.advancedSearch = advancedParams;
     }
     else {
       return false;
     }
     let url = process.env.REACT_APP_APIPATH+'ui-people';
     let responseData = await axios({
-      method: 'get',
+      method: 'post',
       url: url,
       crossDomain: true,
-      params: params
+      data: params
     })
 	  .then(function (response) {
       return response.data.data;

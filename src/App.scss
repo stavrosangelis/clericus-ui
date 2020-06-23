@@ -859,6 +859,7 @@ h1, h2, h3, h4, h5 {
 .advanced-search-row {
   width: 100%;
   margin-bottom: 5px;
+  white-space: nowrap;
 }
 .advanced-search-row:first-child {
   margin-bottom: 20px;
@@ -887,6 +888,7 @@ h1, h2, h3, h4, h5 {
   height: 30px !important;
   border: 0 none !important;
   border-radius: 0;
+  font-size: 12px;
 }
 .advanced-search-select > select:focus {
   box-shadow: 0 none !important;
@@ -901,6 +903,7 @@ h1, h2, h3, h4, h5 {
   height: 30px !important;
   border: 0 none !important;
   border-radius: 0;
+  font-size: 12px;
 }
 .advanced-search-qualifier > select:focus {
   box-shadow: 0 none !important;
@@ -915,6 +918,7 @@ h1, h2, h3, h4, h5 {
   height: 30px !important;
   border: 0 none !important;
   border-radius: 0;
+  font-size: 12px;
 }
 .advanced-search-button {
   width: 20px;
