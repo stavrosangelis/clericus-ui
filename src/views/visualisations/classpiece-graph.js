@@ -3,7 +3,7 @@ import axios from 'axios';
 import ClasspieceNetwork from '../../components/visualisations/person-network-pixi';
 import {Breadcrumbs} from '../../components/breadcrumbs';
 import { Spinner } from 'reactstrap';
-import {updateDocumentTitle} from '../../helpers/helpers';
+import {updateDocumentTitle} from '../../helpers';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 

@@ -4,7 +4,7 @@ import PersonNetwork from '../../components/visualisations/person-network-pixi';
 import {Breadcrumbs} from '../../components/breadcrumbs';
 import { Spinner } from 'reactstrap';
 import { useSelector } from "react-redux";
-import {updateDocumentTitle} from '../../helpers/helpers';
+import {updateDocumentTitle} from '../../helpers';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
@@ -24,7 +24,7 @@ const ResourceGraph = props => {
       setLoading(false);
       let responseData = await axios({
         method: 'get',
-        url: APIPath+'resource',
+        url: APIPath+'ui-resource',
         crossDomain: true,
         params: {_id:_id}
       })
@@ -62,7 +62,6 @@ const ResourceGraph = props => {
         _idGraph = resource.people[0].ref._id;
       }
     }
-
     let label = resource.label;
     heading = `${label} network`;
     breadcrumbsItems.push(

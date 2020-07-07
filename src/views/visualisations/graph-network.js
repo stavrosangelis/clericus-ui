@@ -1,7 +1,7 @@
 import React from 'react';
 import GraphNetwork from '../../components/visualisations/graph-network-pixi';
 import {Breadcrumbs} from '../../components/breadcrumbs';
-import {updateDocumentTitle} from '../../helpers/helpers';
+import {updateDocumentTitle} from '../../helpers';
 
 const NetworkGraph = props => {
   let heading = "Network graph";

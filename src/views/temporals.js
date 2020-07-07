@@ -11,7 +11,7 @@ import {Breadcrumbs} from '../components/breadcrumbs';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
-import {updateDocumentTitle} from '../helpers/helpers';
+import {updateDocumentTitle} from '../helpers';
 
 import {connect} from "react-redux";
 import {

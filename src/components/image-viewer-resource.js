@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link} from 'react-router-dom';
-import {
-  Spinner,
-  FormGroup, Input
-} from 'reactstrap';
+import { Spinner} from 'reactstrap';
 
 const Viewer = (props) => {
   const [loading, setLoading] = useState(true);
@@ -17,30 +13,6 @@ const Viewer = (props) => {
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
   const imgRef = useRef(null);
-  const tooltipRef = useRef(null);
-
-  let peopleProps = props.item.resources.filter(r=>{
-    if (r.ref.resourceType==="image" && r.term.label==="hasPart") {
-      return true;
-    }
-    return false
-  });
-  const [peopleData, setPeopleData] = useState(peopleProps);
-
-  const [tooltipVisible, setTooltipVisible] = useState(false);
-  const [tooltipTop, setTooltipTop] = useState(0);
-  const [tooltipLeft, setTooltipLeft] = useState(0);
-  const [tooltipRight, setTooltipRight] = useState("");
-  const [tooltipContent, setTooltipContent] = useState("");
-  const [tooltipTriangle, setTooltipTriangle] = useState("");
-
-  const [searchContainerVisible, setSearchContainerVisible] = useState(false);
-  const [searchInput, setSearchInput] = useState("");
-
-  const toggleSearchContainerVisible = () => {
-    setSearchContainerVisible(!searchContainerVisible);
-  }
-
   const imgLoaded = () => {
     setLoading(false);
   }
@@ -208,6 +180,24 @@ const Viewer = (props) => {
     }
   },[props.visible, top, left])
 
+  const updateIndex = (type) => {
+    let prevIndex = props.index-1;
+    let nextIndex = props.index+1;
+    if (prevIndex<0) {
+      prevIndex = props.length-1;
+    }
+    if (nextIndex>=props.length) {
+      nextIndex = 0;
+    }
+    let newIndex = 0;
+    if (type==="prev") {
+      newIndex = prevIndex;
+    }
+    if (type==="next") {
+      newIndex = nextIndex;
+    }
+    props.setIndex(newIndex);
+  }
   // render
   let visibilityStyle = {visibility: "hidden"};
   if (props.visible) {
@@ -222,107 +212,7 @@ const Viewer = (props) => {
     </div>
   </div>;
   let imgPath = props.path;
-
-  const hideTooltip =()=> {
-    setTooltipVisible(false);
-  }
-  
-  const gotoResourceID =(_id=null)=> {
-    hideTooltip();
-    props.setResourceID(_id);
-  }
-
   if (imgPath!==null) {
-    const showTooltip = (e, label) => {
-      let elem = e.target;
-      let box = elem.getBoundingClientRect();
-      let stateLeft = left;
-      if (typeof stateLeft==="string") {
-        stateLeft = left.replace("px","");
-      }
-      let stateTop = top;
-      if (typeof stateTop==="string") {
-        stateTop = top.replace("px","");
-      }
-      let tooltipLeft = box.x+box.width+12;
-      let tooltipTop = box.y + (box.height/2);
-      let triangle = "left";
-
-      setDragging(false);
-      setTooltipVisible(true);
-      setTooltipTop(tooltipTop);
-      setTooltipLeft(tooltipLeft);
-      setTooltipRight("auto");
-      setTooltipContent(label);
-      setTooltipTriangle(triangle);
-
-      let tooltipHTML = tooltipRef.current;
-      let tooltipWidth = tooltipHTML.offsetWidth;
-      let tooltipRight = 0;
-      let windowWidth = window.innerWidth;
-
-      if(tooltipLeft+tooltipWidth>windowWidth) {
-        tooltipLeft = "auto";
-        tooltipRight = windowWidth - box.x +12 ;
-        triangle = "right";
-      }
-
-      setTooltipLeft(tooltipLeft);
-      setTooltipRight(tooltipRight);
-      setTooltipTriangle(triangle);
-    }
-    let people = [];
-    for (let i=0;i<peopleData.length; i++) {
-        let r = peopleData[i];
-        let resource = r.ref;
-        let selected = "";
-        if(typeof r.selected!=="undefined" && r.selected) {
-          selected = " selected";
-        }
-        let meta = resource.metadata;
-        if (typeof meta==="string") {
-          meta = JSON.parse(meta);
-          if (typeof meta==="string") {
-            meta = JSON.parse(meta);
-          }
-        }
-        meta = meta.image.default;
-        let personStyle = {
-          width: parseFloat(meta.width,10),
-          height: parseFloat(meta.height,10),
-          top: meta.y,
-          left: meta.x,
-        }
-        if (parseFloat(meta.rotate,10)!==0) {
-          personStyle.transform = "rotate("+meta.rotate+"deg)";
-        }
-
-        let link = "/resource/"+resource._id;
-        let person = <Link
-          id={"tooltip-toggle-"+resource._id}
-          key={i}
-          to={link}
-          href={link}
-          className={"classpiece-person"+selected}
-          style={personStyle}
-          alt={resource.label}
-          onMouseOver={(e)=>showTooltip(e, resource.label)}
-          onMouseLeave={()=>hideTooltip()}
-          onClick={()=>gotoResourceID(resource._id)}
-          replace
-          >
-            <span>{resource.label}</span>
-          </Link>;
-        people.push(person);
-      };
-    let peopleLayer = <div
-      className="classpiece-people"
-      onMouseDown={(e)=>imgDragStart(e)}
-      onMouseUp={(e)=>imgDragEnd(e)}
-      onDragEnd={(e)=>imgDragEnd(e)}
-      draggable={false}
-      >{people}</div>;
-      
     let imgStyle = {
       width: width,
       height: height,
@@ -332,8 +222,8 @@ const Viewer = (props) => {
       style={imgStyle}
       className="classpiece-full-size"
       ref={imgRef}
+      onContextMenu={(e)=>{e.preventDefault();return false;}}
       >
-      {peopleLayer}
       <img
         src={imgPath}
         onLoad={()=>imgLoaded()}
@@ -341,67 +231,14 @@ const Viewer = (props) => {
         onMouseDown={(e)=>imgDragStart(e)}
         onMouseUp={(e)=>imgDragEnd(e)}
         onDragEnd={(e)=>imgDragEnd(e)}
+        onTouchStart={(e)=>imgDragStart(e)}
+        onTouchEnd={(e)=>imgDragEnd(e)}
         onDoubleClick={(e)=>updateZoom("plus")}
         draggable={false}
         />
     </div>
   }
 
-  const searchNode = (e) =>{
-    let target = e.target;
-    let value = target.type === 'checkbox' ? target.checked : target.value;
-    setSearchInput(value);
-    let visibleNodes = peopleData.filter(n=>n.ref.label.toLowerCase().includes(value.toLowerCase()));
-    let dataNodes = peopleData;
-    for (let i=0;i<dataNodes.length; i++) {
-      let n = dataNodes[i];
-      if (visibleNodes.indexOf(n)>-1) {
-        n.visible = true;
-      }
-      else n.visible = false;
-    }
-    setPeopleData(dataNodes);
-  }
-
-  const clearSearchNode = () => {
-    setSearchInput("");
-    let dataNodes = peopleData;
-    for (let i=0;i<dataNodes.length; i++) {
-      let n = dataNodes[i];
-      n.visible = true;
-    }
-    setPeopleData(dataNodes);
-  }
-
-  const centerNode = (_id) => {
-    let nodes = peopleData;
-    let node = nodes.find(n=>n.ref._id===_id);
-    if (typeof node!=="undefined") {
-      let meta = node.ref.metadata
-      if (typeof meta==="string") {
-        meta = JSON.parse(meta);
-        if (typeof meta==="string") {
-          meta = JSON.parse(meta);
-        }
-      }
-      meta = meta.image.default;
-      let x=meta.x;
-      let index = nodes.indexOf(node);
-      for (let i=0;i<nodes.length;i++) {
-        let n = nodes[i];
-        if (i===index) n.selected=true;
-        else n.selected=false;
-      }
-      setPeopleData(nodes);
-      setX(x);
-    }
-    setLoading(true)
-    setLoading(false)
-  }
-
-  const searchIcon = <div className="img-viewer-search-toggle" onClick={()=>toggleSearchContainerVisible()}>
-    <i className="fa fa-search" />
-  </div>
   let zoomPanel = <div className="zoom-container">
     <div
       className="zoom-action"
@@ -432,46 +269,17 @@ const Viewer = (props) => {
       <i className="fa fa-chevron-left" />
     </div>
   </div>
-  let searchContainerVisibleClass = "";
-  if (searchContainerVisible) {
-    searchContainerVisibleClass = " visible";
-  }
-  let searchContainerNodes = [];
-  if (!loading && peopleData!==null) {
-    for (let i=0;i<peopleData.length; i++) {
-      let n = peopleData[i];
-      if (typeof n.visible==="undefined" || n.visible===true) {
-        searchContainerNodes.push(<div key={i} onClick={()=>centerNode(n.ref._id)}>{n.ref.label}</div>);
-      }
-    }
-  }
-  let searchContainer = <div className={"img-viewer-search-container graph-search-container"+searchContainerVisibleClass}>
-    <div className="close-graph-search-container" onClick={()=>toggleSearchContainerVisible()}>
-      <i className="fa fa-times" />
-    </div>
-    <FormGroup className="graph-search-input">
-      <Input type="text" name="text" placeholder="Search node..." value={searchInput} onChange={(e)=>searchNode(e)}/>
-      <i className="fa fa-times-circle" onClick={()=>clearSearchNode()}/>
-    </FormGroup>
-    <div className="graph-search-container-nodes">
-      {searchContainerNodes}
-    </div>
-  </div>
 
-  // tooltip
-  let tooltipStyle = {
-    top: tooltipTop,
-    left: tooltipLeft,
-    right: tooltipRight,
+  let prev = [];
+  let next = [];
+  if (props.length>1) {
+    prev = <div className="img-viewer-actions img-viewer-left" onClick={()=>updateIndex("prev")}>
+      <i className="fa fa-angle-left"/>
+    </div>
+    next = <div className="img-viewer-actions img-viewer-right" onClick={()=>updateIndex("next")}>
+      <i className="fa fa-angle-right"/>
+    </div>
   }
-  let tooltipVisibleClass = "";
-  if (tooltipVisible) {
-    tooltipVisibleClass = " active";
-  }
-  let tooltipHTML = <div className={"classpiece-tooltip"+tooltipVisibleClass} style={tooltipStyle} onMouseOver={()=>hideTooltip()} ref={tooltipRef}>
-      {tooltipContent}
-      <div className={"classpiece-triangle-"+tooltipTriangle}></div>
-  </div>
   return(
     <div style={visibilityStyle} className="classpiece-viewer">
       <div className="classpiece-viewer-bg" onClick={()=>props.toggle()}></div>
@@ -484,9 +292,8 @@ const Viewer = (props) => {
       {img}
       {zoomPanel}
       {panPanel}
-      {searchIcon}
-      {tooltipHTML}
-      {searchContainer}
+      {next}
+      {prev}
     </div>
   );
 

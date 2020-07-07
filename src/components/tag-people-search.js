@@ -2,16 +2,21 @@ import React, { useState } from 'react';
 import {
   Button,
   Form, Input, InputGroup, InputGroupAddon,
-  Collapse,
 } from 'reactstrap';
+import {Link} from 'react-router-dom';
+
+import Pagination from './pagination';
 
 const TagPeopleSearch = props => {
-  const [searchExited, setSearchExited] = useState(true);
   const [searchVisible, setSearchVisible] = useState(false);
-  const [peopleDataVisible, setPeopleDataVisible] = useState(false);
+  const [peopleDataVisible, setPeopleDataVisible] = useState(true);
   const [simpleSearchSet, setSimpleSearchSet] = useState('');
   const [simpleSearchTerm, setSimpleSearchTerm] = useState('');
-  let nameComponent = props.name+"_";
+  const [page, setPage] = useState(1);
+  const limit = 100;
+  let pageIndex = page-1;
+  let firstIndex = (pageIndex*limit)-1;
+  let lastIndex = firstIndex+limit;
 
   const handleSearchTermChange = e => {
     let target = e.target;
@@ -19,15 +24,17 @@ const TagPeopleSearch = props => {
     let name = target.name;
     if(name === "simpleSearchTerm"){
       setSimpleSearchTerm(value);
+      setSimpleSearchSet(value);
     }
   }
-  
-  const simpleSearch = e =>{
-    e.preventDefault();
-    document.getElementById("simpleSearchTerm").blur();
+
+  const simpleSearch = (e) =>{
+    if (typeof e!=="undefined") {
+      e.preventDefault();
+    }
     setSimpleSearchSet(simpleSearchTerm);
   }
-  
+
   const clearSearch = e =>{
     setSimpleSearchTerm('');
     setSimpleSearchSet('');
@@ -38,101 +45,106 @@ const TagPeopleSearch = props => {
       setPeopleDataVisible(!peopleDataVisible);
     }
   }
-  
+
   const toggleSearch = () => {
     if(searchVisible) {
       setSearchVisible(!searchVisible);
-      setSearchExited(!searchExited);
     }
     else {
-      setSearchExited(!searchExited);
-      setTimeout(function() {
-        setSearchVisible(!searchVisible);
-      },10);
+      setSearchVisible(!searchVisible);
+    }
+  }
+
+  const updatePage = (e) => {
+    if (e>0 && e!==page) {
+      setPage(e);
     }
   }
 
   let peopleRow = [];
-  if (typeof props.peopleItem!=="undefined" && props.peopleItem!==null && props.peopleItem!=="") {
-    //props.peopleItem = []
-    if(Object.keys(props.peopleItem).length === 0) {
-      peopleRow = <tr key={nameComponent+"peopleRow"}>
-                  <th>People</th>
-                  <td/>
-                </tr>;
+  if (typeof props.peopleItem!=="undefined" && props.peopleItem!==null && props.peopleItem!=="" && props.peopleItem.length>0) {
+    let peopleDataHidden_container = "";
+    let peopleDataHidden_icon = "";
+    if(!peopleDataVisible){
+      peopleDataHidden_container = " closed";
+      peopleDataHidden_icon = " closed";
+      if(searchVisible){
+        peopleDataHidden_container = " closedWithSearch";
+      }
     }
-    //props.peopleItem = {...} 
-    else {
-      let peopleDataHiden_container = "";
-      let peopleDataHiden_icon = "";
-      if(!peopleDataVisible){
-        peopleDataHiden_container = " closed";
-        peopleDataHiden_icon = " closed";
-        if(searchVisible){
-          peopleDataHiden_container = " closedWithSearch";
-        }
+    let peopleData = [];
+    let people = props.peopleItem.filter(p=>p.ref.label.toLowerCase().includes(simpleSearchSet.toLowerCase()));
+    for (let i=0;i<people.length; i++) {
+      if (i<=firstIndex) {
+        continue;
       }
-      
-      let peopleDataExpand = [];
-      if(!peopleDataVisible){
-        peopleDataExpand = <li key={nameComponent+"dot"} ><i className="tag-bg tag-item" onClick={(e)=>{toggleTable(e,"peopleData")}}>...</i></li>;
+      if (i>lastIndex) {
+        break;
       }
-      
-      let peopleData = props.peopleItem.map(eachItem=>{
-        if(!eachItem.ref.label.toLowerCase().includes(simpleSearchSet.toLowerCase())){
-          return null;
-        }
-        return <li key={nameComponent+eachItem.ref._id} ><a className="tag-bg tag-item" href={"/person/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
-      })
-      
-      let searchBar = null;
-      if (!searchExited) {
-        searchBar = <Collapse isOpen={searchVisible}>
-          <Form>
-            <InputGroup size="sm" className="search-dropdown-inputgroup classpiece-people-search-input">
-                <Input className="simple-search-input" list="data" type="text" id="simpleSearchTerm" name="simpleSearchTerm" onChange={handleSearchTermChange} placeholder="Search..." value={simpleSearchTerm}/>
-                  <datalist id="data">
-                    {props.peopleItem.map((item, key) =>
-                      <option key={nameComponent+key} value={item.ref.label} />
-                    )}
-                  </datalist>
-                
-                <InputGroupAddon addonType="append">
-                  <Button size="sm" outline type="button" onClick={clearSearch} className="clear-search">
-                    <i className="fa fa-times-circle" />
-                  </Button>
-                  <Button size="sm" type="submit" onClick={simpleSearch}>
-                    <i className="fa fa-search" />
-                  </Button>
-              </InputGroupAddon>
-            </InputGroup>
-          </Form>
-        </Collapse>
+      let person = people[i];
+      if (person.ref.label.toLowerCase().includes(simpleSearchSet.toLowerCase())) {
+        let url = "/person/"+person.ref._id;
+        peopleData.push(<li key={person.ref._id} ><Link className="tag-bg tag-item" href={url} to={url}>{person.ref.label}</Link></li>);
       }
-      
-      peopleRow = <tr key={nameComponent+"peopleRow"}>
-                    <th>People</th>
-                    <td>
-                      <div className={"people-info-container"+peopleDataHiden_container}>
-                        <div className="btn btn-default btn-xs pull-right toggle-info-btn pull-icon-middle" onClick={(e)=>{toggleTable(e,"peopleData")}}>
-                          <i className={"fa fa-angle-down"+peopleDataHiden_icon}/>
-                        </div>
-                        
-                        <div className="tool-box pull-right classpiece-search">
-                          <div className="action-trigger" onClick={()=>toggleSearch()} id="search-tooltip">
-                            <i className="fa fa-search" />
-                          </div>
-                        </div>
-                        
-                        {searchBar}
-                        
-                        <ul className="tag-list tag-list-people">
-                          {peopleDataExpand}{peopleData}
-                        </ul>
-                      </div>
-                    </td>
-                  </tr>;
     }
+    let searchVisibleClass = "";
+    if (searchVisible) {
+      searchVisibleClass = "visible";
+    }
+    let searchBar = <div className={`tags-search-container ${searchVisibleClass}`}>
+        <Form onSubmit={(e)=>simpleSearch(e)}>
+          <InputGroup size="sm" className="search-dropdown-inputgroup classpiece-people-search-input">
+            <Input className="simple-search-input" type="text" name="simpleSearchTerm" onChange={handleSearchTermChange} placeholder="Search..." value={simpleSearchTerm}/>
+            <InputGroupAddon addonType="append">
+              <Button size="sm" outline type="button" onClick={clearSearch} className="clear-search">
+                <i className="fa fa-times-circle" />
+              </Button>
+            </InputGroupAddon>
+          </InputGroup>
+        </Form>
+    </div>
+
+
+    let totalPages = Math.ceil(people.length/limit);
+    if (totalPages<page) {
+      setPage(totalPages);
+    }
+    let pagination = [];
+    if (totalPages>1) {
+      pagination = <div className="tag-list-pagination">
+        <Pagination
+        limit={limit}
+        current_page={page}
+        total_pages={totalPages}
+        pagination_function={updatePage}
+        className="mini people-tags-pagination"
+      />
+      <span>of {totalPages}</span>
+      </div>
+    }
+
+
+    peopleRow = <div key="people">
+      <h5>People <small>[{props.peopleItem.length}]</small>
+        <div className="btn btn-default btn-xs pull-right toggle-info-btn pull-icon-middle" onClick={(e)=>{toggleTable(e,"peopleData")}}>
+          <i className={"fa fa-angle-down"+peopleDataHidden_icon}/>
+        </div>
+        <div className="tool-box pull-right classpiece-search">
+          <div className="action-trigger" onClick={()=>toggleSearch()} id="search-tooltip">
+            <i className="fa fa-search" />
+          </div>
+        </div>
+      </h5>
+      <div className={"people-info-container"+peopleDataHidden_container}>
+        {searchBar}
+        <ul className="tag-list tag-list-people">
+          {peopleData}
+        </ul>
+        {pagination}
+      </div>
+    </div>;
+
+
   }
   return (
     peopleRow

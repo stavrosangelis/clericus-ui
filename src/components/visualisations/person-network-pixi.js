@@ -7,6 +7,7 @@ import * as PIXI from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 import dataWorker from "./person-data.worker.js";
 import simulationWorker from "./force-simulation.worker.js";
+import {webglSupport} from "../../helpers";
 const APIPath = process.env.REACT_APP_APIPATH;
 
 /// d3 network
@@ -109,7 +110,7 @@ const drawNodes = async () => {
           let spaces = label.split(" ");
           let minusY = spaces.length/2;
           label = label.replace(/\s/g,"\n");
-          let text = new PIXI.BitmapText(label,{font: `11px Arial`, align : 'center'});
+          let text = new PIXI.BitmapText(label,{fontName: "Arial", fontSize: 11, align : 'center'});
           text.x = x-((radius/2)+(lineWidth*2));
           text.y = y-(10*minusY);
           textContainer.addChild(text);
@@ -218,6 +219,13 @@ const PersonNetwork = props => {
       let graphContainer = document.getElementById('graph-container');
       width = graphContainer.offsetWidth-2;
 
+      PIXI.Renderer.create = function create (options) {
+        if (webglSupport()) {
+            return new PIXI.Renderer(options);
+        }
+        throw new Error('WebGL unsupported in this browser, use "pixi.js-legacy" for fallback canvas2d support.');
+      };
+
       app = new PIXI.Application({
         width: width,
         height: height,
@@ -277,7 +285,9 @@ const PersonNetwork = props => {
           resolve(e.data);
         }, false);
       });
-      setData(newData.data);
+      let parsedData = JSON.parse(newData.data);
+      parsedData = JSON.parse(parsedData.data);
+      setData(parsedData);
       setDrawing(true);
       setSearchInput("");
       setSearchInputType("");
@@ -399,7 +409,7 @@ const PersonNetwork = props => {
       let source = segment.source;
       let target = segment.target;
       let relationship = segment.relationship;
-      let linkArray = ["Classpiece", "Organisation", "Person"];
+      let linkArray = ["Classpiece", "Organisation", "Person", "Resource"];
       let sourceType = source.type;
       let targetType = target.type;
       let sourceLabel = <span>{source.label} <small>[{source.type}]</small></span>;
@@ -464,7 +474,7 @@ const PersonNetwork = props => {
           <ul className="related-nodes-paths">{segmentsHTML}</ul>
         </div>);
       }
-      let linkArray = ["Classpiece", "Organisation", "Person", "Event"];
+      let linkArray = ["Classpiece", "Organisation", "Person", "Event", "Resource"];
       let sourceType = source.type;
       let targetType = target.type;
       let sourceLabel = <span>{source.label}</span>;

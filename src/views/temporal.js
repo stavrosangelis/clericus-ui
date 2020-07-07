@@ -7,9 +7,7 @@ import {
 
 import {Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {updateDocumentTitle} from '../helpers/helpers';
-//import {getEventThumbnailURL} from '../helpers/helpers';
-//import TagPeopleSearch from '../components/tag-people-search.js';
+import {updateDocumentTitle, outputDate} from '../helpers';
 
 class Temporal extends Component {
   constructor(props) {
@@ -25,35 +23,35 @@ class Temporal extends Component {
     this.renderTemporalDetails = this.renderTemporalDetails.bind(this);
   }
 
-  load() {
+  async load() {
     let _id = this.props.match.params._id;
     if (typeof _id==="undefined" || _id===null || _id==="") {
       return false;
     }
     this.setState({
       loading: true
-    })
-    let context = this;
+    });
     let params = {
       _id: _id,
     };
     let url = process.env.REACT_APP_APIPATH+'temporal';
-    axios({
+    let responseData = await axios({
       method: 'get',
       url: url,
       crossDomain: true,
       params: params
     })
 	  .then(function (response) {
-      let responseData = response.data;
-      let temporaldata = responseData.data;
-      context.setState({
-        loading: false,
-        item: temporaldata
-      });
+      return response.data;
 	  })
 	  .catch(function (error) {
 	  });
+
+    let temporaldata = responseData.data;
+    this.setState({
+      loading: false,
+      item: temporaldata
+    });
   }
 
   renderTemporalDetails(stateData=null) {
@@ -61,42 +59,43 @@ class Temporal extends Component {
 
     //1. TemporalDetails
     let meta = [];
-    let dateOrder = {
-      name:  ["startDate","endDate"],
-      label: ["Start Date","End Date"]
-    }
-
-    //1.0 TemporalDetails - events
     let eventsRow = [];
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
       //item.events = []
-      if(Object.keys(item.events).length === 0){
-        eventsRow = <tr key={"eventsRow"}><th>Events</th><td/></tr>;
-      }
-      //item.events = {...}
-      else {
+      if (item.events.length>0) {
         let eventsData = item.events.map(eachItem =>{
-          return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/event/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
+          let label = eachItem.ref.label;
+          if (typeof eachItem.temporal!=="undefined" && eachItem.temporal.length>0) {
+            label += ` [${eachItem.temporal[0].ref.label}]`;
+          }
+          let url = "/event/"+eachItem.ref._id;
+          return <li key={eachItem.ref.label}><Link className="tag-bg tag-item" href={url} to={url}>{label}</Link></li>
         })
-        eventsRow = <tr key={"eventsRow"}><th>Events</th><td><ul className="tag-list">{eventsData}</ul></td></tr>;
+        eventsRow = <div key="events">
+        <h5>Events <small>[{item.events.length}]</small></h5>
+        <ul className="tag-list">{eventsData}</ul>
+        </div>;
       }
     }
+
+    // dates
+    let datesRow = [];
+    if (typeof item.startDate!=="undefined" && item.startDate!=="") {
+      let endDate = "";
+      if (typeof item.endDate!=="undefined" && item.endDate!=="" && item.endDate!==item.startDate) {
+        endDate = " - "+outputDate(item.endDate, false);
+      }
+      datesRow = <div key="datesRow">
+        <h5>Dates</h5>
+        <div style={{paddingBottom: "10px"}}><span className="tag-bg tag-item">{outputDate(item.startDate, false)}{endDate}</span>
+        </div>
+      </div>;
+    }
+
+    meta.push(datesRow);
     meta.push(eventsRow);
 
-    //1.1 TemporalDetails - dateOrder
-    for(let i=0;i<dateOrder.name.length;i++) {
-      let dataRow = [];
-      let dataItem = item[`${dateOrder.name[i]}`];
-      if (typeof dataItem!=="undefined" && dataItem!==null && dataItem!=="") {
-        dataRow = <tr key={dateOrder.name[i]}><th>{dateOrder.label[i]}</th><td>{dataItem}</td></tr>;
-      }
-      meta.push(dataRow);
-    }
-
-    //1.5 TemporalDetails - TemporalDetails include all elements of the dateOrder
-    return <table key={"TemporalDetails"} className="table table-borderless spatial-content-table">
-          <tbody>{meta}</tbody>
-        </table>
+    return meta;
   }
 
   renderItem(stateData=null) {

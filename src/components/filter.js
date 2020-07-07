@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   FormGroup, Label, Input,
   Card, CardBody
@@ -7,198 +7,181 @@ import PropTypes from 'prop-types';
 
 const Filter = props => {
   const [loading, setLoading] = useState(true);
-  const [organisationType,setOrganisationType] = useState("all");
-  const [itemsOrdered,setItemsOrdered] = useState({});
-  const [itemsUpdated,setItemsUpdated] = useState({});
-  useEffect(()=> {
-    const orderDataItems = (typeOnly=null, dataItems=null) => {
-      let dataOrdered = {};
-      let dataTypeNum = 0;
-      for (let dataIndex=0;dataIndex<dataItems.length; dataIndex++) {
-        for (let typeIndex=0;typeIndex<props.itemsType.length; typeIndex++) {
-          if(dataItems[dataIndex][`${props.filtersType.compareData.dataSet}`] === props.itemsType[typeIndex][`${props.filtersType.compareData.typeSet}`]) {
-            if(typeof dataOrdered[`${props.itemsType[typeIndex].label}`] === "undefined") {
-              dataOrdered[`${props.itemsType[typeIndex].label}`] = {};
-              dataOrdered[`${props.itemsType[typeIndex].label}`]._id = props.itemsType[typeIndex]._id;
-              dataOrdered[`${props.itemsType[typeIndex].label}`].label = props.itemsType[typeIndex].label;
-              dataOrdered[`${props.itemsType[typeIndex].label}`].dataArray = [];
-              dataTypeNum++;
-            }
-            
-            dataOrdered[`${props.itemsType[typeIndex].label}`].dataArray.push(dataItems[dataIndex]);
-            
-            if((dataTypeNum === props.itemsType.length) && (typeOnly)) {
-              break;
-            }
-          }
-        }
-        
-      }
-      return dataOrdered;
-    }
-    const prepareOrderDataItems = () => {
-      let itemsOrdered = []
-      if(props.filtersType.layer.includes("type") && (props.filtersType.layer.length === 1)) {
-        itemsOrdered = orderDataItems(true, props.items);
-      }else {
-        itemsOrdered = orderDataItems(false, props.items);
-      }
-      setItemsOrdered(itemsOrdered);
-    }
-    
-    prepareOrderDataItems();
-  },[props.filtersType, props.itemsType, props.items])
-  
-  useEffect(()=> {
-    const updateInfo = (itemsOrdered=null) => {
-      let disabled = "", checked = "", hidden="";
-      let preFilterSet = props.filtersSet;
-      let inputType = "ckeckbox";
-      for(var property in itemsOrdered) {
-        inputType = "ckeckbox";
-        disabled = "";
-        checked = "";
-        hidden="";
-        
-        if(props.filtersType.typeFilterDisable === true) {
-          inputType = "radio";
-          disabled = "disabled";
-        }
-        
-        itemsOrdered[property].inputType = inputType;
-        itemsOrdered[property].disabled = disabled;
-        itemsOrdered[property].checked = checked;
-        itemsOrdered[property].hidden = hidden;
-        
-        for(let i=0;i<itemsOrdered[property].dataArray.length;i++) {
-          inputType = "checkbox";
-          disabled = "";
-          checked = "";
-          hidden="";
-          
-          if(props.relationshipSet.includes(itemsOrdered[property].dataArray[i]._id)===false) {
-            hidden = "hidden";
-          }
-          
-          if(preFilterSet.length > 0) {
-            if(preFilterSet.includes(itemsOrdered[property].dataArray[i]._id)===true) {
-              checked = "defaultChecked";
-            }
-          }
-          
-          itemsOrdered[property].dataArray[i].inputType = inputType;
-          itemsOrdered[property].dataArray[i].disabled = disabled;
-          itemsOrdered[property].dataArray[i].checked = checked;
-          itemsOrdered[property].dataArray[i].hidden = hidden;
-        }
-      }
-      return itemsOrdered;
-    }
+  const [filters, setFilters] = useState([]);
+  const [filterItems, setFilterItems] = useState([]);
+  const [filtersTypes, setFiltersTypes] = useState([]);
+  const [filterType, setFilterType] = useState("");
+  const prevFiltersSetRef = useRef(null);
+  const prevId = useRef(null);
 
-    if (!props.loading) {
-      let itemsUpdated = updateInfo(itemsOrdered);
-      setItemsUpdated(itemsUpdated);
+  useEffect(()=>{
+    const load = () => {
+      for (let i=0;i<props.items.length; i++) {
+        let item = props.items[i];
+        if (props.filtersSet.indexOf(item._id)>-1) {
+          item.checked = true;
+        }
+        else {
+          item.checked = false;
+        }
+      }
+      setFilterItems(props.items);
+      if (typeof props.itemsType!=="undefined") {
+        setFiltersTypes(props.itemsType);
+      }
       setLoading(false);
     }
-  },[props.loading, props.filtersType, props.filtersSet, props.relationshipSet, itemsOrdered])
-  
-  const updateOrganisationType = (e) => {
-    let val = e.target.value;
-    setOrganisationType(val);
+    if (!props.loading && loading) {
+      load();
+    }
+  },[loading, props.loading, props.items, props.filtersType, props.filtersSet, props.itemsType]);
+
+  let filtersType = props.filtersType;
+  let filtersSet = props.filtersSet;
+  let updateFilters = props.updateFilters;
+
+  useEffect(()=>{
+    if (prevFiltersSetRef.current>0 && filtersSet.length===0) {
+      let newFilterItems = Object.assign([],filterItems);
+      for (let i=0;i<newFilterItems.length; i++) {
+        newFilterItems[i].checked = false;
+      }
+      setFilterItems(newFilterItems);
+      setFilters([]);
+      updateFilters(filtersType,[]);
+    }
+    prevFiltersSetRef.current = filtersSet.length;
+  },[updateFilters,filtersSet,filterItems,filtersType]);
+
+  const over = (e) => {
+    e.stopPropagation();
+    let elem = e.currentTarget;
+    let bbox = elem.getBoundingClientRect();
+    let id = elem.dataset.target;
+    prevId.current = id;
+    let titleElem = document.getElementById(id);
+
+    if (typeof titleElem!=="undefined") {
+      let left = bbox.left + 20;
+      let top = bbox.top - 2;
+      titleElem.style.left = left+"px";
+      titleElem.style.top = top+"px";
+    }
   }
 
-  const toggleFilter = (_id=null) => {
-    let filters = props.filtersSet;
-    if (filters.includes(_id)===false) {
-      filters.push(_id);
+  const cancelOver = () => {
+    if (prevId.current!==null) {
+      let titleElem = document.getElementById(prevId.current);
+      if (typeof titleElem!=="undefined" && titleElem!==null) {
+        titleElem.style.left = "-100px";
+        titleElem.style.top = "-100px";
+      }
+      prevId.current = null;
     }
-    else{
-      filters.splice(filters.indexOf(_id), 1);
-    }
-    props.updateFilters(props.filtersType.name,filters);
-    setLoading(true);
   }
-    
+
+  useEffect(()=> {
+    const cancelOver = () => {
+      if (prevId.current!==null) {
+        let titleElem = document.getElementById(prevId.current);
+        if (typeof titleElem!=="undefined" && titleElem!==null) {
+          titleElem.style.left = "-100px";
+          titleElem.style.top = "-100px";
+        }
+        prevId.current = null;
+      }
+    }
+    window.addEventListener("scroll", cancelOver);
+    return () => {
+      window.removeEventListener("scroll", cancelOver);
+    }
+  },[]);
+
+  useEffect(()=>{
+    if (filtersType==="organisationType" && props.filtersSet.organisationType==="" &&  filterType!==props.filtersSet.organisationType
+  ) {
+      setFilterType("");
+    }
+    if (filtersType==="eventType" && props.filtersSet.eventType==="" &&  filterType!==props.filtersSet.eventType
+  ) {
+      setFilterType("");
+    }
+  },[filtersType,props.filtersSet,filterType]);
+
   const clearFilters = () => {
-    props.updateFilters(props.filtersType.name,[]);
-    setLoading(true);
-  }
-  
-  let optionType = [];
-  if(Object.keys(itemsUpdated).length > 0) {
-    optionType.push(<option key="all" value="all">All</option>);
-    for(var propertyData in itemsUpdated) {
-      optionType.push(<option key={propertyData} value={propertyData}>{propertyData}</option>);
+    if (filters.length>0) {
+      for (let i=0;i<filterItems.length; i++) {
+        filterItems[i].checked = false;
+      }
+      setFilters([]);
+      updateFilters(filtersType,[]);
+    }
+    if ((props.filtersType==="organisationType" || props.filtersType==="eventType") && filtersTypes.length>0 && filterType!=="") {
+      setFilters([]);
+      setFilterType("");
+      updateFilters(filtersType,[]);
     }
   }
-  let optionTypeSelection = <FormGroup>
-        <Input type="select" name="organisationType" value={organisationType} onChange={(e)=>updateOrganisationType(e)} /*bsSize="sm"*/>
-          {optionType}
-        </Input>
-      </FormGroup>
-  
-  let filterItemsSeleted = [];
-  let filterItemsUnseleted = [];
-  if(loading !== true) {
-    if(Object.keys(itemsUpdated).length > 0) {
-      let dataLabelType = "";
-      if(props.filtersType.layer[1] === "data") {
-        dataLabelType = " filter-label";
-      }
-      for(var property in itemsUpdated) {
-        let dataItemsUnSeleted = [];
-        let dataItemsSeleted = [];
-        for(let i=0;i<itemsUpdated[property].dataArray.length;i++) {
-          let item = itemsUpdated[property].dataArray[i];
-          if(item.checked === "defaultChecked") {
-            dataItemsSeleted.push(
-              <FormGroup key={item._id}>
-                <Label className={item.hidden+dataLabelType}>
-                  <Input type={item.inputType} name={props.filtersType.name} onClick={()=>toggleFilter(item._id)} onChange={()=>{}} disabled={item.disabled} checked={item.checked}/>{' '}
-                  <span className="filter-span">{item.label}</span>
-                </Label>
-              </FormGroup>
-            );
-          }
-          else {
-            if ((organisationType === "all") || (organisationType === property)) {
-              dataItemsUnSeleted.push(
-                <FormGroup key={item._id}>
-                  <Label className={item.hidden}>
-                    <Input type={item.inputType} name={props.filtersType.name} onClick={()=>toggleFilter(item._id)} onChange={()=>{}} disabled={item.disabled} checked={item.checked}/>{' '}
-                    <span className="filter-span">{item.label}</span>
-                  </Label>
-                </FormGroup>
-              );
-            }
-          }
-        }
-        if(dataItemsSeleted.length > 0) {
-          if(filterItemsSeleted.length === 0) {
-            filterItemsSeleted.push(
-              <FormGroup key="Seleted">
-                <label>Seleted</label>
-              </FormGroup>
-            );
-          }
-          let item = itemsUpdated[property];
-          filterItemsSeleted.push(
-            <FormGroup key={item._id}>
-              <Label className={item.hidden}>
-                <Input type={item.inputType} name={props.filtersType.name} onClick={()=>toggleFilter(item._id)} onChange={()=>{}} disabled={item.disabled} checked={item.checked}/>{' '}
-                <span className="filter-span">{item.label}</span>
-              </Label>
-              {dataItemsSeleted}
-            </FormGroup>
-          );
-        }
-        
-        if(dataItemsUnSeleted.length > 0) {
-          filterItemsUnseleted.push(dataItemsUnSeleted);
-        }
-      }
+
+  const toggleFilter = (item) => {
+    item.checked = !item.checked;
+    let newFilters = filters;
+    if (item.checked) {
+      newFilters.push(item._id);
+    }
+    else {
+      let index = newFilters.indexOf(item._id);
+      newFilters.splice(index, 1);
+    }
+    setFilters(newFilters);
+    props.updateFilters(props.filtersType,filters);
+
+    // update render
+    let itemIndex = filterItems.indexOf(item);
+    filterItems[itemIndex].checked = item.checked;
+  }
+
+  const updateType = (e) => {
+    let val = e.target.value;
+    setFilterType(val);
+    if (typeof props.updateType!=="undefined") {
+      props.updateType(val);
     }
   }
+  let filterItemsHTML = filterItems.map((item,i)=>{
+    let disabled = false;
+    let hidden = "";
+    if (props.relationshipSet.indexOf(item._id)===-1) {
+      disabled = true;
+      hidden = "hidden";
+    }
+    if (props.filtersType==="organisations" && filterType!=="" && filterType!==item.organisationType) {
+      disabled = true;
+      hidden = "hidden";
+    }
+    return <FormGroup key={i} className={hidden+" filter-item"}>
+      <Label onMouseOver={(e)=>over(e)} data-target={`${props.filtersType}-fi-${i}`}>
+        <div className="title" id={`${props.filtersType}-fi-${i}`}>{item.label}</div>
+        <Input type="checkbox" name={props.filtersType} onChange={()=>toggleFilter(item)} disabled={disabled} checked={item.checked} />{' '}
+        <span className="filter-span">{item.label}</span>
+      </Label>
+    </FormGroup>
+  });
+  let filtersTypesHTML = [];
+  if (filtersTypes.length>0) {
+    let defaultOption = [<option value="" key="default">-- All --</option>];
+
+    let filtersTypesOptions = filtersTypes.map((item,i)=>{
+      let value = item._id;
+      if (props.filtersType==="organisations" || props.filtersType==="organisationType") {
+        value = item.labelId;
+      }
+      return <option key={i} value={value}>{item.label}</option>
+    });
+    let options = [...defaultOption, ...filtersTypesOptions];
+    filtersTypesHTML = <Input type="select" name={`${props.filtersType}-type`} className="filter-type-dropdown" onChange={(e)=>updateType(e)} value={filterType}>{options}</Input>;
+  }
+
   return (
     <div className="filter-block">
       <Card>
@@ -206,14 +189,9 @@ const Filter = props => {
           <h4>{props.label}
             <small className="pull-right clear-filters" onClick={()=>{clearFilters()}}>clear <i className="fa fa-times-circle"/></small>
           </h4>
-          <div className="filter-body">
-            {filterItemsSeleted}
-            <div className="filter-options-container">
-              {optionTypeSelection}
-            </div>
-            <div className="filter-unseleted-container">
-              {filterItemsUnseleted}
-            </div>
+          {filtersTypesHTML}
+          <div className="filter-body" onScroll={()=>cancelOver()}>
+            {filterItemsHTML}
           </div>
         </CardBody>
       </Card>
@@ -232,9 +210,8 @@ Filter.defaultProps = {
 }
 
 Filter.propTypes = {
-  filtersSet: PropTypes.array,
   relationshipSet: PropTypes.array,
-  filtersType: PropTypes.object.isRequired,
+  filtersType: PropTypes.string.isRequired,
   items: PropTypes.array,
   itemsType: PropTypes.array,
   label: PropTypes.string,

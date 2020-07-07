@@ -12,7 +12,7 @@ import '../../assets/leaflet/leaflet.css';
 import markerIconPath from '../../assets/leaflet/images/marker-icon.png';
 import MarkerClusterGroup from '../../components/markercluster';
 import L from 'leaflet';
-import {updateDocumentTitle} from '../../helpers/helpers';
+import {updateDocumentTitle} from '../../helpers';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 

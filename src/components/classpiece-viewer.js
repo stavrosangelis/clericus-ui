@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Link} from 'react-router-dom';
-import {getResourceFullsizelURL} from '../helpers/helpers';
+import {getResourceFullsizelURL} from '../helpers';
 import {
   Spinner
 } from 'reactstrap';

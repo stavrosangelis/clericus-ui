@@ -5,8 +5,9 @@ import SectionNumbers from '../components/home/section-numbers';
 import About from '../components/home/about';
 import HighLights from '../components/home/highlights';
 import News from '../components/home/news';
+import Welcome from '../components/home/welcome';
 import Visualisations from '../components/home/visualisations';
-import {updateDocumentTitle} from '../helpers/helpers';
+import {updateDocumentTitle} from '../helpers';
 
 class Home extends Component {
 
@@ -40,8 +41,11 @@ class Home extends Component {
         <section className="white-section">
           <div className="container">
             <div className="row">
-              <div className="col-12 col-md-8">
+              <div className="col-12 col-md-7">
                 <News />
+              </div>
+              <div className="col-12 col-md-5">
+                <Welcome />
               </div>
             </div>
           </div>

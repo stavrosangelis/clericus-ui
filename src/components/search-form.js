@@ -6,8 +6,6 @@ import {
 } from 'reactstrap';
 import AdvancedSearchFormRow from './advanced-search-row.js';
 
-
-
 export default class SearchForm extends Component {
   constructor(props) {
     super(props);
@@ -15,11 +13,21 @@ export default class SearchForm extends Component {
     if (typeof this.props.searchElements!=="undefined" && this.props.searchElements.length>0) {
       advancedSearchElement = this.props.searchElements[0].element;
     }
-    let defaultRowInit = {_id: 'default', select: advancedSearchElement, qualifier: 'contains', input: '', default: true, boolean: 'and'};
+    let simpleSearchVisible = true;
+    let advancedSearchVisible = false;
+    let defaultRowInit = [{_id: 'default', select: advancedSearchElement, qualifier: 'contains', input: '', default: true, boolean: 'and'}];
+    if (typeof this.props.advancedSearchInputsLength!=="undefined" && this.props.advancedSearchInputsLength>0) {
+      simpleSearchVisible = false;
+      advancedSearchVisible = true;
+      if (typeof this.props.advancedSearchInputs!=="undefined" && this.props.advancedSearchInputs.length>0) {
+        defaultRowInit = this.props.advancedSearchInputs;
+      }
+    }
+
     this.state = {
-      simpleSearchVisible: true,
-      advancedSearchVisible: false,
-      advancedSearchRows: [defaultRowInit],
+      simpleSearchVisible: simpleSearchVisible,
+      advancedSearchVisible: advancedSearchVisible,
+      advancedSearchRows: defaultRowInit,
       advancedSearchElement: advancedSearchElement,
     };
 
@@ -229,7 +237,6 @@ export default class SearchForm extends Component {
         <div className="toggle-search" onClick={()=>this.toggleSearch()}>Simple search <i className="fa fa-chevron-up" /></div>
       </Collapse>
     </div>
-
     return (
       <div className="search-box">
         {searchBox}

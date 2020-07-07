@@ -34,8 +34,16 @@ const About = props => {
     let title = article.label;
     let titleFirst = title.substring(0,1);
     let titleRest = title.substring(1);
+    let logoImg = [];
+    if (article.featuredImage!==null) {
+      let imgSrc = article.featuredImageDetails.paths.find(p=>p.pathType==="source");
+      if (typeof imgSrc!=="undefined") {
+        logoImg = <img src={imgSrc.path} className="home-about-logo" alt="Clericus logo" />
+      }
+    }
     content = <div>
       <h3 className="section-title"><span><span>{titleFirst}</span>{titleRest}</span></h3>
+      {logoImg}
       <div className="text-justify" dangerouslySetInnerHTML={{__html: article.teaser}}></div>
       <div className="text-center">
         <Link className="btn btn-default" href={`/article/about`} to={`/article/about`}>More</Link>

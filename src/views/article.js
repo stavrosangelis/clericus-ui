@@ -5,7 +5,7 @@ import {
   Card, CardBody,
 } from 'reactstrap';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {updateDocumentTitle} from '../helpers/helpers';
+import {updateDocumentTitle} from '../helpers';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 

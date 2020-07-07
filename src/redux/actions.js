@@ -3,69 +3,14 @@ import axios from 'axios';
 export function setPaginationParams(type,params) {
   return (dispatch,getState) => {
     let payload = null;
-    if (type==="resources") {
-      payload = {
-        resourcesPagination: {
-          limit:params.limit,
-          //activeSystemType:params.activeSystemType,
-          page:params.page,
-        }
-      };
+    let pagination = type+"Pagination";
+    let newValues = Object.assign({},getState()[pagination]);
+    for (let key in params) {
+      newValues[key] = params[key];
     }
-    else if (type==="classpieces") {
-      payload = {
-        classpiecesPagination: {
-          limit:params.limit,
-          page:params.page,
-          //sort:params.sort,
-        }
-      };
-    }
-    else if (type==="people") {
-      payload = {
-        peoplePagination: {
-          limit:params.limit,
-          page:params.page,
-          sort:params.sort,
-        }
-      };
-    }
-    else if (type==="events") {
-      payload = {
-        eventsPagination: {
-          limit:params.limit,
-          page:params.page,
-        }
-      };
-    }
-    else if (type==="organisations") {
-      payload = {
-        organisationsPagination: {
-          limit:params.limit,
-          page:params.page,
-        }
-      };
-    }
-    else if (type==="temporals") {
-      payload = {
-        temporalsPagination: {
-          limit:params.limit,
-          page:params.page,
-        }
-      };
-    }
-    else if (type==="spatials") {
-      payload = {
-        spatialsPagination: {
-          limit:params.limit,
-          page:params.page,
-        }
-      };
-    }
-    else {
-      return false;
-    }
-
+    payload = {
+      [pagination]: newValues
+    };
     if (payload===null) {
       return false;
     }
@@ -337,132 +282,52 @@ export function loadResourcesType() {
 export function updateFilters(type,params) {
   return (dispatch,getState) => {
     let payload = null;
-    let eventsData = params.events;
-    let organisationsData = params.organisations;
-    let temporalsData = params.temporals;
-    //let spatialsData = params.spatials;
-    if (type==="classpieces") {
-      if(typeof params.events === "undefined") {
-        eventsData = Object.assign([], getState().classpiecesFilters.events);
-      }
-      if(typeof params.organisations === "undefined") {
-        organisationsData = Object.assign([], getState().classpiecesFilters.organisations);
-      }
-      if(typeof params.temporals === "undefined") {
-        temporalsData = Object.assign({}, getState().classpiecesFilters.temporals);
-      }
-      /*
-      if(typeof params.spatials === "undefined") {
-        //spatialsData = Object.assign({}, getState().classpiecesFilters.spatials);
-        spatialsData = getState().peopleFilters.spatials;
-      }
-      */
-      payload = {
-        classpiecesFilters: {
-          //classpieces: params.classpieces,
-          events: eventsData,
-          organisations: organisationsData,
-          //people: params.people,
-          temporals: temporalsData,
-          //spatials: spatialsData,
-        },
-        loadingClasspiecesRelationship: true,
-      };
-    }else if (type==="people") {
-      if(typeof params.events === "undefined") {
-        eventsData = Object.assign([], getState().peopleFilters.events);
-      }
-      if(typeof params.organisations === "undefined") {
-        organisationsData = Object.assign([], getState().peopleFilters.organisations);
-      }
-      if(typeof params.temporals === "undefined") {
-        temporalsData = Object.assign({}, getState().peopleFilters.temporals);
-      }
-      /*
-      if(typeof params.spatials === "undefined") {
-        //spatialsData = Object.assign({}, getState().peopleFilters.spatials);
-        spatialsData = getState().peopleFilters.spatials;
-      }
-      */
-      payload = {
-        peopleFilters: {
-          //classpieces: params.classpieces,
-          events: eventsData,
-          organisations: organisationsData,
-          //people: params.people,
-          temporals: temporalsData,
-          //spatials: spatialsData,
-        },
-        loadingPeopleRelationship: true,
-      };
-    }else if (type==="events") {
-      payload = {
-        eventsFilters: {
-          //classpieces: params.classpieces,
-          events: eventsData,
-          //organisations: params.organisations,
-          //people: params.people,
-          //temporals: params.temporals,
-          //spatials: params.spatials,
-        },
-        loadingEventsRelationship: true,
-      };
-    }else if (type==="organisations") {
-      payload = {
-        organisationsFilters: {
-          //classpieces: params.classpieces,
-          //events: params.events,
-          organisations: organisationsData,
-          //people: params.people,
-          //temporals: params.temporals,
-          //spatials: params.spatials,
-        },
-        loadingOrganisationsRelationship: true,
-      };
-    }else if (type==="resources") {
-      payload = {
-        resourcesFilters: {
-          //classpieces: params.classpieces,
-          //events: eventsData,
-          //organisations: params.organisations,
-          //people: params.people,
-          //temporals: params.temporals,
-          //spatials: params.spatials,
-          resources: params.resources,
-        },
-        loadingResourcesRelationship: true,
-      };
-    }else if (type==="temporals") {
-      payload = {
-        temporalsFilters: {
-          //classpieces: params.classpieces,
-          //events: eventsData,
-          //organisations: params.organisations,
-          //people: params.people,
-          temporals: params.temporals,
-          //spatials: params.spatials,
-          //resources: params.resources,
-        },
-        loadingTemporalsRelationship: true,
-      };
-    }else if (type==="spatials") {
-      payload = {
-        spatialsFilters: {
-          //classpieces: params.classpieces,
-          //events: eventsData,
-          //organisations: params.organisations,
-          //people: params.people,
-          //temporals: params.temporals,
-          spatials: params.spatials,
-          //resources: params.resources,
-        },
-        loadingSpatialsRelationship: true,
-      };
+    let filtersName = type+"Filters";
+    let newValues = Object.assign({},getState()[filtersName]);
+    for (let key in params) {
+      newValues[key] = params[key];
     }
-    else {
+    payload = {
+      [filtersName]: newValues
+    };
+    if (payload===null) {
       return false;
     }
+    dispatch({
+      type: "GENERIC_UPDATE",
+      payload: payload
+    });
+  }
 
+}
+
+export function clearFilters(type) {
+  return (dispatch,getState) => {
+    let payload = null;
+    let filtersName = type+"Filters";
+    let newValues = Object.assign({},getState()[filtersName]);
+    if (typeof newValues.events!=="undefined") {
+      newValues.events = [];
+    }
+    if (typeof newValues.organisations!=="undefined") {
+      newValues.organisations = [];
+    }
+    if (typeof newValues.temporals!=="undefined") {
+      newValues.temporals = {
+        startDate: "",
+        endDate: "",
+        dateType: "exact",
+      };
+    }
+    if (typeof newValues.organisationType!=="undefined") {
+      newValues.organisationType = "";
+    }
+    if (typeof newValues.eventType!=="undefined") {
+      newValues.eventType = "";
+    }
+    payload = {
+      [filtersName]: newValues
+    };
     if (payload===null) {
       return false;
     }
@@ -477,101 +342,14 @@ export function updateFilters(type,params) {
 export function setRelationshipParams(type,params) {
   return (dispatch,getState) => {
     let payload = null;
-    if (type==="classpieces") {
-      payload = {
-        classpiecesRelationship: {
-          classpieces: params.classpieces,
-          events: params.events,
-          organisations: params.organisations,
-          people: params.people,
-          //temporals: params.temporals,
-          //spatials: params.spatials,
-        },
-        loadingClasspiecesRelationship: false,
-      };
-    }else if (type==="people") {
-      payload = {
-        peopleRelationship: {
-          classpieces: params.classpieces,
-          events: params.events,
-          organisations: params.organisations,
-          people: params.people,
-          //temporals: params.temporals,
-          //spatials: params.spatials,
-        },
-        loadingPeopleRelationship: false,
-      };
-    }else if (type==="events") {
-      payload = {
-        eventsRelationship: {
-          classpieces: params.classpieces,
-          events: params.events,
-          organisations: params.organisations,
-          people: params.people,
-          temporals: params.temporals,
-          spatials: params.spatials,
-        },
-        loadingEventsRelationship: false,
-      };
-    }else if (type==="organisations") {
-      payload = {
-        organisationsRelationship: {
-          classpieces: params.classpieces,
-          events: params.events,
-          organisations: params.organisations,
-          people: params.people,
-          temporals: params.temporals,
-          spatials: params.spatials,
-        },
-        loadingOrganisationsRelationship: false,
-      };
+    let relationships = type+"Relationship";
+    let newValues = Object.assign({},getState()[relationships]);
+    for (let key in params) {
+      newValues[key] = params[key];
     }
-    else if (type==="resources") {
-      payload = {
-        resourcesRelationship: {
-          classpieces: params.classpieces,
-          events: params.events,
-          organisations: params.organisations,
-          people: params.people,
-          temporals: params.temporals,
-          spatials: params.spatials,
-          resources: params.resources,
-        },
-        loadingResourcesRelationship: false,
-      };
-    }
-    else if (type==="temporals") {
-      payload = {
-        temporalsRelationship: {
-          classpieces: params.classpieces,
-          events: params.events,
-          organisations: params.organisations,
-          people: params.people,
-          temporals: params.temporals,
-          spatials: params.spatials,
-          resources: params.resources,
-        },
-        loadingTemporalsRelationship: false,
-      };
-    }
-    else if (type==="spatials") {
-      payload = {
-        spatialsRelationship: {
-          classpieces: params.classpieces,
-          events: params.events,
-          organisations: params.organisations,
-          people: params.people,
-          temporals: params.temporals,
-          spatials: params.spatials,
-          resources: params.resources,
-        },
-        loadingSpatialsRelationship: false,
-      };
-    }
-    else {
-      return false;
-    }
-
+    payload = {
+      [relationships]: newValues
+    };
     if (payload===null) {
       return false;
     }

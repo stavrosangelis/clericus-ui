@@ -67,8 +67,9 @@ export default class MainPagination extends Component {
   }
   render() {
     let paginationItems = this.createPagination();
+    let className = this.props.className || "";
     return (
-      <div className="pagination-container">
+      <div className={`pagination-container ${className}`}>
         <Pagination>
           {paginationItems}
         </Pagination>

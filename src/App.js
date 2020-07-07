@@ -1,6 +1,7 @@
 import React,{Component} from 'react';
 import { BrowserRouter as Router, Route, Switch} from 'react-router-dom';
 import {loadProgressBar} from 'axios-progress-bar';
+import ScrollUp from 'react-scroll-up';
 // css
 import 'axios-progress-bar/dist/nprogress.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -14,6 +15,7 @@ import './App.scss';
 import Topbar from './components/topbar';
 import Header from './components/header';
 import Footer from './components/footer';
+import CookiesConsent from './components/cookies-consent';
 
 import mainRoutes from "./routes/";
 import NotFound from './views/404.js';
@@ -72,6 +74,16 @@ class App extends Component{
     }
     let noMatch = <Route component={NotFound} key="not-found"/>
     routes.push(noMatch);
+    const ScrollToTopStyle = {
+      "position": "fixed",
+      "bottom": "50px",
+      "right": "30px",
+      "cursor": "pointer",
+      "transition": "opacity 0.2s linear 0s, visibility",
+      "opacity": "1",
+      "visibility": "visible",
+      "zIndex": "999"
+    }
     return (
       <Router basename='/'>
         <div className="app-body">
@@ -84,6 +96,12 @@ class App extends Component{
           </div>
           <Footer />
         </div>
+        <ScrollUp showUnder={160} style={ScrollToTopStyle}>
+          <div className="scroll-up">
+            <i className="fa-chevron-up fa"></i>
+          </div>
+        </ScrollUp>
+        <CookiesConsent />
       </Router>
     );
   }

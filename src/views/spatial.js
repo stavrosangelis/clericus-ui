@@ -10,7 +10,7 @@ import { Map, Marker, Popup, TileLayer } from 'react-leaflet'
 import L from 'leaflet';
 import {Breadcrumbs} from '../components/breadcrumbs';
 //import TagPeopleSearch from '../components/tag-people-search.js';
-import {updateDocumentTitle} from '../helpers/helpers';
+import {updateDocumentTitle} from '../helpers';
 
 class Spatial extends Component {
   constructor(props) {

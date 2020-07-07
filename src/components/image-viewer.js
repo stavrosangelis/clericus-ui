@@ -18,7 +18,6 @@ const Viewer = (props) => {
   const [y, setY] = useState(0);
   const imgRef = useRef(null);
   const tooltipRef = useRef(null);
-
   let peopleProps = props.item.resources.filter(r=>{
     if (r.ref.resourceType==="image" && r.term.label==="hasPart") {
       return true;
@@ -228,7 +227,7 @@ const Viewer = (props) => {
   }
 
   if (imgPath!==null) {
-    const showTooltip = (e, label) => {
+    const showTooltip = (e, resource) => {
       let elem = e.target;
       let box = elem.getBoundingClientRect();
       let stateLeft = left;
@@ -242,7 +241,35 @@ const Viewer = (props) => {
       let tooltipLeft = box.x+box.width+12;
       let tooltipTop = box.y + (box.height/2);
       let triangle = "left";
-
+      let affiliationText = "";
+      if (typeof resource.person.affiliations!=="undefined" && resource.person.affiliations.length>0) {
+        let affiliations = resource.person.affiliations.filter(i=>{
+          if (i.ref.organisationType==="Diocese" || i.ref.organisationType==="ReligiousOrder") {
+            return true;
+          }
+          return false;
+        });
+        if (typeof affiliations!=="undefined") {
+          affiliationText = affiliations.map(a=>a.ref.label).join(" | ");
+        }
+      }
+      let affiliationOutput = [];
+      if (affiliationText!=="") {
+        affiliationOutput = <div>{affiliationText}</div>;
+      }
+      let altName = [];
+      let resourceLabel = resource.label.replace(/\s\s/g,' ');
+      if (typeof resource.person!=="undefined" && resource.person.label!=="") {
+        let personLabel = resource.person.label.replace(/\s\s/g,' ');
+        if (personLabel!==resourceLabel) {
+          altName = <div><i>[{resource.person.label}]</i></div>;
+        }
+      }
+      let label = <div className="text-center">
+        <div>{resource.label}</div>
+        {altName}
+        {affiliationOutput}
+      </div>
       setDragging(false);
       setTooltipVisible(true);
       setTooltipTop(tooltipTop);
@@ -270,6 +297,9 @@ const Viewer = (props) => {
     for (let i=0;i<peopleData.length; i++) {
         let r = peopleData[i];
         let resource = r.ref;
+        if (typeof resource.person==="undefined") {
+          continue;
+        }
         let selected = "";
         if(typeof r.selected!=="undefined" && r.selected) {
           selected = " selected";
@@ -284,6 +314,7 @@ const Viewer = (props) => {
         if (parseFloat(meta.rotate,10)!==0) {
           personStyle.transform = "rotate("+meta.rotate+"deg)";
         }
+
         let link = "/person/"+resource.person._id;
         let person = <Link
           id={"tooltip-toggle-"+resource._id}
@@ -293,7 +324,7 @@ const Viewer = (props) => {
           className={"classpiece-person"+selected}
           style={personStyle}
           alt={resource.label}
-          onMouseOver={(e)=>showTooltip(e, resource.label)}
+          onMouseOver={(e)=>showTooltip(e, resource)}
           onMouseLeave={()=>hideTooltip()}
           >
             <span>{resource.label}</span>
@@ -305,9 +336,11 @@ const Viewer = (props) => {
       onMouseDown={(e)=>imgDragStart(e)}
       onMouseUp={(e)=>imgDragEnd(e)}
       onDragEnd={(e)=>imgDragEnd(e)}
+      onTouchStart={(e)=>imgDragStart(e)}
+      onTouchEnd={(e)=>imgDragEnd(e)}
       draggable={false}
       >{people}</div>;
-      
+
     let imgStyle = {
       width: width,
       height: height,
@@ -317,6 +350,8 @@ const Viewer = (props) => {
       style={imgStyle}
       className="classpiece-full-size"
       ref={imgRef}
+      onDoubleClick={(e)=>updateZoom("plus")}
+      onContextMenu={(e)=>{e.preventDefault();return false;}}
       >
       {peopleLayer}
       <img
@@ -336,7 +371,12 @@ const Viewer = (props) => {
     let target = e.target;
     let value = target.type === 'checkbox' ? target.checked : target.value;
     setSearchInput(value);
-    let visibleNodes = peopleData.filter(n=>n.ref.label.toLowerCase().includes(value.toLowerCase()));
+    let visibleNodes = peopleData.filter(n=>{
+      if (n.ref.label.toLowerCase().includes(value.toLowerCase()) || n.ref.person.label.toLowerCase().includes(value.toLowerCase())) {
+        return true;
+      }
+      return false;
+    });
     let dataNodes = peopleData;
     for (let i=0;i<dataNodes.length; i++) {
       let n = dataNodes[i];
@@ -419,7 +459,19 @@ const Viewer = (props) => {
     for (let i=0;i<peopleData.length; i++) {
       let n = peopleData[i];
       if (typeof n.visible==="undefined" || n.visible===true) {
-        searchContainerNodes.push(<div key={i} onClick={()=>centerNode(n.ref._id)}>{n.ref.label}</div>);
+        let label = [];
+        if (typeof n.ref!=="undefined") {
+          label.push(<span key="name">{n.ref.label}</span>)
+        }
+        let resourceLabel = n.ref.label.replace(/\s\s/g,' ');
+        if (typeof n.ref.person!=="undefined" && n.ref.person.label!=="") {
+          let personLabel = n.ref.person.label.replace(/\s\s/g,' ');
+          if (personLabel!==resourceLabel) {
+            label.push(<br key="break"/>)
+            label.push(<small key="alname">[{personLabel}]</small>)
+          }
+        }
+        searchContainerNodes.push(<div key={i} onClick={()=>centerNode(n.ref._id)}>{label}</div>);
       }
     }
   }

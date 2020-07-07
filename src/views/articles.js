@@ -5,7 +5,7 @@ import {
   Card, CardBody,
 } from 'reactstrap';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {updateDocumentTitle} from '../helpers/helpers';
+import {updateDocumentTitle} from '../helpers';
 import {Link} from 'react-router-dom';
 
 const APIPath = process.env.REACT_APP_APIPATH;
@@ -85,7 +85,7 @@ const Articles = props => {
     updateDocumentTitle(documentTitle);
     let articlesHTML = articles.map(article=>{
       let featuredImage = article.featuredImageDetails;
-      let thumbPath = [];
+      let thumbPath = null;
       if (featuredImage!==null) {
         thumbPath = featuredImage.paths.find(p=>p.pathType==="thumbnail").path;
       }
@@ -106,10 +106,14 @@ const Articles = props => {
         short = short.substring(0,200);
         short = `${short}...`;
       }
-      return <div className="content-article-item" key={article._id}>
-        <div className="content-article-item-thumbnail">
+      let thumbnail = [];
+      if (thumbPath!==null) {
+        thumbnail = <div className="content-article-item-thumbnail">
           <Link href={`/article/${article.permalink}`} to={`/article/${article.permalink}`}><img className="img-fluid article-list-thumbnail" alt={article.label} src={thumbPath} /></Link>
         </div>
+      }
+      return <div className="content-article-item" key={article._id}>
+        {thumbnail}
         <div className="content-article-item-content">
           <h4><Link href={`/article/${article.permalink}`} to={`/article/${article.permalink}`}>{article.label}</Link></h4>
           <div className="news-item-date"><i className="pe-7s-user" /> {article.author} <i className="pe-7s-clock" /> {date}</div>

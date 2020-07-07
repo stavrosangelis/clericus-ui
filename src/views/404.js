@@ -1,7 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {updateDocumentTitle} from '../helpers/helpers';
+import {updateDocumentTitle} from '../helpers';
 import {
   Card, CardBody,
 } from 'reactstrap';

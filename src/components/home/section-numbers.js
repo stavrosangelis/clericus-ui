@@ -28,50 +28,48 @@ class SectionNumbers extends Component {
       peopleCount: 0,
       resourcesCount: 0,
       diocesesCount: 0,
+      uniqueLastNamesCount: 0,
       intervals: []
     }
 
     this.count = this.count.bind(this);
-    this.increment = this.increment.bind(this);
-    this.incrementItem = this.incrementItem.bind(this);
+    this.animateValue = this.animateValue.bind(this);
+    this.peopleCountRef = React.createRef();
+    this.resourcesCountRef = React.createRef();
+    this.diocesesCountRef = React.createRef();
+    this.uniqueLastNamesCountRef = React.createRef();
   }
 
   count() {
     let stats = this.props.genericStats;
-    this.increment('peopleCount', stats.people);
-    this.increment('resourcesCount', stats.resources);
-    this.increment('diocesesCount', stats.dioceses);
+    this.animateValue(this.peopleCountRef, 0, stats.people, 2000);
+    this.animateValue(this.resourcesCountRef, 0, stats.resources, 2000);
+    this.animateValue(this.diocesesCountRef, 0, stats.dioceses, 2000);
+    this.animateValue(this.uniqueLastNamesCountRef, 0, stats.lastNames, 2000);
   }
 
-  increment(stateName, statsValue) {
-    let i = this.state[stateName];
-    let incrementTime = 50/statsValue;
-  	let interval = setInterval(()=>this.incrementItem(stateName, statsValue), incrementTime);
-    let intervals = this.state.intervals;
-    intervals.push(interval)
-    let index = intervals.indexOf(interval);
-    let intervalStateName = stateName+"IntervalIndex";
-    if (this._isMounted) {
-      this.setState({
-        intervals: intervals,
-        [intervalStateName]: index
-      })
-    }
-    if (i===statsValue) {
-      clearInterval(interval);
-    }
-  }
+  animateValue(ref, start, end, duration) {
+    var obj = ref.current;
+    var range = end - start;
+    var minTimer = 50;
+    var stepTime = Math.abs(Math.floor(duration / range));
+    stepTime = Math.max(stepTime, minTimer);
+    var startTime = new Date().getTime();
+    var endTime = startTime + duration;
+    var timer;
 
-  incrementItem(stateName, statsValue) {
-    let number = this.state[stateName];
-    if (number<statsValue) {
-      number++;
+    const run = () => {
+      var now = new Date().getTime();
+      var remaining = Math.max((endTime - now) / duration, 0);
+      var value = Math.round(end - (remaining * range));
+      obj.innerHTML = value;
+      if (value === end) {
+          clearInterval(timer);
+      }
     }
-    if (this._isMounted) {
-      this.setState({
-        [stateName]: number
-      })
-    }
+
+    timer = setInterval(run, stepTime);
+    run();
   }
 
   componentDidMount() {
@@ -87,23 +85,6 @@ class SectionNumbers extends Component {
     if (prevProps.genericStats===null && this.props.genericStats!==null) {
       this.count();
     }
-    if (this.props.genericStats!==null) {
-      if (this.state.peopleCount===this.props.genericStats.people) {
-        let index = this.state["peopleCountIntervalIndex"];
-        let interval = this.state.intervals[index];
-        clearInterval(interval);
-      }
-      if (this.state.resourcesCount===this.props.genericStats.resources) {
-        let index = this.state["resourcesCountIntervalIndex"];
-        let interval = this.state.intervals[index];
-        clearInterval(interval);
-      }
-      if (this.state.diocesesCount===this.props.genericStats.dioceses) {
-        let index = this.state["diocesesCountIntervalIndex"];
-        let interval = this.state.intervals[index];
-        clearInterval(interval);
-      }
-    }
   }
 
   componentWillUnmount() {
@@ -117,20 +98,25 @@ class SectionNumbers extends Component {
         <div className="section-numbers-bg-gradient"></div>
         <div className="container section-numbers-content">
           <div className="row numbers-row">
-            <div className="col-4">
+            <div className="col-xs-12 col-sm-6 col-md-3 home-count">
               <i className="pe-7s-users" />
-              <label>{this.state.peopleCount}</label>
+              <label ref={this.peopleCountRef}>{this.state.peopleCount}</label>
               <span>Total people</span>
             </div>
-            <div className="col-4">
+            <div className="col-xs-12 col-sm-6 col-md-3 home-count">
               <i className="pe-7s-photo" />
-              <label>{this.state.resourcesCount}</label>
+              <label ref={this.resourcesCountRef}>{this.state.resourcesCount}</label>
               <span>Total resources</span>
             </div>
-            <div className="col-4">
+            <div className="col-xs-12 col-sm-6 col-md-3 home-count">
               <i className="pe-7s-map-2" />
-              <label>{this.state.diocesesCount}</label>
+              <label ref={this.diocesesCountRef}>{this.state.diocesesCount}</label>
               <span>Total dioceses</span>
+            </div>
+            <div className="col-xs-12 col-sm-6 col-md-3 home-count">
+              <i className="pe-7s-id" />
+              <label ref={this.uniqueLastNamesCountRef}>{this.state.uniqueLastNamesCount}</label>
+              <span>Total unique last names</span>
             </div>
           </div>
         </div>

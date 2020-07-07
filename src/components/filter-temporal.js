@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import DatePicker from "react-datepicker";
 import {
   Form,FormGroup, Input,
@@ -6,14 +6,15 @@ import {
   Button,
 } from 'reactstrap';
 import PropTypes from 'prop-types';
-
+import moment from "moment";
 import "react-datepicker/dist/react-datepicker.css";
 
 const FilterTemporal = props => {
+  const [loading, setLoading] = useState(true);
   const [dateType,setDateType] = useState("exact");
   const [startDate,setStartDate] = useState("");
   const [endDate,setEndDate] = useState("");
-
+  const prevFiltersSetRef = useRef(null);
   const updateDateType = (e) => {
     let val = e.target.value;
     setDateType(val);
@@ -21,6 +22,44 @@ const FilterTemporal = props => {
       setEndDate("");
     }
   }
+
+  let filtersType = props.filtersType;
+  let filtersSet = props.filtersSet;
+  let updateFilters = props.updateFilters;
+
+  useEffect(()=>{
+    const load = () => {
+      setLoading(false);
+      if (filtersSet.startDate!=="") {
+        let newSD = moment(filtersSet.startDate, "DD-MM-YYYY").valueOf();
+        setStartDate(newSD);
+      }
+      if (filtersSet.endDate!=="") {
+        let newED = moment(filtersSet.endDate, "DD-MM-YYYY").valueOf();
+        setEndDate(newED);
+      }
+      setDateType(filtersSet.dateType);
+    }
+    if (loading) {
+      load();
+    }
+  },[loading, filtersSet]);
+
+  useEffect(()=>{
+    if (prevFiltersSetRef.current!==null && filtersSet.startDate==="") {
+      setDateType("exact");
+      setStartDate("");
+      setEndDate("");
+      let payload = {
+        dateType: "exact",
+        startDate: "",
+        endDate: "",
+      }
+      updateFilters(filtersType,payload);
+    }
+    prevFiltersSetRef.current = filtersSet.startDate;
+  },[updateFilters,filtersSet,filtersType]);
+
   const clearFilters = () => {
     setDateType("exact");
     setStartDate("");
@@ -61,15 +100,6 @@ const FilterTemporal = props => {
     }
     props.updateFilters("temporals",payload);
   }
-
-  const resetState = () => {
-    setDateType("exact");
-    setStartDate("");
-    setEndDate("");
-  }
-
-  props.resetStateForwardRef(() => resetState());
-
   let endDateVisible = " hidden";
   let endDateHidden = "";
   if (dateType==="range") {
@@ -85,7 +115,7 @@ const FilterTemporal = props => {
           </h4>
           <Form onSubmit={(e)=>submit(e)}>
             <FormGroup>
-              <Input type="select" name="dateType" value={dateType} onChange={(e)=>updateDateType(e)}>
+              <Input type="select" name="dateType" value={dateType} onChange={(e)=>updateDateType(e)} className="filter-type-dropdown">
                 <option value="exact">Exact</option>
                 <option value="before">Before</option>
                 <option value="after">After</option>
@@ -127,7 +157,7 @@ const FilterTemporal = props => {
 FilterTemporal.defaultProps = {
   filtersSet: {},
   relationshipSet: [],
-  filtersType: {},
+  filtersType: "",
   items: [],
   itemsType: [],
   label: "",
@@ -137,7 +167,7 @@ FilterTemporal.defaultProps = {
 FilterTemporal.propTypes = {
   filtersSet: PropTypes.object,
   relationshipSet: PropTypes.array,
-  filtersType: PropTypes.object.isRequired,
+  filtersType: PropTypes.string.isRequired,
   items: PropTypes.array,
   itemsType: PropTypes.array,
   label: PropTypes.string,

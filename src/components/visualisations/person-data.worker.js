@@ -24,6 +24,5 @@ onmessage = async(e)=>{
   const streamedResponse = new Response(stream, { headers: { "Content-Type": "application/json" } });
 
   const data = await streamedResponse.text();
-  const parsedData = JSON.parse(data);
-  postMessage({ data: JSON.parse(parsedData.data), finished: true });
+  postMessage({ data: data, finished: true });
 };

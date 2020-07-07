@@ -4,139 +4,123 @@ export const defaultState = {
   peoplePagination: {
     limit:25,
     page:1,
-    sort: "asc_firstName",
-  },
-
-  classpiecesPagination: {
-    limit:25,
-    page:1
-  },
-
-  eventsPagination: {
-    limit:25,
-    page:1
-  },
-
-  organisationsPagination: {
-    limit:25,
-    page:1
-  },
-  
-  resourcesPagination: {
-    limit:25,
-    page:1
-  },
-  
-  temporalsPagination: {
-    limit:25,
-    page:1
-  },
-  
-  spatialsPagination: {
-    limit:25,
-    page:1
-  },
-
-  classpiecesFilters: {
-    //classpieces: [],
-    events: [],
-    organisations:  [],
-    //people: [],
-    temporals: {
-      startDate: "",
-      endDate: "",
-      dateType: "exact",
-    },
-    //spatials: [],
-  },
-  classpiecesRelationship: {
-    classpieces: [],
-    events: [],
-    organisations: [],
-    people: [],
-    //temporals: [],
-    //spatials: [],
-  },
-  loadingClasspiecesRelationship: true,
-
-  peopleFilters: {
-    //classpieces: [],
-    events: [],
-    organisations:  [],
-    //people: [],
-    temporals: {
-      startDate: "",
-      endDate: "",
-      dateType: "exact",
-    },
-    //spatials: [],
+    orderField: "lastName",
+    orderDesc: false,
+    simpleSearchTerm: "",
+    advancedSearchInputs: [],
   },
   peopleRelationship: {
     classpieces: [],
     events: [],
     organisations: [],
     people: [],
-    //temporals: [],
-    //spatials: [],
+    temporals: [],
+    spatials: [],
   },
-  loadingPeopleRelationship: true,
-
-  eventsFilters: {
-    //classpieces: [],
+  peopleFilters: {
     events: [],
-    //organisations: [],
-    //people: [],
-    //temporals: [],
-    //spatials: [],
+    organisations:  [],
+    temporals: {
+      startDate: "",
+      endDate: "",
+      dateType: "exact",
+    },
   },
-  eventsRelationship: {
-    //classpieces: [],
-    events: [],
-    //organisations: [],
-    //people: [],
-    //temporals: [],
-    //spatials: [],
-  },
-  loadingEventsRelationship: true,
 
-  organisationsFilters: {
-    //classpieces: [],
-    //events: [],
+  classpiecesPagination: {
+    limit:50,
+    page:1,
+    simpleSearchTerm: "",
+  },
+  classpiecesRelationship: {
+    classpieces: [],
+    events: [],
     organisations: [],
-    //people: [],
-    //temporals: [],
-    //spatials: [],
+    people: [],
+    temporals: [],
+    spatials: [],
+  },
+  classpiecesFilters: {
+    events: [],
+    organisations:  [],
+    temporals: {
+      startDate: "",
+      endDate: "",
+      dateType: "exact",
+    },
+  },
+
+  resourcesPagination: {
+    limit:25,
+    page:1,
+    simpleSearchTerm: "",
+  },
+
+  organisationsPagination: {
+    limit:25,
+    page:1,
+    simpleSearchTerm: "",
   },
   organisationsRelationship: {
-    //classpieces: [],
-    //events: [],
+    classpieces: [],
+    events: [],
     organisations: [],
-    //people: [],
-    //temporals: [],
-    //spatials: [],
+    people: [],
+    temporals: [],
+    spatials: [],
   },
+  organisationsFilters: {
+    organisationType: "",
+  },
+
+  eventsPagination: {
+    limit:25,
+    page:1,
+    simpleSearchTerm: ""
+  },
+  eventsFilters: {
+    eventType: "",
+    temporals: {
+      startDate: "",
+      endDate: "",
+      dateType: "exact",
+    },
+  },
+  eventsRelationship: {
+    classpieces: [],
+    events: [],
+    organisations: [],
+    people: [],
+    temporals: [],
+    spatials: [],
+  },
+
+  temporalsPagination: {
+    limit:25,
+    page:1
+  },
+
+  spatialsPagination: {
+    limit:25,
+    page:1
+  },
+
+
+  loadingClasspiecesRelationship: true,
+
+
+  loadingPeopleRelationship: true,
+
+
+  loadingEventsRelationship: true,
+
+
+
   loadingOrganisationsRelationship: true,
 
-  resourcesFilters: {
-    //classpieces: [],
-    //events: [],
-    //organisations: [],
-    //people: [],
-    //temporals: [],
-    //spatials: [],
-    resources: [],
-  },
-  resourcesRelationship: {
-    //classpieces: [],
-    //events: [],
-    //organisations: [],
-    //people: [],
-    //temporals: [],
-    //spatials: [],
-    resources: [],
-  },
+
   loadingResourcesRelationship: true,
-  
+
   temporalsFilters: {
     //classpieces: [],
     //events: [],
@@ -158,7 +142,7 @@ export const defaultState = {
     //spatials: [],
   },
   loadingTemporalsRelationship: true,
-  
+
   spatialsFilters: {
     //classpieces: [],
     //events: [],

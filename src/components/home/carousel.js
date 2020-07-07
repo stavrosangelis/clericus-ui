@@ -9,7 +9,7 @@ import {
 } from 'reactstrap';
 import axios from 'axios';
 
-import defaultImg from '../../assets/images/carousel-default.png';
+import defaultImg from '../../assets/images/carousel-default.jpg';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 

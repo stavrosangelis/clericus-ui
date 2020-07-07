@@ -10,7 +10,7 @@ import {Breadcrumbs} from '../../components/breadcrumbs';
 import {Link} from 'react-router-dom';
 import DatePicker from "react-datepicker";
 import moment from "moment";
-import {getResourceThumbnailURL, updateDocumentTitle} from '../../helpers/helpers';
+import {getResourceThumbnailURL, updateDocumentTitle} from '../../helpers';
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -29,8 +29,8 @@ const Timeline = props =>{
   const [selectedEvent,setSelectedEvent] = useState(null);
   const [selectedEventVisible,setSelectedEventVisible] = useState(false);
   const timelineContainer = useRef(null);
-  const [relatedVisible,setRelatedVisible] = useState({events:false,organisations:false,people:false,resources:false,classpieces:false});
-  const [relatedOpen,setRelatedOpen] = useState({events:false,organisations:false,people:false,resources:false,classpieces:false});
+  const [relatedVisible,setRelatedVisible] = useState({events:true,organisations:true,people:true,resources:true,classpieces:true});
+  const [relatedOpen,setRelatedOpen] = useState({events:true,organisations:true,people:true,resources:true,classpieces:true});
   const [searchContainerVisible, setSearchContainerVisible] = useState(false);
   const [startDate,setStartDate] = useState("");
   const zoomValues = ['100', '50', '10', 'year', 'day'];
@@ -417,12 +417,16 @@ const Timeline = props =>{
     setEventsContainerTop(elemTop);
     setEventsContainerWidth(elemWidth);
     setSelectedEventVisible(false);
-    setRelatedVisible({events:false,organisations:false,people:false,resources:false})
-    setRelatedOpen({events:false,organisations:false,people:false,resources:false})
+    setRelatedVisible({events:true,organisations:true,people:true,resources:true})
+    setRelatedOpen({events:true,organisations:true,people:true,resources:true})
     let newEventsHTML = [];
     for (let i=0;i<item.events.length; i++) {
-      let event = item.events[i];
-      newEventsHTML.push(<div className="timeline-event-item" key={i} onClick={()=>loadEvent(event._id)}>{event.label}</div>);
+      let newItem = item.events[i];
+      let dateLabel = item.startDate;
+      if (item.endDate!=="" && item.endDate!==item.startDate) {
+        dateLabel += " - "+item.endDate;
+      }
+      newEventsHTML.push(<div className="timeline-event-item" key={i} onClick={()=>loadEvent(newItem._id)}>{newItem.label}  <small>[{dateLabel}]</small></div>);
     }
     setEventsHTML(newEventsHTML);
   }
@@ -444,8 +448,8 @@ const Timeline = props =>{
     setEventsContainerTop(elemTop);
     setEventsContainerWidth(elemWidth);
     setSelectedEventVisible(false);
-    setRelatedVisible({events:false,organisations:false,people:false,resources:false})
-    setRelatedOpen({events:false,organisations:false,people:false,resources:false})
+    setRelatedVisible({events:true,organisations:true,people:true,resources:true})
+    setRelatedOpen({events:true,organisations:true,people:true,resources:true})
     let newEventsHTML = [];
     for (let j=0;j<item.items.length;j++) {
       let newItem = item.items[j].item;
@@ -606,7 +610,17 @@ const Timeline = props =>{
     }
     let selectedEventLabel = "";
     if (selectedEvent!==null) {
-      selectedEventLabel = selectedEvent.label;
+      let selectedEventDateLabel = "";
+      let selectedEventDate = "";
+      if (typeof selectedEvent.temporal!=="undefined" && selectedEvent.temporal.length>0) {
+        let selectedEventTemporal = selectedEvent.temporal[0].ref;
+        selectedEventDateLabel = selectedEventTemporal.startDate;
+        if (selectedEventTemporal.endDate!=="" && selectedEventTemporal.endDate!==selectedEventTemporal.startDate) {
+          selectedEventDateLabel += " - "+selectedEventTemporal.endDate;
+        }
+        selectedEventDate =  <small key="date"> [{selectedEventDateLabel}]</small>;
+      }
+      selectedEventLabel = [<span key="label">{selectedEvent.label}</span>,selectedEventDate];
     }
 
     let relatedEvents = [], relatedEventsOpen = "", relatedEventsVisible = "hidden";
@@ -614,7 +628,7 @@ const Timeline = props =>{
     let relatedPeople = [], relatedPeopleOpen = "", relatedPeopleVisible = "hidden";
     let relatedResources = [], relatedResourcesOpen = "", relatedResourcesVisible = "hidden";
     let relatedClasspieces = [], relatedClasspiecesOpen = "", relatedClasspiecesVisible = "hidden";
-    if (relatedVisible.events) {
+    if (selectedEvent!==null && selectedEvent.events.length>0 && relatedVisible.events) {
       relatedEventsOpen = " active";
       relatedEventsVisible = "";
       relatedEvents = selectedEvent.events.map((e,i)=>{
@@ -623,7 +637,7 @@ const Timeline = props =>{
         </Link>
       });
     }
-    if (relatedVisible.organisations) {
+    if (selectedEvent!==null && selectedEvent.organisations.length>0 && relatedVisible.organisations) {
       relatedOrganisationsVisible = "";
       relatedOrganisations = selectedEvent.organisations.map((e,i)=>{
         return <Link href={`/organisation/${e.ref._id}`} to={`/organisation/${e.ref._id}`} key={i}>
@@ -631,7 +645,7 @@ const Timeline = props =>{
         </Link>
       });
     }
-    if (relatedVisible.people) {
+    if (selectedEvent!==null && selectedEvent.people.length>0 && relatedVisible.people) {
       relatedPeopleVisible = "";
       relatedPeople = selectedEvent.people.map((e,i)=>{
         return <Link href={`/person/${e.ref._id}`} to={`/person/${e.ref._id}`} key={i}>
@@ -640,7 +654,7 @@ const Timeline = props =>{
       });
 
     }
-    if (relatedVisible.resources) {
+    if (selectedEvent!==null && selectedEvent.resources.length>0 && relatedVisible.resources) {
       relatedResourcesVisible = "";
       relatedResources = selectedEvent.resources.map((e,i)=>{
         let thumbnailPath = getResourceThumbnailURL(e.ref);
@@ -653,7 +667,7 @@ const Timeline = props =>{
         </Link>
       });
     }
-    if (relatedVisible.classpieces) {
+    if (selectedEvent!==null && selectedEvent.classpieces.length>0 && relatedVisible.classpieces) {
       relatedClasspiecesVisible = "";
       relatedClasspieces = selectedEvent.classpieces.map((e,i)=>{
         let thumbnailPath = getResourceThumbnailURL(e.ref);

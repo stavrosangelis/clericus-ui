@@ -4,20 +4,22 @@ import {
   Spinner,
   ListGroup, ListGroupItem,
   Collapse,
+  Card, CardBody,
   Tooltip
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getEventThumbnailURL} from '../helpers/helpers';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
-import {updateDocumentTitle} from '../helpers/helpers';
+import {updateDocumentTitle} from '../helpers';
+import HelpArticle from '../components/help-article';
 
 import {connect} from "react-redux";
 import {
   setPaginationParams,
-  setRelationshipParams
+  setRelationshipParams,
+  updateFilters
 } from "../redux/actions";
 
 const mapStateToProps = state => {
@@ -31,7 +33,8 @@ const mapStateToProps = state => {
 function mapDispatchToProps(dispatch) {
   return {
     setPaginationParams: (type,params) => dispatch(setPaginationParams(type,params)),
-    setRelationshipParams: (type,params) => dispatch(setRelationshipParams(type,params))
+    setRelationshipParams: (type,params) => dispatch(setRelationshipParams(type,params)),
+    updateFilters: (type,params) => dispatch(updateFilters(type,params))
   }
 }
 
@@ -39,26 +42,24 @@ function mapDispatchToProps(dispatch) {
 class Events extends Component {
   constructor(props) {
     super(props);
-
+    let eventsPagination = this.props.eventsPagination;
     this.state = {
       loading: true,
       eventsLoading: true,
       items: [],
-      page: 1,
-      gotoPage: 1,
-      limit: 50,
+      page: eventsPagination.page,
+      gotoPage: eventsPagination.page,
+      limit: eventsPagination.limit,
       totalPages: 0,
       totalItems: 0,
-      searchVisible: false,
-      simpleSearchTerm: '',
-      advancedSearchInputs: [],
+      searchVisible: true,
+      simpleSearchTerm: eventsPagination.simpleSearchTerm,
+      eventType: this.props.eventsFilters.eventType,
+      helpVisible: false
     }
 
     this.load = this.load.bind(this);
     this.simpleSearch = this.simpleSearch.bind(this);
-    this.advancedSearchSubmit = this.advancedSearchSubmit.bind(this);
-    this.clearAdvancedSearch = this.clearAdvancedSearch.bind(this);
-    this.updateAdvancedSearchInputs = this.updateAdvancedSearchInputs.bind(this);
     this.clearSearch = this.clearSearch.bind(this);
     this.updatePage = this.updatePage.bind(this);
     this.updateStorePagination = this.updateStorePagination.bind(this);
@@ -68,262 +69,122 @@ class Events extends Component {
     this.handleChange = this.handleChange.bind(this);
     this.toggleSearch = this.toggleSearch.bind(this);
     this.updateEventsRelationship = this.updateEventsRelationship.bind(this);
+    this.updateType = this.updateType.bind(this);
+    this.toggleHelp = this.toggleHelp.bind(this);
   }
 
-  load() {
+  updateType(val) {
+    let payload = {
+      eventType: val
+    }
+    this.setState(payload);
+    this.props.updateFilters("events",payload);
+  }
+
+  async load() {
     this.setState({
       eventsLoading: true
-    })
-    let context = this;
+    });
+    let filters = this.props.eventsFilters;
     let params = {
       page: this.state.page,
       limit: this.state.limit,
-      eventType: this.props.eventsFilters.events,
-      //events: eventsData,
-      //organisations: this.props.eventsFilters.organisations,
-      //people: this.props.eventsFilters.people,
-      //resources: this.props.eventsFilters.classpieces,
+      eventType: filters.eventType,
+      temporals: filters.temporals,
     };
     if (this.state.simpleSearchTerm!=="") {
+      console.log(this.state.simpleSearchTerm)
       params.label = this.state.simpleSearchTerm;
     }
-    else if (this.state.advancedSearchInputs.length>0) {
-      for (let i=0; i<this.state.advancedSearchInputs.length; i++) {
-        let searchInput = this.state.advancedSearchInputs[i];
-        params[searchInput.select] = searchInput.input;
-      }
-    }
     let url = process.env.REACT_APP_APIPATH+'ui-events';
-    axios({
+    let responseData = await axios({
       method: 'get',
       url: url,
       crossDomain: true,
       params: params
     })
 	  .then(function (response) {
-      let responseData = response.data.data;
-      let events = responseData.data;
-      let currentPage = 1;
-      if (responseData.currentPage>0) {
-        currentPage = responseData.currentPage;
-      }
-      // normalize the page number when the selected page is empty for the selected number of items per page
-      if (currentPage>1 && responseData.data.length===0) {
-        context.setState({
-          page: currentPage-1
-        });
-        setTimeout(function() {
-          context.load();
-        },10)
-      }
-      else {
-        context.setState({
-          loading: false,
-          eventsLoading: false,
-          page: responseData.currentPage,
-          totalPages: responseData.totalPages,
-          totalItems: responseData.totalItems,
-          items: events
-        });
-
-        context.updateEventsRelationship(events);
-      }
+      return response.data.data;
 	  })
 	  .catch(function (error) {
+      console.log(error)
 	  });
-  }
 
-  updateEventsRelationship(events=null) {
-    let payload = this.props.eventsRelationship;
-    this.props.setRelationshipParams("events",payload);
-    /*
-    if(events===null){
-      return false;
+    let events = responseData.data;
+    let currentPage = 1;
+    if (responseData.currentPage>0) {
+      currentPage = responseData.currentPage;
     }
-
-    let id_events = events.map(item =>{
-      return item._id;
-    });
-
-    let context = this;
-    let params = {
-      _ids: id_events,
-    };
-    let url = process.env.REACT_APP_APIPATH+'ui-events-active-filters';
-    axios({
-      method: 'post',
-      url: url,
-      crossDomain: true,
-      data: params
-    })
-	  .then(function (response) {
-      let responseData = response.data.data;
-
-      let payload = {
-        events: responseData.events.map(item=>{return item._id}),
-        organisations: responseData.organisations.map(item=>{return item._id}),
-        people: responseData.people.map(item=>{return item._id}),
-        classpieces: responseData.resources.map(item=>{return item._id}),
-        temporals: responseData.temporals.map(item=>{return item._id}),
-        spatials: responseData.spatials.map(item=>{return item._id}),
-      }
-
-      setTimeout(function() {
-        context.props.setRelationshipParams("events",payload);
-      },10)
-
-	  })
-	  .catch(function (error) {
-	  });
-    */
+    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+      this.updatePage(responseData.totalPages);
+    }
+    else {
+      this.setState({
+        loading: false,
+        eventsLoading: false,
+        page: responseData.currentPage,
+        totalPages: responseData.totalPages,
+        totalItems: responseData.totalItems,
+        items: events
+      });
+      //this.updateEventsRelationship(events);
+    }
   }
 
-
-  simpleSearch(e) {
+  async simpleSearch(e) {
     e.preventDefault();
-    /*
     if (this.state.simpleSearchTerm.length<2) {
       return false;
     }
-    */
+    this.updateStorePagination({simpleSearchTerm:this.state.simpleSearchTerm});
     this.setState({
       eventsLoading: true
-    })
-    let context = this;
+    });
+    let filters = this.props.eventsFilters;
     let params = {
       label: this.state.simpleSearchTerm,
       page: this.state.page,
-      limit: this.state.limit
+      limit: this.state.limit,
+      eventType: filters.eventType,
+      temporals: filters.temporals,
     };
     let url = process.env.REACT_APP_APIPATH+'ui-events';
-    axios({
+    let responseData = await axios({
       method: 'get',
       url: url,
       crossDomain: true,
       params: params
     })
 	  .then(function (response) {
-      let responseData = response.data.data;
-      let events = responseData.data;
-      let newEvents = [];
-      for (let i=0;i<events.length; i++) {
-        let eventData = events[i];
-        eventData.checked = false;
-        newEvents.push(eventData);
-      }
-      let currentPage = 1;
-      if (responseData.currentPage>0) {
-        currentPage = responseData.currentPage;
-      }
-      // normalize the page number when the selected page is empty for the selected number of items per page
-      if (currentPage>1 && responseData.data.length===0) {
-        context.setState({
-          page: currentPage-1
-        });
-        setTimeout(function() {
-          context.load();
-        },10)
-      }
-      else {
-        context.setState({
-          loading: false,
-          eventsLoading: false,
-          page: responseData.currentPage,
-          totalPages: responseData.totalPages,
-          totalItems: responseData.totalItems,
-          items: newEvents
-        });
-        context.updateEventsRelationship(newEvents);
-      }
+      return response.data.data;
 	  })
 	  .catch(function (error) {
+      console.log(error);
 	  });
-  }
 
-  advancedSearchSubmit(e) {
-    e.preventDefault();
-    this.setState({
-      eventsLoading: true
-    })
-    let context = this;
-    let postData = {
-      page: 1,
-      limit: this.state.limit
-    };
-    if (this.state.advancedSearchInputs.length>0) {
-      let queryRows = [];
-      for (let i=0; i<this.state.advancedSearchInputs.length; i++) {
-        let searchInput = this.state.advancedSearchInputs[i];
-        /*
-        if (searchInput._id!=="default") {
-          let queryRow = {};
-          queryRow.field = searchInput.select;
-          queryRow.qualifier = searchInput.qualifier;
-          queryRow.term = searchInput.input;
-          queryRow.boolean = searchInput.boolean;
-          queryRows.push(queryRow);
-        }
-        */
-        if(searchInput.input!==""){
-          let queryRow = {};
-          queryRow.field = searchInput.select;
-          queryRow.qualifier = searchInput.qualifier;
-          queryRow.term = searchInput.input;
-          queryRow.boolean = searchInput.boolean;
-          queryRows.push(queryRow);
-        }
-      }
-      postData.query = queryRows;
+    let events = responseData.data;
+    let currentPage = 1;
+    if (responseData.currentPage>0) {
+      currentPage = responseData.currentPage;
+    }
+    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+      this.updatePage(responseData.totalPages);
     }
     else {
-      return false;
+      this.setState({
+        loading: false,
+        eventsLoading: false,
+        page: responseData.currentPage,
+        totalPages: responseData.totalPages,
+        totalItems: responseData.totalItems,
+        items: events
+      });
+      //this.updateEventsRelationship(events);
     }
-    let url = process.env.REACT_APP_APIPATH+'ui-events';
-    axios({
-      method: 'post',
-      url: url,
-      crossDomain: true,
-      data: postData
-    })
-	  .then(function (response) {
-      let responseData = response.data.data;
-      let events = responseData.data;
-      let newEvents = [];
-      for (let i=0;i<events.length; i++) {
-        let eventData = events[i];
-        eventData.checked = false;
-        newEvents.push(eventData);
-      }
-      let currentPage = 1;
-      if (responseData.currentPage>0) {
-        currentPage = responseData.currentPage;
-      }
-      // normalize the page number when the selected page is empty for the selected number of items per page
-      if (currentPage>1 && responseData.data.length===0) {
-        context.setState({
-          page: currentPage-1
-        });
-        setTimeout(function() {
-          context.load();
-        },10)
-      }
-      else {
-        context.setState({
-          loading: false,
-          eventsLoading: false,
-          page: responseData.currentPage,
-          totalPages: responseData.totalPages,
-          totalItems: responseData.totalItems,
-          items: newEvents
-        });
-        context.updateEventsRelationship(newEvents);
-      }
-	  })
-	  .catch(function (error) {
-	  });
   }
 
   clearSearch() {
+    this.updateStorePagination({simpleSearchTerm:"", page: 1});
     this.setState({
       simpleSearchTerm: '',
       page: 1,
@@ -332,46 +193,47 @@ class Events extends Component {
     })
   }
 
-  clearAdvancedSearch() {
+  toggleSearch() {
     this.setState({
-      advancedSearchInputs: [],
-    }, ()=>{
-      this.load();
+      searchVisible: !this.state.searchVisible
     })
   }
 
-  updateAdvancedSearchInputs(advancedSearchInputs) {
-    this.setState({
-      advancedSearchInputs: advancedSearchInputs,
+  async updateEventsRelationship() {
+    let filters = this.props.eventsFilters;
+    let params = {
+      page: this.state.page,
+      limit: this.state.limit,
+      temporals: filters.temporals,
+    };
+    let url = process.env.REACT_APP_APIPATH+'ui-events-active-filters';
+    let responseData = await axios({
+      method: 'post',
+      url: url,
+      crossDomain: true,
+      params: params
     })
+	  .then(function (response) {
+      return response.data.data;
+	  })
+	  .catch(function (error) {
+	  });
+    let payload = {
+      events: responseData.events.map(item=>item),
+    }
+    this.props.setRelationshipParams("events",payload);
   }
 
   updatePage(e) {
     if (e>0 && e!==this.state.page) {
+      this.updateStorePagination({page:e});
       this.setState({
         page: e,
         gotoPage: e,
-      })
-      this.updateStorePagination(null,e);
-      let context = this;
-      setTimeout(function(){
-        context.load();
-      },100);
+      }, () => {
+        this.load();
+      });
     }
-  }
-
-  updateStorePagination(limit=null, page=null) {
-    if (limit===null) {
-      limit = this.state.limit;
-    }
-    if (page===null) {
-      page = this.state.page;
-    }
-    let payload = {
-      limit:limit,
-      page:page,
-    }
-    this.props.setPaginationParams("events", payload);
   }
 
   gotoPage(e) {
@@ -379,47 +241,76 @@ class Events extends Component {
     let gotoPage = this.state.gotoPage;
     let page = this.state.page;
     if (gotoPage>0 && gotoPage!==page) {
+      this.updateStorePagination({page:e});
       this.setState({
         page: gotoPage
-      })
-      this.updateStorePagination(null,gotoPage);
-      let context = this;
-      setTimeout(function(){
-        context.load();
-      },100);
+      }, () => {
+        this.load();
+      });
     }
   }
 
   updateLimit(limit) {
     this.setState({
       limit: limit
-    })
-    this.updateStorePagination(limit,null);
-    let context = this;
-    setTimeout(function(){
-      context.load();
-    },100)
+    }, () => {
+      this.load();
+    });
+    this.updateStorePagination({limit:limit});
+  }
+
+  updateStorePagination({limit=null, page=null, simpleSearchTerm=null}) {
+    let payload = {};
+    if (limit!==null) {
+      payload.limit = limit;
+    }
+    if (page!==null) {
+      payload.page = page;
+    }
+    if (simpleSearchTerm!==null) {
+      payload.simpleSearchTerm = simpleSearchTerm;
+    }
+    this.props.setPaginationParams("events", payload);
   }
 
   renderItems() {
+    let outputObj = [];
     let output = [];
-    for (let i=0;i<this.state.items.length; i++) {
-      let item = this.state.items[i];
-      let label = item.label;
+    if (this.state.items.length>0) {
+      for (let i=0;i<this.state.items.length; i++) {
+        let item = this.state.items[i];
+        let label = item.label;
 
-      let thumbnailImage = [];
-      let thumbnailURL = getEventThumbnailURL(item);
-      if (thumbnailURL!==null) {
-        thumbnailImage = <img src={thumbnailURL} className="events-list-thumbnail img-fluid img-thumbnail" alt={label} />
+        let thumbnailImage = [];
+        let thumbnailURL = null;
+        if (thumbnailURL!==null) {
+          thumbnailImage = <img src={thumbnailURL} className="events-list-thumbnail img-fluid img-thumbnail" alt={label} />
+        }
+        let link = "/event/"+item._id;
+        let outputItem = <ListGroupItem key={i}>
+          <Link to={link} href={link}>{thumbnailImage}</Link>
+          <Link to={link} href={link}>{label}</Link>
+        </ListGroupItem>;
+        output.push(outputItem);
       }
-      let link = "/event/"+item._id;
-      let outputItem = <ListGroupItem key={i}>
-        <Link to={link} href={link}>{thumbnailImage}</Link>
-        <Link to={link} href={link}>{label}</Link>
-      </ListGroupItem>;
-      output.push(outputItem);
+      outputObj = <div className="events-list"><ListGroup>{output}</ListGroup></div>;
     }
-    return <div className="events-list"><ListGroup>{output}</ListGroup></div>;
+    else {
+      let query = "";
+      if (this.state.simpleSearchTerm!=="") {
+        query = <b>"{this.props.eventsPagination.simpleSearchTerm}"</b>;
+      }
+      let item = <div key='no-results' className="col-12">
+        <Card style={{marginBottom: '15px'}}>
+          <CardBody>
+            <h5>No results found</h5>
+            <p>There are no events matching your query {query}</p>
+          </CardBody>
+        </Card>
+      </div>
+      outputObj.push(item);
+    }
+    return outputObj;
   }
 
   handleChange(e) {
@@ -431,14 +322,20 @@ class Events extends Component {
     });
   }
 
-  toggleSearch() {
+  toggleHelp() {
     this.setState({
-      searchVisible: !this.state.searchVisible
-    })
+      helpVisible: !this.state.helpVisible
+    });
   }
 
   componentDidMount() {
     this.load();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.eventsFilters.eventType!==this.props.eventsFilters.eventType) {
+      this.load();
+    }
   }
 
   render() {
@@ -507,18 +404,17 @@ class Events extends Component {
           />
       </Collapse>
 
+      let filterType = ["eventType", "temporals"];
       content = <div>
         <div className="row">
           <div className="col-xs-12 col-sm-4">
             <Filters
               name="events"
-              //filterType = {[]}
-              filterType = {[{name: "dataTypes", layer: ["type"], compareData: {dataSet: "eventType", typeSet: "_id"}, typeFilterDisable: false}]}
+              filterType = {filterType}
               filtersSet={this.props.eventsFilters}
               relationshipSet={this.props.eventsRelationship}
-              decidingFilteringSet={!this.state.loading}
-              updatedata={this.load}
-              items={this.state.items}/>
+              updateType={this.updateType}
+              updatedata={this.load}/>
           </div>
           <div className="col-xs-12 col-sm-8">
             <h2>{heading}
@@ -530,12 +426,16 @@ class Events extends Component {
                 <div className="action-trigger" onClick={()=>this.toggleSearch()} id="search-tooltip">
                   <i className="fa fa-search" />
                 </div>
+                <div className="action-trigger" onClick={()=>this.toggleHelp()} title="Help">
+                  <i className="fa fa-question-circle" />
+                </div>
               </div>
             </h2>
             {searchBox}
             {pageActions}
             {events}
             {pageActions}
+            <HelpArticle permalink={"events-help"} visible={this.state.helpVisible} toggle={this.toggleHelp}/>
           </div>
         </div>
       </div>

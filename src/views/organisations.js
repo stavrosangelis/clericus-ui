@@ -4,20 +4,22 @@ import {
   Spinner,
   ListGroup, ListGroupItem,
   Collapse,
+  Card, CardBody,
   Tooltip
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getOrganisationThumbnailURL} from '../helpers/helpers';
 import PageActions from '../components/page-actions';
 import Filters from '../components/filters';
 import SearchForm from '../components/search-form';
-import {updateDocumentTitle} from '../helpers/helpers';
+import {updateDocumentTitle} from '../helpers';
+import HelpArticle from '../components/help-article';
 
 import {connect} from "react-redux";
 import {
   setPaginationParams,
-  setRelationshipParams
+  setRelationshipParams,
+  updateFilters
 } from "../redux/actions";
 
 const mapStateToProps = state => {
@@ -31,7 +33,8 @@ const mapStateToProps = state => {
 function mapDispatchToProps(dispatch) {
   return {
     setPaginationParams: (type,params) => dispatch(setPaginationParams(type,params)),
-    setRelationshipParams: (type,params) => dispatch(setRelationshipParams(type,params))
+    setRelationshipParams: (type,params) => dispatch(setRelationshipParams(type,params)),
+    updateFilters: (type,params) => dispatch(updateFilters(type,params))
   }
 }
 
@@ -39,26 +42,23 @@ function mapDispatchToProps(dispatch) {
 class Organisations extends Component {
   constructor(props) {
     super(props);
-
+    let organisationsPagination = this.props.organisationsPagination;
     this.state = {
       loading: true,
       organisationsLoading: true,
       items: [],
-      page: 1,
-      gotoPage: 1,
-      limit: 50,
+      page: organisationsPagination.page,
+      gotoPage: organisationsPagination.page,
+      limit: organisationsPagination.limit,
       totalPages: 0,
       totalItems: 0,
-      searchVisible: false,
-      simpleSearchTerm: '',
-      advancedSearchInputs: [],
+      searchVisible: true,
+      simpleSearchTerm: organisationsPagination.simpleSearchTerm,
+      helpVisible: false
     }
 
     this.load = this.load.bind(this);
     this.simpleSearch = this.simpleSearch.bind(this);
-    this.advancedSearchSubmit = this.advancedSearchSubmit.bind(this);
-    this.clearAdvancedSearch = this.clearAdvancedSearch.bind(this);
-    this.updateAdvancedSearchInputs = this.updateAdvancedSearchInputs.bind(this);
     this.clearSearch = this.clearSearch.bind(this);
     this.updatePage = this.updatePage.bind(this);
     this.updateStorePagination = this.updateStorePagination.bind(this);
@@ -67,259 +67,116 @@ class Organisations extends Component {
     this.renderItems = this.renderItems.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.toggleSearch = this.toggleSearch.bind(this);
+    this.updateType = this.updateType.bind(this);
+    this.toggleHelp = this.toggleHelp.bind(this);
   }
 
-  load() {
+  updateType(val) {
+    let payload = {
+      organisationType: val
+    }
+    this.props.updateFilters("organisations",payload);
+  }
+
+  async load() {
     this.setState({
       organisationsLoading: true
-    })
-    let context = this;
+    });
+    let filters = this.props.organisationsFilters;
     let params = {
       page: this.state.page,
       limit: this.state.limit,
-      //events: this.props.organisationsFilters.events,
-      //organisations: organisationsData,
-      organisationType: this.props.organisationsFilters.organisations,
-      //people: this.props.organisationsFilters.people,
-      //resources: this.props.organisationsFilters.classpieces,
+      organisationType: filters.organisationType
     };
     if (this.state.simpleSearchTerm!=="") {
       params.label = this.state.simpleSearchTerm;
     }
-    else if (this.state.advancedSearchInputs.length>0) {
-      for (let i=0; i<this.state.advancedSearchInputs.length; i++) {
-        let searchInput = this.state.advancedSearchInputs[i];
-        params[searchInput.select] = searchInput.input;
-      }
-    }
     let url = process.env.REACT_APP_APIPATH+'ui-organisations';
-    axios({
+    let responseData = await axios({
       method: 'get',
       url: url,
       crossDomain: true,
       params: params
     })
 	  .then(function (response) {
-      let responseData = response.data.data;
-      let organisations = responseData.data;
-      let currentPage = 1;
-      if (responseData.currentPage>0) {
-        currentPage = responseData.currentPage;
-      }
-      // normalize the page number when the selected page is empty for the selected number of items per page
-      if (currentPage>1 && responseData.data.length===0) {
-        context.setState({
-          page: currentPage-1
-        });
-        setTimeout(function() {
-          context.load();
-        },10)
-      }
-      else {
-        context.setState({
-          loading: false,
-          organisationsLoading: false,
-          page: responseData.currentPage,
-          totalPages: responseData.totalPages,
-          totalItems: responseData.totalItems,
-          items: organisations,
-        });
-
-        context.updateOrganisationsRelationship(organisations);
-      }
+      return response.data.data;
 	  })
 	  .catch(function (error) {
+      console.log(error);
 	  });
-  }
-
-  updateOrganisationsRelationship(organisations=null) {
-    let payload = this.props.organisationsRelationship;
-    this.props.setRelationshipParams("organisations",payload);
-    /*
-    if(organisations===null){
-      return false;
+    let organisations = responseData.data;
+    let currentPage = 1;
+    if (responseData.currentPage>0) {
+      currentPage = responseData.currentPage;
     }
-
-    let id_organisations = organisations.map(item =>{
-      return item._id;
-    });
-
-    let context = this;
-    let params = {
-      _ids: id_organisations,
-    };
-    let url = process.env.REACT_APP_APIPATH+'ui-organisations-active-filters';
-    axios({
-      method: 'post',
-      url: url,
-      crossDomain: true,
-      data: params
-    })
-	  .then(function (response) {
-      let responseData = response.data.data;
-
-      let payload = {
-        events: responseData.events.map(item=>{return item._id}),
-        organisations: responseData.organisations.map(item=>{return item._id}),
-        people: responseData.people.map(item=>{return item._id}),
-        classpieces: responseData.resources.map(item=>{return item._id}),
-        temporals: responseData.temporals.map(item=>{return item._id}),
-        spatials: responseData.spatials.map(item=>{return item._id}),
-      }
-
-      setTimeout(function() {
-        context.props.setRelationshipParams("organisations",payload);
-      },10)
-
-	  })
-	  .catch(function (error) {
-	  });
-    */
+    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+      this.updatePage(responseData.totalPages);
+    }
+    else {
+      this.setState({
+        loading: false,
+        organisationsLoading: false,
+        page: responseData.currentPage,
+        totalPages: responseData.totalPages,
+        totalItems: responseData.totalItems,
+        items: organisations,
+      });
+      //this.updateOrganisationsRelationship(organisations);
+    }
   }
 
-  simpleSearch(e) {
+  async simpleSearch(e) {
     e.preventDefault();
-    /*
     if (this.state.simpleSearchTerm.length<2) {
       return false;
     }
-    */
+    this.updateStorePagination({simpleSearchTerm:this.state.simpleSearchTerm});
     this.setState({
       organisationsLoading: true
-    })
-    let context = this;
+    });
+    let filters = this.props.organisationsFilters;
     let params = {
       label: this.state.simpleSearchTerm,
       page: this.state.page,
-      limit: this.state.limit
+      limit: this.state.limit,
+      organisationType: filters.organisationType
     };
     let url = process.env.REACT_APP_APIPATH+'ui-organisations';
-    axios({
+    let responseData = await axios({
       method: 'get',
       url: url,
       crossDomain: true,
       params: params
     })
 	  .then(function (response) {
-      let responseData = response.data.data;
-      let organisations = responseData.data;
-      let newOrganisations = [];
-      for (let i=0;i<organisations.length; i++) {
-        let organisationData = organisations[i];
-        organisationData.checked = false;
-        newOrganisations.push(organisationData);
-      }
-      let currentPage = 1;
-      if (responseData.currentPage>0) {
-        currentPage = responseData.currentPage;
-      }
-      // normalize the page number when the selected page is empty for the selected number of items per page
-      if (currentPage>1 && responseData.data.length===0) {
-        context.setState({
-          page: currentPage-1
-        });
-        setTimeout(function() {
-          context.load();
-        },10)
-      }
-      else {
-        context.setState({
-          loading: false,
-          organisationsLoading: false,
-          page: responseData.currentPage,
-          totalPages: responseData.totalPages,
-          totalItems: responseData.totalItems,
-          items: newOrganisations
-        });
-      }
+      return response.data.data;
 	  })
 	  .catch(function (error) {
+      console.log(error);
 	  });
-  }
-
-  advancedSearchSubmit(e) {
-    e.preventDefault();
-    this.setState({
-      organisationsLoading: true
-    })
-    let context = this;
-    let postData = {
-      page: 1,
-      limit: this.state.limit
-    };
-    if (this.state.advancedSearchInputs.length>0) {
-      let queryRows = [];
-      for (let i=0; i<this.state.advancedSearchInputs.length; i++) {
-        let searchInput = this.state.advancedSearchInputs[i];
-        /*
-        if (searchInput._id!=="default") {
-          let queryRow = {};
-          queryRow.field = searchInput.select;
-          queryRow.qualifier = searchInput.qualifier;
-          queryRow.term = searchInput.input;
-          queryRow.boolean = searchInput.boolean;
-          queryRows.push(queryRow);
-        }
-        */
-        if(searchInput.input!==""){
-          let queryRow = {};
-          queryRow.field = searchInput.select;
-          queryRow.qualifier = searchInput.qualifier;
-          queryRow.term = searchInput.input;
-          queryRow.boolean = searchInput.boolean;
-          queryRows.push(queryRow);
-        }
-      }
-      postData.query = queryRows;
+    let organisations = responseData.data;
+    let currentPage = 1;
+    if (responseData.currentPage>0) {
+      currentPage = responseData.currentPage;
+    }
+    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+      this.updatePage(responseData.totalPages);
     }
     else {
-      return false;
+      this.setState({
+        loading: false,
+        organisationsLoading: false,
+        page: responseData.currentPage,
+        totalPages: responseData.totalPages,
+        totalItems: responseData.totalItems,
+        items: organisations
+      });
+      //this.updateOrganisationsRelationship(organisations);
     }
-    let url = process.env.REACT_APP_APIPATH+'ui-organisations';
-    axios({
-      method: 'post',
-      url: url,
-      crossDomain: true,
-      data: postData
-    })
-	  .then(function (response) {
-      let responseData = response.data.data;
-      let organisations = responseData.data;
-      let newOrganisations = [];
-      for (let i=0;i<organisations.length; i++) {
-        let organisationData = organisations[i];
-        organisationData.checked = false;
-        newOrganisations.push(organisationData);
-      }
-      let currentPage = 1;
-      if (responseData.currentPage>0) {
-        currentPage = responseData.currentPage;
-      }
-      // normalize the page number when the selected page is empty for the selected number of items per page
-      if (currentPage>1 && responseData.data.length===0) {
-        context.setState({
-          page: currentPage-1
-        });
-        setTimeout(function() {
-          context.load();
-        },10)
-      }
-      else {
-        context.setState({
-          loading: false,
-          organisationsLoading: false,
-          page: responseData.currentPage,
-          totalPages: responseData.totalPages,
-          totalItems: responseData.totalItems,
-          items: newOrganisations
-        });
-      }
-	  })
-	  .catch(function (error) {
-	  });
   }
 
   clearSearch() {
+    this.updateStorePagination({simpleSearchTerm:"", page: 1});
     this.setState({
       simpleSearchTerm: '',
       page: 1,
@@ -328,46 +185,47 @@ class Organisations extends Component {
     })
   }
 
-  clearAdvancedSearch() {
+  toggleSearch() {
     this.setState({
-      advancedSearchInputs: [],
-    }, ()=>{
-      this.load();
+      searchVisible: !this.state.searchVisible
     })
   }
 
-  updateAdvancedSearchInputs(advancedSearchInputs) {
-    this.setState({
-      advancedSearchInputs: advancedSearchInputs,
+  async updateOrganisationsRelationship() {
+    let filters = this.props.organisationsFilters;
+    let params = {
+      page: this.state.page,
+      limit: this.state.limit,
+      organisationTypes: filters.organisations,
+    };
+    let url = process.env.REACT_APP_APIPATH+'ui-organisations-active-filters';
+    let responseData = await axios({
+      method: 'post',
+      url: url,
+      crossDomain: true,
+      params: params
     })
+	  .then(function (response) {
+      return response.data.data;
+	  })
+	  .catch(function (error) {
+	  });
+    let payload = {
+      organisationTypes: responseData.organisations.map(item=>item),
+    }
+    this.props.setRelationshipParams("organisations",payload);
   }
 
   updatePage(e) {
     if (e>0 && e!==this.state.page) {
+      this.updateStorePagination({page:e});
       this.setState({
         page: e,
         gotoPage: e,
-      })
-      this.updateStorePagination(null,e);
-      let context = this;
-      setTimeout(function(){
-        context.load();
-      },100);
+      }, () => {
+        this.load();
+      });
     }
-  }
-
-  updateStorePagination(limit=null, page=null) {
-    if (limit===null) {
-      limit = this.state.limit;
-    }
-    if (page===null) {
-      page = this.state.page;
-    }
-    let payload = {
-      limit:limit,
-      page:page,
-    }
-    this.props.setPaginationParams("organisations", payload);
   }
 
   gotoPage(e) {
@@ -375,47 +233,76 @@ class Organisations extends Component {
     let gotoPage = this.state.gotoPage;
     let page = this.state.page;
     if (gotoPage>0 && gotoPage!==page) {
+      this.updateStorePagination({page:e});
       this.setState({
         page: gotoPage
-      })
-      this.updateStorePagination(null,gotoPage);
-      let context = this;
-      setTimeout(function(){
-        context.load();
-      },100);
+      }, () => {
+        this.load();
+      });
     }
   }
 
   updateLimit(limit) {
     this.setState({
       limit: limit
-    })
-    this.updateStorePagination(limit,null);
-    let context = this;
-    setTimeout(function(){
-      context.load();
-    },100)
+    }, () => {
+      this.load();
+    });
+    this.updateStorePagination({limit:limit});
+  }
+
+  updateStorePagination({limit=null, page=null, simpleSearchTerm=null}) {
+    let payload = {};
+    if (limit!==null) {
+      payload.limit = limit;
+    }
+    if (page!==null) {
+      payload.page = page;
+    }
+    if (simpleSearchTerm!==null) {
+      payload.simpleSearchTerm = simpleSearchTerm;
+    }
+    this.props.setPaginationParams("organisations", payload);
   }
 
   renderItems() {
+    let outputObj = [];
     let output = [];
-    for (let i=0;i<this.state.items.length; i++) {
-      let item = this.state.items[i];
-      let label = item.label;
+    if (this.state.items.length>0) {
+      for (let i=0;i<this.state.items.length; i++) {
+        let item = this.state.items[i];
+        let label = item.label;
 
-      let thumbnailImage = [];
-      let thumbnailURL = getOrganisationThumbnailURL(item);
-      if (thumbnailURL!==null) {
-        thumbnailImage = <img src={thumbnailURL} className="organisations-list-thumbnail img-fluid img-thumbnail" alt={label} />
+        let thumbnailImage = [];
+        let thumbnailURL = null;
+        if (thumbnailURL!==null) {
+          thumbnailImage = <img src={thumbnailURL} className="organisations-list-thumbnail img-fluid img-thumbnail" alt={label} />
+        }
+        let link = "/organisation/"+item._id;
+        let outputItem = <ListGroupItem key={i}>
+          <Link to={link} href={link}>{thumbnailImage}</Link>
+          <Link to={link} href={link}>{label}</Link>
+        </ListGroupItem>;
+        output.push(outputItem);
       }
-      let link = "/organisation/"+item._id;
-      let outputItem = <ListGroupItem key={i}>
-        <Link to={link} href={link}>{thumbnailImage}</Link>
-        <Link to={link} href={link}>{label}</Link>
-      </ListGroupItem>;
-      output.push(outputItem);
+      outputObj = <div className="organisations-list"><ListGroup>{output}</ListGroup></div>
     }
-    return <div className="organisations-list"><ListGroup>{output}</ListGroup></div>;
+    else {
+      let query = "";
+      if (this.state.simpleSearchTerm!=="") {
+        query = <b>"{this.props.organisationsPagination.simpleSearchTerm}"</b>;
+      }
+      let item = <div key='no-results' className="col-12">
+        <Card style={{marginBottom: '15px'}}>
+          <CardBody>
+            <h5>No results found</h5>
+            <p>There are no organisations matching your query {query}</p>
+          </CardBody>
+        </Card>
+      </div>
+      outputObj.push(item);
+    }
+    return outputObj;
   }
 
   handleChange(e) {
@@ -427,14 +314,20 @@ class Organisations extends Component {
     });
   }
 
-  toggleSearch() {
+  toggleHelp() {
     this.setState({
-      searchVisible: !this.state.searchVisible
-    })
+      helpVisible: !this.state.helpVisible
+    });
   }
 
   componentDidMount() {
     this.load();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.organisationsFilters.organisationType!==this.props.organisationsFilters.organisationType) {
+      this.load();
+    }
   }
 
   render() {
@@ -503,17 +396,17 @@ class Organisations extends Component {
           />
       </Collapse>
 
+      let filterType = ["organisationType"];
       content = <div>
         <div className="row">
           <div className="col-xs-12 col-sm-4">
             <Filters
               name="organisations"
-              filterType = {[{name: "dataTypes", layer: ["type"], compareData: {dataSet: "organisationType", typeSet: "labelId"}, typeFilterDisable: false}]}
+              filterType={filterType}
               filtersSet={this.props.organisationsFilters}
               relationshipSet={this.props.organisationsRelationship}
-              decidingFilteringSet={!this.state.loading}
-              updatedata={this.load}
-              items={this.state.items}/>
+              updateType={this.updateType}
+              updatedata={this.load}/>
           </div>
           <div className="col-xs-12 col-sm-8">
             <h2>{heading}
@@ -525,12 +418,16 @@ class Organisations extends Component {
                 <div className="action-trigger" onClick={()=>this.toggleSearch()} id="search-tooltip">
                   <i className="fa fa-search" />
                 </div>
+                <div className="action-trigger" onClick={()=>this.toggleHelp()} title="Help">
+                  <i className="fa fa-question-circle" />
+                </div>
               </div>
             </h2>
             {searchBox}
             {pageActions}
             {organisations}
             {pageActions}
+            <HelpArticle permalink={"organisations-help"} visible={this.state.helpVisible} toggle={this.toggleHelp}/>
           </div>
         </div>
       </div>

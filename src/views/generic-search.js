@@ -6,7 +6,7 @@ import {
 } from 'reactstrap';
 import {Breadcrumbs} from '../components/breadcrumbs';
 import { Link } from 'react-router-dom';
-import {updateDocumentTitle} from '../helpers/helpers';
+import {updateDocumentTitle} from '../helpers';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 

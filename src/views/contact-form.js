@@ -6,7 +6,7 @@ import {
   Form, FormGroup, Label, Input, Button
 } from 'reactstrap';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {updateDocumentTitle} from '../helpers/helpers';
+import {updateDocumentTitle} from '../helpers';
 import { load } from 'recaptcha-v3'
 
 
@@ -198,6 +198,13 @@ const ContactForm = props => {
     if (successMsg) {
       form = <div className="contact-form-success">Thank you for your contact. We will get back to you as soon as possible.</div>
     }
+    let logoImg = [];
+    if (article.featuredImage!==null) {
+      let imgSrc = article.featuredImageDetails.paths.find(p=>p.pathType==="source");
+      if (typeof imgSrc!=="undefined") {
+        logoImg = <img src={imgSrc.path} className="contact-img-logo" alt="" />
+      }
+    }
     content = <div>
         <div className="row">
           <div className="col-12">
@@ -205,10 +212,11 @@ const ContactForm = props => {
               <CardBody>
                 <h3>{article.label}</h3>
                 <div className="row">
-                  <div className="col-12 col-sm-6 col-md-4 order-sm-2">
-                    <div dangerouslySetInnerHTML={{__html: article.teaser}}></div>
+                  <div className="col-12 col-sm-6 col-md-5 order-sm-2">
+                    {logoImg}
+                    <div dangerouslySetInnerHTML={{__html: article.content}}></div>
                   </div>
-                  <div className="col-12 col-sm-6 col-md-8 order-sm-1">
+                  <div className="col-12 col-sm-6 col-md-7 order-sm-1">
                     {form}
                   </div>
                 </div>

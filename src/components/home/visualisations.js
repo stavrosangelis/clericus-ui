@@ -1,9 +1,9 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import {Card,CardBody} from 'reactstrap';
-const heatmap = require("../../assets/images/heatmap.png");
-const networkGraph = require("../../assets/images/network-graph.png");
-const eventsTimeline = require("../../assets/images/events-timeline.png");
+const heatmap = require("../../assets/images/heatmap.jpg");
+const networkGraph = require("../../assets/images/network-graph.jpg");
+const eventsTimeline = require("../../assets/images/events-timeline.jpg");
 const Visualisations = props => {
   return(
     <div>
