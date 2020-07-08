@@ -1016,6 +1016,7 @@ section {
 .section-title > span {
   border-bottom: 3px solid $dark-green;
   padding: 0 15px 0 0;
+  display: inline-block;
 }
 .section-title > span > span {
   font-size: 32px;
@@ -2273,9 +2274,9 @@ section {
 .timeline-container > ul > li > .timeline-point {
   display: inline-block;
   margin: 3px 0;
-  border-top: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
-  border-left: 1px solid #ddd;
+  border-top: 1px solid $teal;
+  border-bottom: 1px solid $teal;
+  border-left: 1px solid $teal;
   padding: 0 36px 0 5px;
   position: relative;
   font-size: 12px;
@@ -2283,7 +2284,11 @@ section {
   vertical-align: middle;
   cursor: default;
   transition: 0.4s background-color;
-  background-color: #eee;
+  background-color: #fff;
+}
+.timeline-container > ul > li > .timeline-point > label {
+  color: #666;
+  font-weight: bold;
 }
 .timeline-container > ul > li.found > .timeline-point {
   animation:blinkingBg 0.75s infinite;
@@ -2292,11 +2297,13 @@ section {
   animation: blinkingText 0.75s infinite;
 }
 .timeline-container > ul > li > .timeline-point:hover {
-  color: #fff;
-  background-color: #00cbff;
+  background-color: $teal;
 }
 .timeline-container > ul > li > .timeline-point:hover > label {
   color: #fff;
+}
+.timeline-container > ul > li > .timeline-point:active {
+  background-color: $dark-teal1;
 }
 
 .timeline-container > ul > li > .timeline-point > label {
@@ -2308,7 +2315,7 @@ section {
   width: 15px;
   height: 8px;
   transform: rotate(40deg);
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid $teal;
   background-color: #fff;
   display: block;
   position: absolute;
@@ -2320,7 +2327,7 @@ section {
   width: 15px;
   height: 8px;
   transform: rotate(-40deg);
-  border-top: 1px solid #ddd;
+  border-top: 1px solid $teal;
   background-color: #fff;
   display: block;
   position: absolute;
@@ -2332,35 +2339,56 @@ section {
 .timeline-container > ul > li > .timeline-point.decade {
   font-size: 13px;
   padding: 0 50px 0 5px;
-  background-color: #fcf9c4;
+  background-color: $light-teal;
 }
 .timeline-container > ul > li > .timeline-point.decade:hover {
-  background-color: #ede357;
+  background-color: $light-teal2;
+}
+.timeline-container > ul > li > .timeline-point.decade:active {
+  background-color: $light-teal;
 }
 .timeline-container > ul > li > .timeline-point.decade:hover > label {
   color: #666;
 }
+.timeline-container > ul > li > .timeline-point.decade > .triangle-up,
+.timeline-container > ul > li > .timeline-point.decade > .triangle-down {
+  border-color: $teal;
+}
 .timeline-container > ul > li > .timeline-point.fifty {
   font-size: 15px;
   padding: 0 64px 0 5px;
-  background-color: #d3f76f;
+  background-color: $teal;
 }
 .timeline-container > ul > li > .timeline-point.fifty:hover {
-  background-color: #a6e01f;
+  background-color: $light-teal;
+}
+.timeline-container > ul > li > .timeline-point.fifty:active {
+  background-color: $teal;
 }
 .timeline-container > ul > li > .timeline-point.fifty:hover > label {
-  color: #fff;
+  color: #666;
+}
+.timeline-container > ul > li > .timeline-point.fifty > .triangle-up,
+.timeline-container > ul > li > .timeline-point.fifty > .triangle-down {
+  border-color: $teal;
 }
 .timeline-container > ul > li > .timeline-point.century {
   font-size: 16px;
   padding: 0 78px 0 5px;
-  background-color: #148ba0;
+  background-color: $dark-teal1;
 }
 .timeline-container > ul > li > .timeline-point.century > label {
   color: #fff;
 }
 .timeline-container > ul > li > .timeline-point.century:hover {
-  background-color: #17b7d3;
+  background-color: $teal;
+}
+.timeline-container > ul > li > .timeline-point.century:active {
+  background-color: $dark-teal1;
+}
+.timeline-container > ul > li > .timeline-point.century > .triangle-up,
+.timeline-container > ul > li > .timeline-point.century > .triangle-down {
+  border-color: $dark-teal1;
 }
 .timeline-events-container {
   position: absolute;
@@ -2730,6 +2758,7 @@ section {
 @-webkit-keyframes slide-in {
   100% { -webkit-transform: translateX(0%); }
 }
+
 .home-welcome-pagination {
   position: absolute;
   top: 0;
@@ -2766,6 +2795,7 @@ section {
 }
 .home-welcome-img > img {
   max-height: 80px;
+  border: 0 none;
 }
 .home-welcome-body {
   display: block;

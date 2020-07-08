@@ -267,18 +267,18 @@ class People extends Component {
     });
   }
 
-  clearAdvancedSearch(defaultSearch) {
-    this.setState({
-      advancedSearchInputs: defaultSearch,
-    }, ()=>{
+  clearAdvancedSearch() {
+    let payload = {advancedSearchInputs: []}
+    this.updateStorePagination(payload);
+    this.setState(payload, ()=>{
       this.load();
     });
   }
 
   updateAdvancedSearchInputs(advancedSearchInputs) {
-    this.setState({
-      advancedSearchInputs: advancedSearchInputs,
-    });
+    let payload = {advancedSearchInputs: advancedSearchInputs}
+    this.updateStorePagination(payload);
+    this.setState(payload);
   }
 
   async updatePeopleRelationship() {

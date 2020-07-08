@@ -25,3 +25,11 @@ $blue: #0777af;
 $dark_blue: #00334d;
 $white: #ffffff;
 $black: #000000;
+
+$teal: #82e2ed;
+$light-teal: lighten( $teal, 15% );
+$light-teal2: lighten( $teal, 30% );
+$dark-teal1: darken( $teal, 15% );
+$dark-teal2: darken( $teal, 30% );
+$dark-teal3: darken( $teal, 45% );
+$dark-teal4: darken( $teal, 60% );

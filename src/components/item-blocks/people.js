@@ -5,9 +5,9 @@ import {
 } from 'reactstrap';
 import {Link} from 'react-router-dom';
 
-import Pagination from './pagination';
+import Pagination from '../pagination';
 
-const TagPeopleSearch = props => {
+const Block = props => {
   const [searchVisible, setSearchVisible] = useState(false);
   const [peopleDataVisible, setPeopleDataVisible] = useState(true);
   const [simpleSearchSet, setSimpleSearchSet] = useState('');
@@ -18,14 +18,11 @@ const TagPeopleSearch = props => {
   let firstIndex = (pageIndex*limit)-1;
   let lastIndex = firstIndex+limit;
 
-  const handleSearchTermChange = e => {
+  const handleSearchTermChange = (e) => {
     let target = e.target;
     let value = target.type === 'checkbox' ? target.checked : target.value;
-    let name = target.name;
-    if(name === "simpleSearchTerm"){
-      setSimpleSearchTerm(value);
-      setSimpleSearchSet(value);
-    }
+    setSimpleSearchTerm(value);
+    setSimpleSearchSet(value);
   }
 
   const simpleSearch = (e) =>{
@@ -106,15 +103,19 @@ const TagPeopleSearch = props => {
 
 
     let totalPages = Math.ceil(people.length/limit);
-    if (totalPages<page) {
-      setPage(totalPages);
+    let newPage = page;
+    if (totalPages<newPage) {
+      if (totalPages===0) {
+        totalPages = 1;
+      }
+      newPage = totalPages;
     }
     let pagination = [];
     if (totalPages>1) {
       pagination = <div className="tag-list-pagination">
         <Pagination
         limit={limit}
-        current_page={page}
+        current_page={newPage}
         total_pages={totalPages}
         pagination_function={updatePage}
         className="mini people-tags-pagination"
@@ -151,4 +152,4 @@ const TagPeopleSearch = props => {
   )
 }
 
-export default TagPeopleSearch;
+export default Block;

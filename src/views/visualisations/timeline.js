@@ -10,9 +10,7 @@ import {Breadcrumbs} from '../../components/breadcrumbs';
 import {Link} from 'react-router-dom';
 import DatePicker from "react-datepicker";
 import moment from "moment";
-import {getResourceThumbnailURL} from '../../helpers';
-import {updateDocumentTitle} from '../../helpers';
-
+import {getResourceThumbnailURL, updateDocumentTitle, outputDate} from '../../helpers';
 import "react-datepicker/dist/react-datepicker.css";
 
 const APIPath = process.env.REACT_APP_APIPATH;
@@ -64,12 +62,24 @@ const Timeline = props =>{
     let newItems = [initialVal];
     for (let i=0;i<data.length;i++) {
       let item = data[i];
+      if (typeof item.startDate==="undefined" || item.startDate==="") {
+        continue;
+      }
       let startDate = item.startDate;
-      let endDate = item.endDate;
+      let endDate = null;
+      if (typeof item.endDate!=="undefined" && item.endDate!=="" && item.endDate!==item.startDate) {
+        endDate = item.endDate;
+      }
       let startDateArr = startDate.split("-");
-      let endDateArr = endDate.split("-");
+      let endDateArr = [];
+      if (endDate!==null) {
+        endDate.split("-");
+      }
       let startYear = startDateArr[2];
-      let endYear = endDateArr[2];
+      let endYear = startDateArr[2];
+      if (endDate!==null) {
+        endYear = endDateArr[2];
+      }
       let newItem = {
         startYear: startYear,
         endYear: endYear,
@@ -97,12 +107,24 @@ const Timeline = props =>{
     let newItems = [initialVal];
     for (let i=0;i<data.length;i++) {
       let item = data[i];
+      if (typeof item.startDate==="undefined" || item.startDate==="") {
+        continue;
+      }
       let startDate = item.startDate;
-      let endDate = item.endDate;
+      let endDate = null;
+      if (typeof item.endDate!=="undefined" && item.endDate!=="" && item.endDate!==item.startDate) {
+        endDate = item.endDate;
+      }
       let startDateArr = startDate.split("-");
-      let endDateArr = endDate.split("-");
+      let endDateArr = [];
+      if (endDate!==null) {
+        endDate.split("-");
+      }
       let startYear = startDateArr[2];
-      let endYear = endDateArr[2];
+      let endYear = startDateArr[2];
+      if (endDate!==null) {
+        endYear = endDateArr[2];
+      }
       let newItem = {
         startYear: startYear,
         endYear: endYear,
@@ -153,12 +175,24 @@ const Timeline = props =>{
     let newItems = [initialVal];
     for (let i=0;i<data.length;i++) {
       let item = data[i];
+      if (typeof item.startDate==="undefined" || item.startDate==="") {
+        continue;
+      }
       let startDate = item.startDate;
-      let endDate = item.endDate;
+      let endDate = null;
+      if (typeof item.endDate!=="undefined" && item.endDate!=="" && item.endDate!==item.startDate) {
+        endDate = item.endDate;
+      }
       let startDateArr = startDate.split("-");
-      let endDateArr = endDate.split("-");
+      let endDateArr = [];
+      if (endDate!==null) {
+        endDate.split("-");
+      }
       let startYear = startDateArr[2];
-      let endYear = endDateArr[2];
+      let endYear = startDateArr[2];
+      if (endDate!==null) {
+        endYear = endDateArr[2];
+      }
       let newItem = {
         startYear: startYear,
         endYear: endYear,
@@ -209,12 +243,24 @@ const Timeline = props =>{
     let newItems = [initialVal];
     for (let i=0;i<data.length;i++) {
       let item = data[i];
+      if (typeof item.startDate==="undefined" || item.startDate==="") {
+        continue;
+      }
       let startDate = item.startDate;
-      let endDate = item.endDate;
+      let endDate = null;
+      if (typeof item.endDate!=="undefined" && item.endDate!=="" && item.endDate!==item.startDate) {
+        endDate = item.endDate;
+      }
       let startDateArr = startDate.split("-");
-      let endDateArr = endDate.split("-");
+      let endDateArr = [];
+      if (endDate!==null) {
+        endDate.split("-");
+      }
       let startYear = startDateArr[2];
-      let endYear = endDateArr[2];
+      let endYear = startDateArr[2];
+      if (endDate!==null) {
+        endYear = endDateArr[2];
+      }
       let newItem = {
         startYear: startYear,
         endYear: endYear,
@@ -383,9 +429,9 @@ const Timeline = props =>{
     let newEventsHTML = [];
     for (let i=0;i<item.events.length; i++) {
       let newItem = item.events[i];
-      let dateLabel = item.startDate;
-      if (item.endDate!=="" && item.endDate!==item.startDate) {
-        dateLabel += " - "+item.endDate;
+      let dateLabel = outputDate(newItem.startDate);
+      if (typeof newItem.endDate!=="undefined" && newItem.endDate!=="" && newItem.endDate!==newItem.startDate) {
+        dateLabel += " - "+outputDate(newItem.endDate);
       }
       newEventsHTML.push(<div className="timeline-event-item" key={i} onClick={()=>loadEvent(newItem._id)}>{newItem.label}  <small>[{dateLabel}]</small></div>);
     }
@@ -415,9 +461,9 @@ const Timeline = props =>{
     for (let j=0;j<item.items.length;j++) {
       let newItem = item.items[j].item;
       let events = newItem.events;
-      let dateLabel = newItem.startDate;
-      if (newItem.endDate!=="" && newItem.endDate!==newItem.startDate) {
-        dateLabel += " - "+newItem.endDate;
+      let dateLabel = outputDate(newItem.startDate);
+      if (typeof newItem.endDate!=="undefined" && newItem.endDate!=="" && newItem.endDate!==newItem.startDate) {
+        dateLabel += " - "+outputDate(newItem.endDate);
       }
       for (let i=0;i<events.length; i++) {
         let event = events[i];
@@ -562,9 +608,9 @@ const Timeline = props =>{
       let selectedEventDate = "";
       if (typeof selectedEvent.temporal!=="undefined" && selectedEvent.temporal.length>0) {
         let selectedEventTemporal = selectedEvent.temporal[0].ref;
-        selectedEventDateLabel = selectedEventTemporal.startDate;
-        if (selectedEventTemporal.endDate!=="" && selectedEventTemporal.endDate!==selectedEventTemporal.startDate) {
-          selectedEventDateLabel += " - "+selectedEventTemporal.endDate;
+        selectedEventDateLabel = outputDate(selectedEventTemporal.startDate);
+        if (typeof selectedEventTemporal.endDate!=="undefined" && selectedEventTemporal.endDate!=="" && selectedEventTemporal.endDate!==selectedEventTemporal.startDate) {
+          selectedEventDateLabel += " - "+outputDate(selectedEventTemporal.endDate);
         }
         selectedEventDate =  <small key="date"> [{selectedEventDateLabel}]</small>;
       }

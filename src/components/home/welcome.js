@@ -73,15 +73,23 @@ const About = props => {
   }
 
   let content = [];
+  const firstCapital = (str) => {
+    let words = str.split(" ");
+    let output = words.map((w,i)=>{
+      let first = w.substring(0,1);
+      let rest = w.substring(1);
+      let title = <span key={i}><span>{first}</span>{rest}</span>;
+      return title;
+    });
+    return output;
+  }
   if (!loading && articles.length>0) {
     let articlePages = articles.map((article,i)=>{
       let visibleClass = "";
       if (i===visibleIndex) {
         visibleClass = "visible";
       }
-      let title = article.label;
-      let titleFirst = title.substring(0,1);
-      let titleRest = title.substring(1);
+      let title = firstCapital(article.label);
       let articleBody = article.teaser;
       let logoImg = [];
       if (article.featuredImage!==null) {
@@ -93,7 +101,7 @@ const About = props => {
         }
       }
       let articlePage = <div key={i} className={`home-welcome-block ${visibleClass}`}>
-        <h3 className="section-title"><span><span>{titleFirst}</span>{titleRest}</span></h3>
+        <h3 className="section-title">{title}</h3>
         {logoImg}
         <div className="home-welcome-body text-justify" dangerouslySetInnerHTML={{__html: articleBody}}></div>
         <div className="text-center">

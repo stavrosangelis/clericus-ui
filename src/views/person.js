@@ -7,10 +7,14 @@ import {
 
 import {Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getPersonThumbnailURL, updateDocumentTitle, jsonStringToObject, outputDate} from '../helpers';
+import {getPersonThumbnailURL, updateDocumentTitle, jsonStringToObject} from '../helpers';
 import defaultThumbnail from '../assets/images/spcc.jpg';
-import TagPeopleSearch from '../components/tag-people-search.js';
 import Viewer from '../components/image-viewer-resource.js';
+import DescriptionBlock from '../components/item-blocks/description';
+import ResourcesBlock from '../components/item-blocks/resources';
+import EventsBlock from '../components/item-blocks/events';
+import OrganisationsBlock from '../components/item-blocks/organisations';
+import PeopleBlock from '../components/item-blocks/people';
 
 class Person extends Component {
   constructor(props) {
@@ -148,6 +152,7 @@ class Person extends Component {
       </div>;
     }
 
+    // description
     let descriptionRow = [];
     let descriptionHidden = "";
     let descriptionVisibleClass = "";
@@ -156,23 +161,17 @@ class Person extends Component {
       descriptionVisibleClass = "hidden";
     }
     if (typeof item.description!=="undefined" && item.description!==null && item.description!=="") {
-      descriptionRow = <div key="descriptionRow">
-        <div className="btn btn-default btn-xs pull-right toggle-info-btn" onClick={(e)=>{this.toggleTable(e,"description")}}>
-          <i className={"fa fa-angle-down"+descriptionHidden}/>
-        </div>
-        <div className={descriptionVisibleClass}>{item.description}</div>
-      </div>;
+      descriptionRow = <DescriptionBlock key="descriptionRow" toggleTable={this.toggleTable} hidden={descriptionHidden} visible={descriptionVisibleClass} description={item.description}/>
     }
 
-    //1.0 PersonDetails - classpieces
-    let classpiecesRow = [];
+    // resources
+    let resourcesRow = [];
     let classpiecesHidden = "";
     let classpiecesVisibleClass = "";
     if(!this.state.classpiecesVisible){
       classpiecesHidden = " closed";
       classpiecesVisibleClass = "hidden";
     }
-    let resourcesRow = [];
     let resourcesHidden = "";
     let resourcesVisibleClass = "";
     if(!this.state.resourcesVisible){
@@ -180,42 +179,10 @@ class Person extends Component {
       resourcesVisibleClass = "hidden";
     }
     if (typeof item.resources!=="undefined" && item.resources!==null && item.resources!=="") {
-      let classpieces = [];
-      let resources = [];
-      for (let i=0;i<item.resources.length; i++) {
-        let resource = item.resources[i];
-        if(resource.term.label==="isDepictedOn"){
-          let url = "/classpiece/"+resource.ref._id;
-          classpieces.push(<li key={resource.ref.label}><Link className="tag-bg tag-item" to={url} href={url}>{resource.ref.label}</Link></li>);
-        }
-        else if (resource.term.label!=="hasRepresentationObject") {
-          let url = "/resource/"+resource.ref._id;
-          resources.push(<li key={resource.ref.label}><Link className="tag-bg tag-item" href={url} to={url}>{resource.ref.label}</Link></li>)
-        }
-      }
-      if (classpieces.length>0) {
-        classpiecesRow = <div key="classpiecesRow">
-          <h5>Classpieces <small>[{classpieces.length}]</small>
-            <div className="btn btn-default btn-xs pull-right toggle-info-btn" onClick={(e)=>{this.toggleTable(e,"classpieces")}}>
-              <i className={"fa fa-angle-down"+classpiecesHidden}/>
-            </div>
-          </h5>
-          <div className={classpiecesVisibleClass}><ul className="tag-list">{classpieces}</ul></div>
-        </div>;
-      }
-      if (resources.length>0) {
-        resourcesRow = <div key="resourcesRow">
-          <h5>Resources <small>[{resources.length}]</small>
-            <div className="btn btn-default btn-xs pull-right toggle-info-btn" onClick={(e)=>{this.toggleTable(e,"resources")}}>
-              <i className={"fa fa-angle-down"+resourcesHidden}/>
-            </div>
-          </h5>
-          <div className={resourcesVisibleClass}><ul className="tag-list">{resources}</ul></div>
-        </div>;
-      }
+      resourcesRow = <ResourcesBlock key="resourcesRow" toggleTable={this.toggleTable} classpiecesHidden={classpiecesHidden} classpiecesVisible={classpiecesVisibleClass} resourcesHidden={resourcesHidden} resourcesVisible={resourcesVisibleClass} resources={item.resources} />
     }
 
-    //1.1 PersonDetails - events
+    // events
     let eventsRow = [];
     let eventsHidden = "";
     let eventsVisibleClass = "";
@@ -224,41 +191,10 @@ class Person extends Component {
       eventsVisibleClass = "hidden";
     }
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
-      if (item.events.length>0) {
-        let eventsData = item.events.map(eachItem =>{
-          let label = [<span key="label">{eachItem.ref.label}</span>];
-          if (typeof eachItem.temporal!=="undefined" && eachItem.temporal.length>0) {
-            let temporalLabels = eachItem.temporal.map((t,i)=>{
-              let temp = t.ref;
-              let tLabel = "";
-              if (typeof temp.startDate!=="undefined" && temp.startDate!=="") {
-                tLabel = outputDate(temp.startDate)
-              }
-              if (typeof temp.endDate!=="undefined" && temp.endDate!=="") {
-                tLabel += " - "+outputDate(temp.endDate);
-              }
-              return `[${tLabel}]`;
-            });
-            if (temporalLabels.length>0) {
-              let temporalLabel = temporalLabels.join(" | ");
-              label.push(<span key="dates">{temporalLabel}</span>);
-            }
-          }
-          let url = "/event/"+eachItem.ref._id;
-          return <li key={eachItem.ref.label}><Link className="tag-bg tag-item" href={url} to={url}>{label}</Link></li>
-        })
-        eventsRow = <div key="events">
-        <h5>Events <small>[{item.events.length}]</small>
-        <div className="btn btn-default btn-xs pull-right toggle-info-btn" onClick={(e)=>{this.toggleTable(e,"events")}}>
-          <i className={"fa fa-angle-down"+eventsHidden}/>
-        </div>
-        </h5>
-        <div className={eventsVisibleClass}><ul className="tag-list">{eventsData}</ul></div>
-        </div>;
-      }
+      eventsRow = <EventsBlock key="eventsRow" toggleTable={this.toggleTable} hidden={eventsHidden} visible={eventsVisibleClass} events={item.events} />
     }
 
-    //1.2 PersonDetails - organisations
+    // organisations
     let organisationsRow = [];
     let organisationsHidden = "";
     let organisationsVisibleClass = "";
@@ -267,26 +203,13 @@ class Person extends Component {
       organisationsVisibleClass = "hidden";
     }
     if (typeof item.organisations!=="undefined" && item.organisations!==null && item.organisations!=="") {
-      if (item.organisations.length>0) {
-        let organisationsData = item.organisations.map(eachItem =>{
-
-          let url = "/organisation/"+eachItem.ref._id;
-          return <li key={eachItem.ref.label}><Link className="tag-bg tag-item" href={url} to={url}>{eachItem.ref.label}</Link></li>
-        })
-        organisationsRow = <div key="organisations">
-          <h5>Organisations <small>[{item.organisations.length}]</small>
-            <div className="btn btn-default btn-xs pull-right toggle-info-btn" onClick={(e)=>{this.toggleTable(e,"organisations")}}>
-              <i className={"fa fa-angle-down"+organisationsHidden}/>
-            </div>
-          </h5>
-          <div className={organisationsVisibleClass}><ul className="tag-list">{organisationsData}</ul></div>
-        </div>;
-      }
+      organisationsRow = <OrganisationsBlock key="organisationsRow" toggleTable={this.toggleTable} hidden={organisationsHidden} visible={organisationsVisibleClass} organisations={item.organisations} />
     }
 
-    //1.3 PersonDetails - people
-    let peopleRow = <TagPeopleSearch
-      key ={"personTagPeopleSearch"}
+
+    // people
+    let peopleRow = <PeopleBlock
+      key ={"personTagPeople"}
       name = {"person"}
       peopleItem = {item.people}
     />
@@ -294,7 +217,6 @@ class Person extends Component {
     meta.push(appellationsRow);
     meta.push(descriptionRow);
     meta.push(eventsRow);
-    meta.push(classpiecesRow);
     meta.push(peopleRow);
     meta.push(organisationsRow);
     meta.push(resourcesRow);
