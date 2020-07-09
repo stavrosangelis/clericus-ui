@@ -93,7 +93,6 @@ class Events extends Component {
       temporals: filters.temporals,
     };
     if (this.state.simpleSearchTerm!=="") {
-      console.log(this.state.simpleSearchTerm)
       params.label = this.state.simpleSearchTerm;
     }
     let url = process.env.REACT_APP_APIPATH+'ui-events';
@@ -341,7 +340,7 @@ class Events extends Component {
   render() {
     let heading = "Events";
     let breadcrumbsItems = [
-      {label: heading, icon: "pe-7s-users", active: true, path: ""}
+      {label: heading, icon: "pe-7s-date", active: true, path: ""}
     ];
     updateDocumentTitle(heading);
     let content = <div>
@@ -397,10 +396,6 @@ class Events extends Component {
           clearSearch={this.clearSearch}
           handleChange={this.handleChange}
           adadvancedSearchEnable={false}
-          advancedSearch={this.advancedSearchSubmit}
-          updateAdvancedSearchRows={this.updateAdvancedSearchRows}
-          clearAdvancedSearch={this.clearAdvancedSearch}
-          updateAdvancedSearchInputs={this.updateAdvancedSearchInputs}
           />
       </Collapse>
 

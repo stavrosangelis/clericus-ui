@@ -400,7 +400,7 @@ class Classpieces extends Component {
           />
       </Collapse>
 
-      let filterType = ["events", "organisations", "temporals"];
+      let filterType = ["events", "temporals"];
       content = <div>
         <div className="row">
           <div className="col-xs-12 col-sm-4">

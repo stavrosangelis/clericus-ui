@@ -1425,6 +1425,7 @@ section {
   margin-top: 10px;
 }
 .person-details-container > div, .item-details-container > div{
+  padding-top: 10px;
   padding-bottom: 10px;
   margin-bottom: 10px;
   border-bottom: 1px solid #eee;
@@ -2211,6 +2212,14 @@ section {
   display: block;
   overflow: hidden;
   position: relative;
+}
+.spatial-map-container.small h5 {
+  font-size: 15px;
+  padding: 10px 0 0 0;
+}
+.spatial-map-container.small .leaflet-container {
+  max-height: 200px;
+  border-radius: 4px;
 }
 .spatial-note-content {
   font-size: 16px;

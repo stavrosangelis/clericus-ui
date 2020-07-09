@@ -4,13 +4,15 @@ import {
   Spinner,
   Card, CardBody,
 } from 'reactstrap';
-import {Link} from 'react-router-dom';
-import { Map, Marker, Popup, TileLayer } from 'react-leaflet'
-//import markerIconPath from '../assets/leaflet/images/marker-icon-2x.png';
+
+import { Map, Marker, Popup, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import {Breadcrumbs} from '../components/breadcrumbs';
-//import TagPeopleSearch from '../components/tag-people-search.js';
 import {updateDocumentTitle} from '../helpers';
+import ResourcesBlock from '../components/item-blocks/resources';
+import EventsBlock from '../components/item-blocks/events';
+import OrganisationsBlock from '../components/item-blocks/organisations';
+import PeopleBlock from '../components/item-blocks/people';
 
 class Spatial extends Component {
   constructor(props) {
@@ -18,44 +20,74 @@ class Spatial extends Component {
 
     this.state = {
       loading: true,
-      item: {},
+      item: null,
+      descriptionVisible: true,
+      eventsVisible: true,
+      peopleVisible: true,
+      classpiecesVisible: true,
+      resourcesVisible: true,
+      organisationsVisible: true,
+      datesVisible: true,
+      locationsVisible: true,
+      error: {
+        visible: false,
+        text: ""
+      }
     }
 
     this.load = this.load.bind(this);
+    this.toggleTable = this.toggleTable.bind(this);
     this.renderItem = this.renderItem.bind(this);
     this.renderSpatialDetails = this.renderSpatialDetails.bind(this);
     this.renderMap = this.renderMap.bind(this);
   }
 
-  load() {
+  async load() {
     let _id = this.props.match.params._id;
     if (typeof _id==="undefined" || _id===null || _id==="") {
       return false;
     }
     this.setState({
       loading: true
-    })
-    let context = this;
+    });
     let params = {
       _id: _id,
     };
     let url = process.env.REACT_APP_APIPATH+'spatial';
-    axios({
+    let responseData = await axios({
       method: 'get',
       url: url,
       crossDomain: true,
       params: params
     })
 	  .then(function (response) {
-      let responseData = response.data;
-      let spatialdata = responseData.data;
-      context.setState({
-        loading: false,
-        item: spatialdata
-      });
+      return response.data;
 	  })
 	  .catch(function (error) {
+      console.log(error)
 	  });
+    if (responseData.status) {
+      this.setState({
+        loading: false,
+        item: responseData.data
+      });
+    }
+    else {
+      this.setState({
+        loading: false,
+        error: {
+          visible: true,
+          text: responseData.msg
+        }
+      });
+    }
+  }
+
+  toggleTable(e, dataType=null) {
+    let payload = {
+      [dataType+"Visible"]:!this.state[dataType+"Visible"]
+    }
+    this.setState(payload);
   }
 
   renderSpatialDetails(stateData=null) {
@@ -63,44 +95,104 @@ class Spatial extends Component {
 
     //1. SpatialDetails
     let meta = [];
-    let dateOrder = {
-      name:  ["streetAddress","locality","region","country","postalCode",
-              "latitude","longitude","locationType"],
-      label: ["Street Address","Locality","Region","Country","Postal Code",
-              "Latitude","Longitude","LocationType"]
+    // description
+    let descriptionRow = [];
+    let descriptionHidden = "";
+    let descriptionVisibleClass = "";
+    if(!this.state.descriptionVisible){
+      descriptionHidden = " closed";
+      descriptionVisibleClass = "hidden";
+    }
+    let descriptionContent = [];
+    if (typeof item.streetAddress!=="undefined" && item.streetAddress!=="") {
+      descriptionContent.push(<div key="streetAddress"><label>Street address: </label> {item.streetAddress}</div>);
+    }
+    if (typeof item.locality!=="undefined" && item.locality!=="") {
+      descriptionContent.push(<div key="locality"><label>Locality: </label> {item.locality}</div>);
+    }
+    if (typeof item.region!=="undefined" && item.region!=="") {
+      descriptionContent.push(<div key="region"><label>Region: </label> {item.region}</div>);
+    }
+    if (typeof item.postalCode!=="undefined" && item.postalCode!=="") {
+      descriptionContent.push(<div key="postalCode"><label>Postal Code: </label> {item.postalCode}</div>);
+    }
+    if (typeof item.country!=="undefined" && item.country!=="") {
+      descriptionContent.push(<div key="country"><label>Country: </label> {item.country}</div>);
+    }
+    if (typeof item.locationType!=="undefined" && item.locationType!=="") {
+      descriptionContent.push(<div key="locationType"><label>Type: </label> {item.locationType}</div>);
+    }
+    if (typeof item.latitude!=="undefined" && item.latitude!=="") {
+      descriptionContent.push(<div key="coordinates">
+      <label>lat: </label> {item.latitude}, <label>lng: </label> {item.longitude}</div>);
+    }
+    descriptionRow = <div key="description">
+      <h5>Details
+        <div className="btn btn-default btn-xs pull-right toggle-info-btn" onClick={(e)=>{this.toggleTable(e,"description")}}>
+          <i className={"fa fa-angle-down"+descriptionHidden}/>
+        </div>
+      </h5>
+      <div className={descriptionVisibleClass}>{descriptionContent}</div>
+    </div>
+
+    // resources
+    let resourcesRow = [];
+    let classpiecesHidden = "";
+    let classpiecesVisibleClass = "";
+    if(!this.state.classpiecesVisible){
+      classpiecesHidden = " closed";
+      classpiecesVisibleClass = "hidden";
+    }
+    let resourcesHidden = "";
+    let resourcesVisibleClass = "";
+    if(!this.state.resourcesVisible){
+      resourcesHidden = " closed";
+      resourcesVisibleClass = "hidden";
+    }
+    if (typeof item.resources!=="undefined" && item.resources!==null && item.resources!=="") {
+      resourcesRow = <ResourcesBlock key="resourcesRow" toggleTable={this.toggleTable} classpiecesHidden={classpiecesHidden} classpiecesVisible={classpiecesVisibleClass} resourcesHidden={resourcesHidden} resourcesVisible={resourcesVisibleClass} resources={item.resources} />
     }
 
-    //1.0 SpatialDetails - events
+    // events
     let eventsRow = [];
+    let eventsHidden = "";
+    let eventsVisibleClass = "";
+    if(!this.state.eventsVisible){
+      eventsHidden = " closed";
+      eventsVisibleClass = "hidden";
+    }
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
-      //item.events = []
-      if(Object.keys(item.events).length === 0){
-        eventsRow = <tr key={"eventsRow"}><th>Events</th><td/></tr>;
-      }
-      //item.events = {...}
-      else {
-        let eventsData = item.events.map(eachItem =>{
-          return <li key={eachItem.ref.label}><a className="tag-bg tag-item" href={"/event/"+eachItem.ref._id}>{eachItem.ref.label}</a></li>
-        })
-        eventsRow = <tr key={"eventsRow"}><th>Events</th><td><ul className="tag-list">{eventsData}</ul></td></tr>;
-      }
+      eventsRow = <EventsBlock key="eventsRow" toggleTable={this.toggleTable} hidden={eventsHidden} visible={eventsVisibleClass} events={item.events} />
     }
+
+    // organisations
+    let organisationsRow = [];
+    let organisationsHidden = "";
+    let organisationsVisibleClass = "";
+    if(!this.state.organisationsVisible){
+      organisationsHidden = " closed";
+      organisationsVisibleClass = "hidden";
+    }
+    if (typeof item.organisations!=="undefined" && item.organisations!==null && item.organisations!=="") {
+      organisationsRow = <OrganisationsBlock key="organisationsRow" toggleTable={this.toggleTable} hidden={organisationsHidden} visible={organisationsVisibleClass} organisations={item.organisations} />
+    }
+
+    // people
+    let peopleRow = [];
+    if (typeof item.people!=="undefined" && item.people.length>0) {
+      peopleRow = <PeopleBlock
+        key ={"people"}
+        name = {"spatial"}
+        peopleItem = {item.people}
+      />
+    }
+
+    meta.push(descriptionRow);
+    meta.push(organisationsRow);
     meta.push(eventsRow);
-
-    //1.1 SpatialDetails - dateOrder
-    for(let i=0;i<dateOrder.name.length;i++) {
-      let dataRow = [];
-      let dataItem = item[`${dateOrder.name[i]}`];
-      if (typeof dataItem!=="undefined" && dataItem!==null && dataItem!=="") {
-        dataRow = <tr key={dateOrder.name[i]}><th>{dateOrder.label[i]}</th><td>{dataItem}</td></tr>;
-      }
-      meta.push(dataRow);
-    }
-
-    //1.5 SpatialDetails - SpatialDetails include all elements of the dateOrder
-    return <table key={"SpatialDetails"} className="table table-borderless spatial-content-table">
-          <tbody>{meta}</tbody>
-        </table>
+    meta.push(resourcesRow);
+    meta.push(peopleRow);
+    return meta;
   }
 
   renderMap(stateData=null) {
@@ -138,56 +230,27 @@ class Spatial extends Component {
     let label = item.label;
 
     //2.1 meta
-    //let metaTable = <Table><tbody>{meta}</tbody></Table>
     let metaTable = this.renderSpatialDetails(stateData);
 
-    //2.3 description
-    let noteRow = []
-    if(typeof item.note!=="undefined" && item.note!==null && item.note!=="") {
-      let noteData = <div className="spatial-note-content" key={"noteData"}>{item.note}</div>;
-      noteRow.push(noteData);
-    }
-
-    //2.4 spatial map
+    //2.2 spatial map
     let map = null;
     if ((item.latitude !== "") && (item.longitude!== "")) {
       map = this.renderMap(stateData);
     }
 
-    let relationshipGraph = null;
-    if (typeof this.state.item.status !== "undefined") {
-      if (this.state.item.status !== "private") {
-        let labelGraph = "spatial-graph";
-        let _idGraph = this.props.match.params._id;
-        relationshipGraph = <div className="row">
-          <div className="col-xs-12 col-md-4">
-            <Link href={`/${labelGraph}/${_idGraph}`} to={`/${labelGraph}/${_idGraph}`} className="person-component-link" title="Spatial graph network"><i className="pe-7s-graph1" /></Link>
+    let output = <div className="item-container">
+      <h3>{label}</h3>
+      <div className="row item-info-container">
+        <div className="col-xs-12 col-sm-6 col-md-6">
+          <div className="item-details-container">
+            {metaTable}
           </div>
         </div>
-      }
-    }
-
-    let output = <Card>
-      <CardBody>
-        <div className="item-container">
-          <div className="item-title-container">
-            <h4 className="item-label">{label}</h4>
-          </div>
-          <div className="row item-content-container">
-            <div className="col-xs-12 col-sm-6 col-md-6">
-              <div className="item-content-des">
-                {noteRow}
-              </div>
-              {metaTable}
-            </div>
-            <div className="col-xs-12 col-sm-6 col-md-6">
-              {map}
-            </div>
-          </div>
-          {relationshipGraph}
+        <div className="col-xs-12 col-sm-6 col-md-6">
+          {map}
         </div>
-      </CardBody>
-    </Card>
+      </div>
+    </div>
     return output;
   }
 
@@ -206,24 +269,47 @@ class Spatial extends Component {
       </div>
     </div>
 
+    let label = "";
+    let breadcrumbsItems = [{label: "Spatials", icon: "pe-7s-map", active: false, path: "/spatials"}];
     if (!this.state.loading) {
-      let spatialCard = this.renderItem(this.state);
-      content = <div>
-        <div className="row">
-          <div className="col-12">
-            {spatialCard}
-          </div>
+      if (this.state.item!==null) {
+        let spatialCard = this.renderItem(this.state);
+
+        content = <div>
+          <Card>
+            <CardBody>
+              <div className="row">
+                <div className="col-12">
+                  {spatialCard}
+                </div>
+              </div>
+            </CardBody>
+          </Card>
         </div>
-      </div>
+        label = this.state.item.label;
+        breadcrumbsItems.push({label: label, icon: "pe-7s-map",active: true, path: ""});
+        let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+        updateDocumentTitle(documentTitle);
+      }
+      else if (this.state.error.visible){
+        breadcrumbsItems.push({label: this.state.error.text, icon: "fa fa-times", active: true, path: ""});
+        let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+        updateDocumentTitle(documentTitle);
+        content = <div>
+          <Card>
+            <CardBody>
+              <div className="row">
+                <div className="col-12">
+                  <h3>Error</h3>
+                  <p>{this.state.error.text}</p>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+      }
     }
 
-    let label = this.state.item.label;
-    let breadcrumbsItems = [
-      {label: "Spatials", icon: "pe-7s-date", active: false, path: "/spatials"},
-      {label: label, active: true, path: ""},
-    ];
-    let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
-    updateDocumentTitle(documentTitle);
     return (
       <div className="container">
         <Breadcrumbs items={breadcrumbsItems} />

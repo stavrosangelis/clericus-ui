@@ -4,10 +4,9 @@ import {
   Spinner,
   Card, CardBody,
 } from 'reactstrap';
-
-import {Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
 import {updateDocumentTitle, outputDate} from '../helpers';
+import EventsBlock from '../components/item-blocks/events';
 
 class Temporal extends Component {
   constructor(props) {
@@ -15,10 +14,16 @@ class Temporal extends Component {
 
     this.state = {
       loading: true,
-      item: {},
+      item: null,
+      eventsVisible: true,
+      error: {
+        visible: false,
+        text: ""
+      }
     }
 
     this.load = this.load.bind(this);
+    this.toggleTable = this.toggleTable.bind(this);
     this.renderItem = this.renderItem.bind(this);
     this.renderTemporalDetails = this.renderTemporalDetails.bind(this);
   }
@@ -34,7 +39,7 @@ class Temporal extends Component {
     let params = {
       _id: _id,
     };
-    let url = process.env.REACT_APP_APIPATH+'temporal';
+    let url = process.env.REACT_APP_APIPATH+'ui-temporal';
     let responseData = await axios({
       method: 'get',
       url: url,
@@ -47,11 +52,28 @@ class Temporal extends Component {
 	  .catch(function (error) {
 	  });
 
-    let temporaldata = responseData.data;
-    this.setState({
-      loading: false,
-      item: temporaldata
-    });
+    if (responseData.status) {
+      this.setState({
+        loading: false,
+        item: responseData.data
+      });
+    }
+    else {
+      this.setState({
+        loading: false,
+        error: {
+          visible: true,
+          text: responseData.msg
+        }
+      });
+    }
+  }
+
+  toggleTable(e, dataType=null) {
+    let payload = {
+      [dataType+"Visible"]:!this.state[dataType+"Visible"]
+    }
+    this.setState(payload);
   }
 
   renderTemporalDetails(stateData=null) {
@@ -60,22 +82,14 @@ class Temporal extends Component {
     //1. TemporalDetails
     let meta = [];
     let eventsRow = [];
+    let eventsHidden = "";
+    let eventsVisibleClass = "";
+    if(!this.state.eventsVisible){
+      eventsHidden = " closed";
+      eventsVisibleClass = "hidden";
+    }
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
-      //item.events = []
-      if (item.events.length>0) {
-        let eventsData = item.events.map(eachItem =>{
-          let label = eachItem.ref.label;
-          if (typeof eachItem.temporal!=="undefined" && eachItem.temporal.length>0) {
-            label += ` [${eachItem.temporal[0].ref.label}]`;
-          }
-          let url = "/event/"+eachItem.ref._id;
-          return <li key={eachItem.ref.label}><Link className="tag-bg tag-item" href={url} to={url}>{label}</Link></li>
-        })
-        eventsRow = <div key="events">
-        <h5>Events <small>[{item.events.length}]</small></h5>
-        <ul className="tag-list">{eventsData}</ul>
-        </div>;
-      }
+      eventsRow = <EventsBlock key="eventsRow" toggleTable={this.toggleTable} hidden={eventsHidden} visible={eventsVisibleClass} events={item.events} />
     }
 
     // dates
@@ -101,68 +115,20 @@ class Temporal extends Component {
   renderItem(stateData=null) {
     let item = stateData.item;
 
-    //1.1 Temporal label
     let label = item.label;
 
-    //2.1 meta
-    //let metaTable = <Table><tbody>{meta}</tbody></Table>
     let metaTable = this.renderTemporalDetails(stateData);
 
-    //2.2 thumbnailImage
-    let thumbnailImage = [];
-    /*
-    let thumbnailURL = null;//getEventThumbnailURL(item);
-    if (thumbnailURL!==null) {
-      thumbnailImage = <div key={"thumbnailImage"} className="show-classpiece" onClick={()=>this.toggleViewer()}>
-        <img src={thumbnailURL} className="people-thumbnail img-fluid img-thumbnail" alt={label} />
+    let output = <div className="item-container">
+      <h3>{label}</h3>
+      <div className="row">
+        <div className="col-12">
+          <div className="item-details-container">
+            {metaTable}
+          </div>
+        </div>
       </div>
-    }
-    */
-
-    //2.3 description
-    let descriptionRow = []
-    /*
-    if(typeof item.description!=="undefined" && item.description!==null && item.description!=="") {
-      let descriptionTitle = <h6 key={"descriptionTitle"} className="item-content-des-title">Description:</h6>;
-      let descriptionData = <div className="person-des-content" key={"descriptionData"}>{item.description}</div>;
-      descriptionRow.push(descriptionTitle,descriptionData);
-    }
-    */
-
-    let relationshipGraph = null;
-    if (typeof this.state.item.status !== "undefined") {
-      if (this.state.item.status !== "private") {
-        let labelGraph = "temporal-graph";
-        let _idGraph = this.props.match.params._id;
-        relationshipGraph = <div className="row">
-          <div className="col-xs-12 col-md-4">
-            <Link href={`/${labelGraph}/${_idGraph}`} to={`/${labelGraph}/${_idGraph}`} className="person-component-link" title="Temporal graph network"><i className="pe-7s-graph1" /></Link>
-          </div>
-        </div>
-      }
-    }
-
-    let output = <Card>
-      <CardBody>
-        <div className="item-container">
-          <div className="item-title-container">
-            <h4 className="item-label">{label}</h4>
-          </div>
-          <div className="row item-content-container">
-            <div className="col-xs-12 col-sm-6 col-md-8">
-              <div className="item-content-des">
-                {descriptionRow}
-              </div>
-              {metaTable}
-            </div>
-            <div className="col-xs-12 col-sm-6 col-md-4">
-              {thumbnailImage}
-            </div>
-          </div>
-          {relationshipGraph}
-        </div>
-      </CardBody>
-    </Card>
+    </div>
     return output;
   }
 
@@ -181,24 +147,47 @@ class Temporal extends Component {
       </div>
     </div>
 
+    let label = "";
+    let breadcrumbsItems = [{label: "Dates", icon: "pe-7s-date", active: false, path: "/temporals"}];
     if (!this.state.loading) {
-      let temporalCard = this.renderItem(this.state);
-      content = <div>
-        <div className="row">
-          <div className="col-12">
-            {temporalCard}
-          </div>
+      if (this.state.item!==null) {
+        let temporalCard = this.renderItem(this.state);
+        content = <div>
+          <Card>
+            <CardBody>
+              <div className="row">
+                <div className="col-12">
+                  {temporalCard}
+                </div>
+              </div>
+            </CardBody>
+          </Card>
         </div>
-      </div>
+        label = this.state.item.label;
+        breadcrumbsItems.push({label: label, icon: "pe-7s-date", active: true, path: ""});
+        let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+        updateDocumentTitle(documentTitle);
+      }
+      else if (this.state.error.visible){
+        breadcrumbsItems.push({label: this.state.error.text, icon: "fa fa-times", active: true, path: ""});
+        let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+        updateDocumentTitle(documentTitle);
+        content = <div>
+          <Card>
+            <CardBody>
+              <div className="row">
+                <div className="col-12">
+                  <h3>Error</h3>
+                  <p>{this.state.error.text}</p>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+      }
     }
 
-    let label = this.state.item.label;
-    let breadcrumbsItems = [
-      {label: "Temporals", icon: "pe-7s-date", active: false, path: "/temporals"},
-      {label: label, icon: "pe-7s-date", active: true, path: ""},
-    ];
-    let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
-    updateDocumentTitle(documentTitle);
+
     return (
       <div className="container">
         <Breadcrumbs items={breadcrumbsItems} />

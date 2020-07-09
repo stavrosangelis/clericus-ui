@@ -13,6 +13,7 @@ import Viewer from '../components/image-viewer.js';
 import {updateDocumentTitle} from '../helpers';
 import DescriptionBlock from '../components/item-blocks/description';
 import ResourcesBlock from '../components/item-blocks/resources';
+import ClasspiecesBlock from '../components/item-blocks/classpieces';
 import EventsBlock from '../components/item-blocks/events';
 import OrganisationsBlock from '../components/item-blocks/organisations';
 import PeopleBlock from '../components/item-blocks/people';
@@ -123,14 +124,20 @@ class Classpiece extends Component {
       descriptionRow = <DescriptionBlock key="descriptionRow" toggleTable={this.toggleTable} hidden={descriptionHidden} visible={descriptionVisibleClass} description={item.description}/>
     }
 
-    // resources
-    let resourcesRow = [];
+    // classpieces
+    let classpiecesRow = [];
     let classpiecesHidden = "";
     let classpiecesVisibleClass = "";
     if(!this.state.classpiecesVisible){
       classpiecesHidden = " closed";
       classpiecesVisibleClass = "hidden";
     }
+    if (typeof item.classpieces!=="undefined" && item.classpieces!==null && item.classpieces!=="") {
+      classpiecesRow = <ClasspiecesBlock key="classpieces" toggleTable={this.toggleTable} hidden={classpiecesHidden} visible={classpiecesVisibleClass} items={item.classpieces} />
+    }
+
+    // resources
+    let resourcesRow = [];
     let resourcesHidden = "";
     let resourcesVisibleClass = "";
     if(!this.state.resourcesVisible){
@@ -138,7 +145,7 @@ class Classpiece extends Component {
       resourcesVisibleClass = "hidden";
     }
     if (typeof item.resources!=="undefined" && item.resources!==null && item.resources!=="") {
-      resourcesRow = <ResourcesBlock key="resourcesRow" toggleTable={this.toggleTable} classpiecesHidden={classpiecesHidden} classpiecesVisible={classpiecesVisibleClass} resourcesHidden={resourcesHidden} resourcesVisible={resourcesVisibleClass} resources={item.resources} />
+      resourcesRow = <ResourcesBlock key="resourcesRow" toggleTable={this.toggleTable} hidden={resourcesHidden} visible={resourcesVisibleClass} resources={item.resources} />
     }
 
     // events
@@ -175,6 +182,7 @@ class Classpiece extends Component {
     detailsOutput.push(descriptionRow);
     detailsOutput.push(eventsRow);
     detailsOutput.push(peopleRow);
+    detailsOutput.push(classpiecesRow);
     detailsOutput.push(resourcesRow);
     detailsOutput.push(organisationsRow);
 

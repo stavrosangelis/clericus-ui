@@ -97,12 +97,29 @@ export const defaultState = {
 
   temporalsPagination: {
     limit:25,
-    page:1
+    page:1,
+    simpleSearchTerm: "",
+  },
+  temporalsRelationship: {
+    classpieces: [],
+    events: [],
+    organisations: [],
+    people: [],
+    temporals: [],
+    spatials: [],
+  },
+  temporalsFilters: {
+    temporals: {
+      startDate: "",
+      endDate: "",
+      dateType: "exact",
+    },
   },
 
   spatialsPagination: {
     limit:25,
-    page:1
+    page:1,
+    simpleSearchTerm: "",
   },
 
 
@@ -120,27 +137,7 @@ export const defaultState = {
 
 
   loadingResourcesRelationship: true,
-
-  temporalsFilters: {
-    //classpieces: [],
-    //events: [],
-    //organisations: [],
-    //people: [],
-    temporals: {
-      startDate: "",
-      endDate: "",
-      dateType: "exact",
-    },
-    //spatials: [],
-  },
-  temporalsRelationship: {
-    //classpieces: [],
-    //events: [],
-    //organisations: [],
-    //people: [],
-    temporals: [],
-    //spatials: [],
-  },
+  
   loadingTemporalsRelationship: true,
 
   spatialsFilters: {

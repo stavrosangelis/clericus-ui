@@ -1,15 +1,13 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   Button,
   Form, Input, InputGroup, InputGroupAddon,
 } from 'reactstrap';
 import {Link} from 'react-router-dom';
-
 import Pagination from '../pagination';
 
 const Block = props => {
   const [searchVisible, setSearchVisible] = useState(false);
-  const [peopleDataVisible, setPeopleDataVisible] = useState(true);
   const [simpleSearchSet, setSimpleSearchSet] = useState('');
   const [simpleSearchTerm, setSimpleSearchTerm] = useState('');
   const [page, setPage] = useState(1);
@@ -37,12 +35,6 @@ const Block = props => {
     setSimpleSearchSet('');
   }
 
-  const toggleTable = (e, dataType=null) =>{
-    if(dataType === "peopleData") {
-      setPeopleDataVisible(!peopleDataVisible);
-    }
-  }
-
   const toggleSearch = () => {
     if(searchVisible) {
       setSearchVisible(!searchVisible);
@@ -58,31 +50,21 @@ const Block = props => {
     }
   }
 
-  let peopleRow = [];
-  if (typeof props.peopleItem!=="undefined" && props.peopleItem!==null && props.peopleItem!=="" && props.peopleItem.length>0) {
-    let peopleDataHidden_container = "";
-    let peopleDataHidden_icon = "";
-    if(!peopleDataVisible){
-      peopleDataHidden_container = " closed";
-      peopleDataHidden_icon = " closed";
-      if(searchVisible){
-        peopleDataHidden_container = " closedWithSearch";
-      }
-    }
-    let peopleData = [];
-    let people = props.peopleItem.filter(p=>p.ref.label.toLowerCase().includes(simpleSearchSet.toLowerCase()));
-    for (let i=0;i<people.length; i++) {
+  let propsClasspieces = props.items;
+  let classpiecesRow = [];
+  if (propsClasspieces.length>0) {
+    let classpieces = propsClasspieces.filter(p=>p.ref.label.toLowerCase().includes(simpleSearchSet.toLowerCase()));
+    let classPiecesData = [];
+    for (let i=0;i<classpieces.length; i++) {
       if (i<=firstIndex) {
         continue;
       }
       if (i>lastIndex) {
         break;
       }
-      let person = people[i];
-      if (person.ref.label.toLowerCase().includes(simpleSearchSet.toLowerCase())) {
-        let url = "/person/"+person.ref._id;
-        peopleData.push(<li key={person.ref._id} ><Link className="tag-bg tag-item" href={url} to={url}><i>{person.term.label}</i> {person.ref.label}</Link></li>);
-      }
+      let classpiece = classpieces[i];
+      let url = "/classpiece/"+classpiece.ref._id;
+      classPiecesData.push(<li key={classpiece.ref._id}><Link className="tag-bg tag-item" to={url} href={url}><i>{classpiece.term.label}</i> {classpiece.ref.label}</Link></li>);
     }
     let searchVisibleClass = "";
     if (searchVisible) {
@@ -101,8 +83,7 @@ const Block = props => {
         </Form>
     </div>
 
-
-    let totalPages = Math.ceil(people.length/limit);
+    let totalPages = Math.ceil(classpieces.length/limit);
     let newPage = page;
     if (totalPages<newPage) {
       if (totalPages===0) {
@@ -124,11 +105,10 @@ const Block = props => {
       </div>
     }
 
-
-    peopleRow = <div key="people">
-      <h5>People <small>[{props.peopleItem.length}]</small>
-        <div className="btn btn-default btn-xs pull-right toggle-info-btn pull-icon-middle" onClick={(e)=>{toggleTable(e,"peopleData")}}>
-          <i className={"fa fa-angle-down"+peopleDataHidden_icon}/>
+    classpiecesRow = <div key="classpiecesRow">
+      <h5>Classpieces <small>[{classpieces.length}]</small>
+        <div className="btn btn-default btn-xs pull-right toggle-info-btn pull-icon-middle" onClick={(e)=>{props.toggleTable(e,"classpieces")}}>
+          <i className={"fa fa-angle-down"+props.hidden}/>
         </div>
         <div className="tool-box pull-right classpiece-search">
           <div className="action-trigger" onClick={()=>toggleSearch()} id="search-tooltip">
@@ -136,20 +116,13 @@ const Block = props => {
           </div>
         </div>
       </h5>
-      <div className={"people-info-container"+peopleDataHidden_container}>
+      <div className={props.visible}>
         {searchBar}
-        <ul className="tag-list tag-list-people">
-          {peopleData}
-        </ul>
+        <ul className="tag-list">{classPiecesData}</ul>
         {pagination}
       </div>
     </div>;
-
-
   }
-  return (
-    peopleRow
-  )
+  return (classpiecesRow)
 }
-
 export default Block;

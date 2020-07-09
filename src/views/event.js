@@ -10,9 +10,11 @@ import {Breadcrumbs} from '../components/breadcrumbs';
 import {updateDocumentTitle,outputDate} from '../helpers';
 import DescriptionBlock from '../components/item-blocks/description';
 import ResourcesBlock from '../components/item-blocks/resources';
+import ClasspiecesBlock from '../components/item-blocks/classpieces';
 import EventsBlock from '../components/item-blocks/events';
 import OrganisationsBlock from '../components/item-blocks/organisations';
 import PeopleBlock from '../components/item-blocks/people';
+import SpatialBlock from '../components/item-blocks/spatial';
 
 class Event extends Component {
   constructor(props) {
@@ -28,6 +30,7 @@ class Event extends Component {
       resourcesVisible: true,
       organisationsVisible: true,
       datesVisible: true,
+      locationsVisible: true,
       error: {
         visible: false,
         text: ""
@@ -107,14 +110,20 @@ class Event extends Component {
       descriptionRow = <DescriptionBlock key="descriptionRow" toggleTable={this.toggleTable} hidden={descriptionHidden} visible={descriptionVisibleClass} description={item.description}/>
     }
 
-    // resources
-    let resourcesRow = [];
+    // classpieces
+    let classpiecesRow = [];
     let classpiecesHidden = "";
     let classpiecesVisibleClass = "";
     if(!this.state.classpiecesVisible){
       classpiecesHidden = " closed";
       classpiecesVisibleClass = "hidden";
     }
+    if (typeof item.classpieces!=="undefined" && item.classpieces!==null && item.classpieces!=="") {
+      classpiecesRow = <ClasspiecesBlock key="classpieces" toggleTable={this.toggleTable} hidden={classpiecesHidden} visible={classpiecesVisibleClass} items={item.classpieces} />
+    }
+
+    // resources
+    let resourcesRow = [];
     let resourcesHidden = "";
     let resourcesVisibleClass = "";
     if(!this.state.resourcesVisible){
@@ -122,7 +131,7 @@ class Event extends Component {
       resourcesVisibleClass = "hidden";
     }
     if (typeof item.resources!=="undefined" && item.resources!==null && item.resources!=="") {
-      resourcesRow = <ResourcesBlock key="resourcesRow" toggleTable={this.toggleTable} classpiecesHidden={classpiecesHidden} classpiecesVisible={classpiecesVisibleClass} resourcesHidden={resourcesHidden} resourcesVisible={resourcesVisibleClass} resources={item.resources} />
+      resourcesRow = <ResourcesBlock key="resources" toggleTable={this.toggleTable} hidden={resourcesHidden} visible={resourcesVisibleClass} resources={item.resources} />
     }
 
     // events
@@ -149,10 +158,10 @@ class Event extends Component {
       organisationsRow = <OrganisationsBlock key="organisationsRow" toggleTable={this.toggleTable} hidden={organisationsHidden} visible={organisationsVisibleClass} organisations={item.organisations} />
     }
 
-    //1.3 OrganisationDetails - people
+    // people
     let peopleRow = <PeopleBlock
-      key ={"organisationTagPeople"}
-      name = {"organisation"}
+      key ={"people"}
+      name = {"event"}
       peopleItem = {item.people}
     />
 
@@ -189,9 +198,19 @@ class Event extends Component {
     }
 
     let locationsRow = [];
+    let locationsHidden = "";
+    let locationsVisibleClass = "";
+    if(!this.state.locationsVisible){
+      locationsHidden = " closed";
+      locationsVisibleClass = "hidden";
+    }
+    if (typeof item.spatial!=="undefined" && item.spatial!==null && item.spatial.length>0) {
+      locationsRow = <SpatialBlock key="spatialRow" toggleTable={this.toggleTable} hidden={locationsHidden} visible={locationsVisibleClass} spatial={item.spatial}/>
+    }
 
     meta.push(peopleRow);
     meta.push(organisationsRow);
+    meta.push(classpiecesRow);
     meta.push(resourcesRow);
     meta.push(eventsRow);
     meta.push(datesRow);
@@ -208,7 +227,6 @@ class Event extends Component {
     let label = item.label;
     let eventType = <h6 className="event-type"><i>{item.eventType.inverseLabel}</i></h6>;
     //2.1 meta
-    //let metaTable = <Table><tbody>{meta}</tbody></Table>
     let metaTable = this.renderEventDetails(stateData);
 
     //2.2 thumbnailImage
