@@ -1377,6 +1377,7 @@ section {
   font-weight: 400;
   display: inline-block;
   text-align: left;
+  margin-bottom: 2px;
 }
 .tag-item > span {
   display: block;
@@ -1513,6 +1514,10 @@ section {
   padding: 4px 8px;
   background-image: none!important;
 }
+.marker-cluster div span{
+  opacity: 0.6;
+  text-shadow: -1px -1px 5px #fff;
+}
 .marker-cluster-medium, .marker-cluster-small {
   background-color: transparent !important;
 }
@@ -1524,7 +1529,7 @@ section {
   border: 1px solid #ddd;
   border-radius: 4px;
   background-color: #fff;
-  height:600px;
+  height: 660px;
   position: relative;
   overflow: hidden;
 }
@@ -1537,6 +1542,7 @@ section {
   box-shadow: 0 0 10px rgba(0,0,0,0.2);
   min-width: 350px;
   max-width: 500px;
+  z-index:99;
 }
 .graph-details-card-close {
   font-size: 16px;
@@ -1681,6 +1687,27 @@ section {
   background-color: #eee;
 }
 .graph-search-toggle:active {
+  background-color: #d0d0d0;
+}
+.graph-help-toggle {
+  width: 40px;
+  height: 40px;
+  margin: 10px auto 15px auto;
+  border-radius: 50%;
+  background-color: #fff;
+  position: relative;
+  right: 0;
+  z-index: 3;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  text-align: center;
+  line-height: 40px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.graph-help-toggle:hover {
+  background-color: #eee;
+}
+.graph-help-toggle:active {
   background-color: #d0d0d0;
 }
 .graph-search-container {
@@ -1906,6 +1933,28 @@ section {
   background-color: #eee;
 }
 .map-search-toggle:active {
+  background-color: #d0d0d0;
+}
+.map-help-toggle {
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  margin: 0;
+  border-radius: 50%;
+  background-color: #fff;
+  position: absolute;
+  left: 8px;
+  top: 125px;
+  z-index: 999;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  text-align: center;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.map-help-toggle:hover {
+  background-color: #eee;
+}
+.map-help-toggle:active {
   background-color: #d0d0d0;
 }
 .map-search-container {
@@ -2213,6 +2262,13 @@ section {
   overflow: hidden;
   position: relative;
 }
+.spatial-map-container.spatials-list-map {
+  max-height: 0;
+  transition: 0.4s max-height;
+}
+.spatial-map-container.spatials-list-map.active {
+  max-height: 500px;
+}
 .spatial-map-container.small h5 {
   font-size: 15px;
   padding: 10px 0 0 0;
@@ -2493,6 +2549,11 @@ section {
 .graph-search-toggle.events-timeline {
   position: absolute;
   top: 110px;
+  right: 10px;
+}
+.graph-help-toggle.events-timeline {
+  position: absolute;
+  top: 170px;
   right: 10px;
 }
 .events-timeline-search-container {
@@ -2811,4 +2872,17 @@ section {
 }
 .cc-footer-img {
   max-height: 36px;
+}
+.popup-people {
+  max-height: 240px;
+  width: 400px;
+}
+.popup-people .tag-list-people {
+  max-height: 180px;
+}
+.heatmap-container .leaflet-popup-content {
+  min-width: 400px;
+}
+.heatmap-container .map-search-container-nodes {
+  max-height: 420px;
 }

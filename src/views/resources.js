@@ -162,7 +162,7 @@ class Resources extends Component {
       page: 1,
     }, ()=>{
       this.load();
-    })
+    });
   }
 
   toggleSearch() {

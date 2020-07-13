@@ -12,6 +12,7 @@ import DatePicker from "react-datepicker";
 import moment from "moment";
 import {getResourceThumbnailURL, updateDocumentTitle, outputDate} from '../../helpers';
 import "react-datepicker/dist/react-datepicker.css";
+import HelpArticle from '../../components/help-article';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
@@ -35,6 +36,7 @@ const Timeline = props =>{
   const zoomIndex = 4;
   const [zoomVal,setZoomVal] = useState(zoomIndex);
   const [zoom,setZoom] = useState(zoomValues[(zoomIndex-1)]);
+  const [helpVisible, setHelpVisible] = useState(false);
 
   const groupByDay = (data) => {
     let itemsHTML = [];
@@ -546,6 +548,10 @@ const Timeline = props =>{
     setZoom(zoomValues[newIndex]);
   }
 
+  const toggleHelp = () => {
+    setHelpVisible(!helpVisible)
+  }
+
   let heading = "Events timeline";
   let breadcrumbsItems = [
     {label: heading, icon: "pe-7s-hourglass", active: true, path: ""}
@@ -741,6 +747,10 @@ const Timeline = props =>{
       <i className="fa fa-search" />
     </div>
 
+    const helpIcon = <div className="graph-help-toggle events-timeline" onClick={()=>toggleHelp()} title="Help">
+      <i className="fa fa-question-circle" />
+    </div>
+
     let scVisibleClass = " hidden";
     if (searchContainerVisible) {
       scVisibleClass = "";
@@ -784,12 +794,14 @@ const Timeline = props =>{
               </ul>
               {zoomPanel}
               {searchIcon}
+              {helpIcon}
               {searchContainer}
               {eventsContainer}
             </div>
           </CardBody>
         </Card>
       </div>
+      <HelpArticle permalink={"timeline-help"} visible={helpVisible} toggle={toggleHelp}/>
     </div>
   }
   return (

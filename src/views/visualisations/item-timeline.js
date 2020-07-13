@@ -11,6 +11,7 @@ import {Link} from 'react-router-dom';
 import DatePicker from "react-datepicker";
 import moment from "moment";
 import {getResourceThumbnailURL, updateDocumentTitle} from '../../helpers';
+import HelpArticle from '../../components/help-article';
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -37,6 +38,7 @@ const Timeline = props =>{
   const zoomIndex = 4;
   const [zoomVal,setZoomVal] = useState(zoomIndex);
   const [zoom,setZoom] = useState(zoomValues[(zoomIndex-1)]);
+  const [helpVisible, setHelpVisible] = useState(false);
 
   const groupByDay = (data) => {
     let itemsHTML = [];
@@ -539,19 +541,62 @@ const Timeline = props =>{
     setZoom(zoomValues[newIndex]);
   }
 
+  const toggleHelp = () => {
+    setHelpVisible(!helpVisible)
+  }
+
   let heading = "";
+  let pageType = props.match.params.type;
   let breadcrumbsItems = [];
-  if (!loading && item!==null && props.match.params.type==="person") {
-    let label = item.firstName;
-    if (typeof item.middleName!=="undefined" && item.middleName!==null && item.middleName!=="") {
-      label += " "+item.middleName;
+  let breadcrumbsParent = {};
+  if (pageType==="classpiece") {
+    breadcrumbsParent = {label: "Classpieces", icon: "pe-7s-photo", active: false, path: "/classpieces"};
+  }
+  if (pageType==="event") {
+    breadcrumbsParent = {label: "Events", icon: "pe-7s-date", active: false, path: "/events"};
+  }
+  if (pageType==="organisation") {
+    breadcrumbsParent = {label: "Organisations", icon: "pe-7s-culture", active: false, path: "/organisations"};
+  }
+  if (pageType==="person") {
+    breadcrumbsParent = {label: "People", icon: "pe-7s-users", active: false, path: "/people"};
+  }
+  if (pageType==="resource") {
+    breadcrumbsParent = {label: "Resources", icon: "pe-7s-photo", active: false, path: "/resources"};
+  }
+  breadcrumbsItems.push(breadcrumbsParent);
+  if (!loading && item!==null) {
+    let label = item.label;
+    if (pageType==="classpiece") {
+      breadcrumbsItems.push(
+        {label: label, icon: "pe-7s-photo", active: false, path: `/classpiece/${props.match.params._id}`},
+        {label: "Timeline", icon: "pe-7s-hourglass", active: true, path: ""});
     }
-    label += " "+item.lastName;
-    breadcrumbsItems = [
-      {label: "People", icon: "pe-7s-users", active: false, path: "/people"},
-      {label: label, icon: "pe-7s-user", active: false, path: `/person/${props.match.params._id}`},
-      {label: "Timeline", icon: "pe-7s-hourglass", active: true, path: ""}
-    ];
+    if (pageType==="event") {
+      breadcrumbsItems.push(
+        {label: label, icon: "pe-7s-date", active: false, path: `/event/${props.match.params._id}`},
+        {label: "Timeline", icon: "pe-7s-hourglass", active: true, path: ""});
+    }
+    if (pageType==="organisation") {
+      breadcrumbsItems.push(
+        {label: label, icon: "pe-7s-culture", active: false, path: `/organisation/${props.match.params._id}`},
+        {label: "Timeline", icon: "pe-7s-hourglass", active: true, path: ""});
+    }
+    if (pageType==="person") {
+      label = item.firstName;
+      if (typeof item.middleName!=="undefined" && item.middleName!==null && item.middleName!=="") {
+        label += " "+item.middleName;
+      }
+      label += " "+item.lastName;
+      breadcrumbsItems.push(
+        {label: label, icon: "pe-7s-user", active: false, path: `/person/${props.match.params._id}`},
+        {label: "Timeline", icon: "pe-7s-hourglass", active: true, path: ""});
+    }
+    if (pageType==="resource") {
+      breadcrumbsItems.push(
+        {label: label, icon: "pe-7s-photo", active: false, path: `/resource/${props.match.params._id}`},
+        {label: "Timeline", icon: "pe-7s-hourglass", active: true, path: ""});
+    }
     let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
     updateDocumentTitle(documentTitle);
     heading = `${label} Timeline`;
@@ -748,6 +793,10 @@ const Timeline = props =>{
       <i className="fa fa-search" />
     </div>
 
+    const helpIcon = <div className="graph-help-toggle events-timeline" onClick={()=>toggleHelp()} title="Help">
+      <i className="fa fa-question-circle" />
+    </div>
+
     let scVisibleClass = " hidden";
     if (searchContainerVisible) {
       scVisibleClass = "";
@@ -791,12 +840,14 @@ const Timeline = props =>{
               </ul>
               {zoomPanel}
               {searchIcon}
+              {helpIcon}
               {searchContainer}
               {eventsContainer}
             </div>
           </CardBody>
         </Card>
       </div>
+      <HelpArticle permalink={"timeline-help"} visible={helpVisible} toggle={toggleHelp}/>
     </div>
   }
   return (

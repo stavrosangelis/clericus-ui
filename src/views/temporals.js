@@ -49,8 +49,6 @@ class Temporals extends Component {
       totalItems: 0
     }
 
-    this.conductingFilterAtFrontEnd = true;
-
     this.load = this.load.bind(this);
     this.updatePage = this.updatePage.bind(this);
     this.updateStorePagination = this.updateStorePagination.bind(this);

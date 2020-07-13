@@ -7,11 +7,12 @@ import * as PIXI from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 import dataWorker from "./graph-data.worker.js";
 import {webglSupport} from "../../helpers";
+import HelpArticle from '../../components/help-article';
 const APIPath = process.env.REACT_APP_APIPATH;
 
 /// d3 network
 
-var app, container, nodes, links, width=600, height=600, resolution=window.devicePixelRatio || 1, transform={s:1,x:0,y:0}, associatedNodes=[], associatedLinks=[], selectedNode, lineContainer, nodesContainer, textContainer, publicFunctions = {};
+var app, container, nodes, links, width=600, height=660, resolution=window.devicePixelRatio || 1, transform={s:1,x:0,y:0}, associatedNodes=[], associatedLinks=[], selectedNode, lineContainer, nodesContainer, textContainer, publicFunctions = {};
 
 const transformEnd = () => {
   container.screenWidth = width;
@@ -198,6 +199,7 @@ const PersonNetwork = props => {
   const [searchInputType, setSearchInputType] = useState("");
   const [nodeLink, setNodeLink] = useState([]);
   const [relatedNodesHTML, setRelatedNodesHTML] = useState([]);
+  const [helpVisible, setHelpVisible] = useState(false);
 
   const toggleDetailsCard = (value=null) => {
     let visible = !detailsCardVisible;
@@ -589,9 +591,18 @@ const PersonNetwork = props => {
     }
   }
 
+  const toggleHelp = () => {
+    setHelpVisible(!helpVisible)
+  }
+
   const searchIcon = <div className="graph-search-toggle" onClick={()=>toggleSearchContainerVisible()}>
     <i className="fa fa-search" />
   </div>
+
+  const helpIcon = <div className="graph-help-toggle" onClick={()=>toggleHelp()} title="Help">
+    <i className="fa fa-question-circle" />
+  </div>
+
   const panPanel = <div className="pan-container">
     <div className="pan-action up" id="graph-pan-up">
       <i className="fa fa-chevron-up" />
@@ -737,10 +748,12 @@ const PersonNetwork = props => {
         {panPanel}
         {zoomPanel}
         {searchIcon}
+        {helpIcon}
       </div>
       {detailsCard}
       {searchContainer}
       {legendPanel}
+      <HelpArticle permalink={"network-graph-help"} visible={helpVisible} toggle={toggleHelp}/>
     </div>
   )
 }

@@ -13,6 +13,8 @@ import markerIconPath from '../../assets/leaflet/images/marker-icon.png';
 import MarkerClusterGroup from '../../components/markercluster';
 import L from 'leaflet';
 import {updateDocumentTitle} from '../../helpers';
+import PeopleBlock from '../../components/item-blocks/people';
+import HelpArticle from '../../components/help-article';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
@@ -22,9 +24,10 @@ const Heatmap = props => {
   const [center, setCenter] = useState([53.3497645,-6.2602732]);
   const zoom = 8;
   const mapRef = useRef(null);
-  const markerRef = useRef(null);
   const [searchContainerVisible, setSearchContainerVisible] = useState(false);
   const [searchInput, setSearchInput] = useState("");
+  const [helpVisible, setHelpVisible] = useState(false);
+  const [popupDetails, setPopupDetails] = useState(null);
 
   const toggleSearchContainerVisible = () => {
     setSearchContainerVisible(!searchContainerVisible);
@@ -79,14 +82,100 @@ const Heatmap = props => {
   const centerNode = (_id) => {
     let node = data.find(n=>n._id===_id);
     if (typeof node!=="undefined") {
-      if (node.features!==null) {
-        if (typeof node.features.features.geometry!=="undefined") {
-          let coords = node.features.features.geometry.coordinates;
-          let newAddressPoint = [coords[1], coords[0]];
-          setCenter(newAddressPoint)
+      if (node.features.length>0) {
+        let addressPoint = node.features[0].ref;
+        if (typeof addressPoint.latitude!=="undefined") {
+          let newAddressPoint = [addressPoint.latitude, addressPoint.longitude];
+          setCenter(newAddressPoint);
         }
       }
     }
+  }
+
+  const itemDetails = async(_id, position, label) => {
+    let loader = <div className="text-center">
+        <Spinner color="info" size="sm"/> <i>loading...</i>
+      </div>
+    let newPopupDetails = {
+      position: position,
+      label: label,
+      type: [],
+      content: loader
+    };
+    setPopupDetails(newPopupDetails);
+    let organisation = await axios({
+      method: 'get',
+      url: APIPath+'ui-organisation',
+      crossDomain: true,
+      params: {_id: _id}
+    })
+    .then(function (response) {
+      return response.data;
+    })
+    .catch(function (error) {
+      console.log(error)
+    });
+    if (organisation.status) {
+      let item = organisation.data;
+      let type = <small>[{item.organisationType}]</small>;
+      let description = [];
+      if (item.description!=="") {
+        description = <p key="description">{item.description}</p>
+      }
+      let people = [];
+      if(typeof item.people!=="undefined" && item.people.length>0) {
+        people = <div className="popup-people">
+          <PeopleBlock key="people" name="people" peopleItem={item.people} />
+        </div>
+      }
+      let popupContent = <div>
+        {description}
+        {people}
+      </div>
+      let newPopupDetails = {
+        position: position,
+        label: label,
+        type: type,
+        content: popupContent
+      }
+      setPopupDetails(newPopupDetails);
+    }
+  }
+
+  const toggleHelp = () => {
+    setHelpVisible(!helpVisible)
+  }
+
+
+  const markerIcon = new L.Icon({
+    iconUrl: markerIconPath,
+    iconRetinaUrl: markerIconPath,
+    iconAnchor: null,
+    popupAnchor: [0, -20],
+    shadowUrl: null,
+    shadowSize: null,
+    shadowAnchor: null,
+    iconSize: new L.Point(27, 43),
+    className: 'leaflet-default-icon-path custom-marker',
+  });
+
+  const renderMarkerIcon = (item) => {
+    let position = null;
+    if (item.latitude!=="" && item.longitude!=="") {
+      position = [item.latitude, item.longitude];
+    }
+    if (position!==null) {
+      let marker = <Marker
+        key={item._id}
+        position={position}
+        icon={markerIcon}
+        draggable={false}
+        onClick={()=>itemDetails(item._id, position, item.label)}
+        >
+        </Marker>;
+      return marker;
+    }
+    else return null;
   }
 
   let heading = "Heatmap";
@@ -103,59 +192,24 @@ const Heatmap = props => {
     </div>
   if (!loading) {
     const gradient = {'1.0':'#DE9A96',0.8:'#F5D98B',0.6:'#FAF3A5',0.4:'#82CEB6',0.2:'#96E3E6',0.1:'#89BDE0'};
-    const markerIcon = new L.Icon({
-      iconUrl: markerIconPath,
-      iconRetinaUrl: markerIconPath,
-      iconAnchor: null,
-      popupAnchor: [0, -20],
-      shadowUrl: null,
-      shadowSize: null,
-      shadowAnchor: null,
-      iconSize: new L.Point(27, 43),
-      className: 'leaflet-default-icon-path custom-marker',
-    });
-    const renderMarkerIcon = (item) => {
-      let position = null;
-      if (item.latitude!=="" && item.longitude!=="") {
-        position = [item.latitude, item.longitude];
-      }
-      if (position!==null) {
-        let description = [];
-        if (item.description!=="") {
-          description = <p>{item.description}</p>
-        }
-        return <Marker
-          key={item._id}
-          position={position}
-          icon={markerIcon}
-          draggable={false}
-          ref={markerRef}
-          >
-          <Popup>
-            <h4>{item.label}</h4>
-            <b>Count</b>: {item.count}
-            {description}
-          </Popup>
-        </Marker>;
-      }
-      else return null;
-    }
+
     let addressPoints = [];
     let markerIcons = [];
     for (let i=0;i<data.length; i++) {
-      let addressPoint = data[i];
-      if (addressPoint.features!==null) {
-        if (typeof addressPoint.features.features.geometry!=="undefined") {
-          let coords = addressPoint.features.features.geometry.coordinates;
-          let newAddressPoint = [coords[1], coords[0], addressPoint.count];
+      let point = data[i];
+      if (point.features.length>0) {
+        let addressPoint = point.features[0].ref;
+        if (typeof addressPoint.latitude!=="undefined") {
+          let lat=addressPoint.latitude,lon=addressPoint.longitude,count=point.count;
+          let newAddressPoint = [lat, lon, count];
           addressPoints.push(newAddressPoint);
           let markerItem = {
-            _id: addressPoint._id,
-            label: addressPoint.label,
-            description: addressPoint.description,
-            count: addressPoint.count,
-            latitude: coords[1],
-            longitude: coords[0]
+            _id: point._id,
+            label: point.label,
+            description: point.description,
+            count: count,
+            latitude: lat,
+            longitude: lon
           }
           markerIcons.push(renderMarkerIcon(markerItem));
         }
@@ -173,6 +227,10 @@ const Heatmap = props => {
       <i className="fa fa-search" />
     </div>
 
+    const helpIcon = <div className="map-help-toggle" onClick={()=>toggleHelp()} title="Help">
+      <i className="fa fa-question-circle" />
+    </div>
+
     let searchContainerVisibleClass = "";
     if (searchContainerVisible) {
       searchContainerVisibleClass = " visible";
@@ -183,7 +241,7 @@ const Heatmap = props => {
         let n = data[i];
         if (n.features!==null) {
           if (typeof n.visible==="undefined" || n.visible===true) {
-            searchContainerNodes.push(<div key={i} onClick={()=>centerNode(n._id)}>{n.label} [{n.count}]</div>);
+            searchContainerNodes.push(<div key={i} onClick={()=>centerNode(n._id)}>{n.label} <small>({n.count}) [{n.organisationType}]</small></div>);
           }
         }
       }
@@ -201,13 +259,21 @@ const Heatmap = props => {
       </div>
     </div>
 
-    content = <div className="map-container">
+    let markerPopup = [];
+    if (popupDetails!==null) {
+      markerPopup = <Popup position={popupDetails.position} onClose={()=>setPopupDetails(null)}>
+        <h4>{popupDetails.label} {popupDetails.type}</h4>
+        {popupDetails.content}
+      </Popup>
+    }
+    content = <div className="map-container heatmap-container">
       {heatmapLegend}
       <Map
         center={center}
         zoom={zoom}
         maxZoom={18}
         ref={mapRef}>
+        {markerPopup}
         <MarkerClusterGroup>
           {markerIcons}
         </MarkerClusterGroup>
@@ -228,8 +294,10 @@ const Heatmap = props => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {searchIcon}
+        {helpIcon}
       </Map>
       {searchContainer}
+      <HelpArticle permalink={"heatmap-help"} visible={helpVisible} toggle={toggleHelp}/>
     </div>
   }
 

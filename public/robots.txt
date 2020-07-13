@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /api/
+Disallow: /documents/
+Disallow: /images/
+Disallow: /temp/
+Disallow: /output/
+Disallow: /static/
+Disallow: /arial-bitmap/

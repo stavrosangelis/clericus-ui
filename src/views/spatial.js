@@ -270,7 +270,7 @@ class Spatial extends Component {
     </div>
 
     let label = "";
-    let breadcrumbsItems = [{label: "Spatials", icon: "pe-7s-map", active: false, path: "/spatials"}];
+    let breadcrumbsItems = [{label: "Locations", icon: "pe-7s-map", active: false, path: "/spatials"}];
     if (!this.state.loading) {
       if (this.state.item!==null) {
         let spatialCard = this.renderItem(this.state);
