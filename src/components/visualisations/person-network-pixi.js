@@ -792,7 +792,7 @@ const PersonNetwork = props => {
       {detailsCard}
       {searchContainer}
       {legendPanel}
-      <HelpArticle permalink={"network-graph-help"} visible={helpVisible} toggle={toggleHelp}/>
+      <HelpArticle permalink={"item-network-graph-help"} visible={helpVisible} toggle={toggleHelp}/>
     </div>
   )
 }

@@ -16,9 +16,6 @@ const Visualisations = props => {
               <Link className="btn btn-default home-visualisation-thumb" href="/heatmap" to="/heatmap">
                 <img className="visualisations-image" src={heatmap} alt="heatmap" />
               </Link>
-              <div className="text-center">
-                <Link className="btn btn-default" href="/heatmap" to="/heatmap">More</Link>
-              </div>
             </CardBody>
           </Card>
         </div>
@@ -29,9 +26,6 @@ const Visualisations = props => {
               <Link className="btn btn-default home-visualisation-thumb" href="/timeline" to="/timeline">
                 <img className="visualisations-image" src={eventsTimeline} alt="Events timeline" />
               </Link>
-              <div className="text-center">
-                <Link className="btn btn-default" href="/timeline" to="/timeline">More</Link>
-              </div>
             </CardBody>
           </Card>
         </div>
@@ -42,9 +36,6 @@ const Visualisations = props => {
               <Link className="btn btn-default home-visualisation-thumb" href="/network-graph" to="/network-graph">
                 <img className="visualisations-image" src={networkGraph} alt="Network graph" />
               </Link>
-              <div className="text-center">
-                <Link className="btn btn-default" href="/network-graph" to="/network-graph">More</Link>
-              </div>
             </CardBody>
           </Card>
         </div>

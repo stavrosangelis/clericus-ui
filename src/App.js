@@ -30,6 +30,7 @@ import {
   //loadTemporals,
   //loadSpatials,
   loadResourcesType,
+  loadGenericStats,
 } from "./redux/actions";
 
 function mapDispatchToProps(dispatch) {
@@ -42,6 +43,7 @@ function mapDispatchToProps(dispatch) {
     //loadTemporals: () => dispatch(loadTemporals()),
     //loadSpatials: () => dispatch(loadSpatials()),
     loadResourcesType: () => dispatch(loadResourcesType()),
+    loadGenericStats: () => dispatch(loadGenericStats()),
   }
 }
 
@@ -57,6 +59,7 @@ class App extends Component{
     //this.props.loadTemporals();
     //this.props.loadSpatials();
     this.props.loadResourcesType();
+    this.props.loadGenericStats();
   }
 
   render() {

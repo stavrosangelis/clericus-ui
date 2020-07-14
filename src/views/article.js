@@ -6,13 +6,17 @@ import {
 } from 'reactstrap';
 import {Breadcrumbs} from '../components/breadcrumbs';
 import {updateDocumentTitle} from '../helpers';
+import { useSelector } from "react-redux";
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
 const Article = props => {
   const [loading, setLoading] = useState(true);
   const [article, setArticle] = useState(null);
-  const prevPermalink = useRef(props.match.params.permalink)
+  const prevPermalink = useRef(props.match.params.permalink);
+  const genericStats = useSelector(state => state.genericStats);
+  const [articleContent, setArticleContent] = useState(null);
+  const prevGenericStats = useRef(null);
 
   useEffect(()=> {
     let permalink = props.match.params.permalink;
@@ -34,7 +38,9 @@ const Article = props => {
       .catch(function (error) {
       });
       if (responseData.status) {
-        setArticle(responseData.data);
+        let newArticle = responseData.data;
+        setArticle(newArticle);
+        setArticleContent(newArticle.content);
       }
     }
     if (loading) {
@@ -42,6 +48,27 @@ const Article = props => {
     }
   },[loading,props.match.params.permalink]);
 
+  useEffect(()=>{
+    const updateArticleContent = () => {
+      let newArticleContent = articleContent;
+      let regex = /%(.*?)%/gm;
+      let replaceStats = newArticleContent.match(regex);
+      if (replaceStats!==null && replaceStats.length>0) {
+        for (let key in replaceStats) {
+          let stat = replaceStats[key];
+          let statElem = stat.replace(/%/g,"");
+          let value = genericStats[statElem];
+          let regex = new RegExp(`${stat}`);
+          newArticleContent = newArticleContent.replace(regex, value);
+        }
+      }
+      setArticleContent(newArticleContent);
+    }
+    if (articleContent!==null && prevGenericStats!==genericStats && genericStats.people>0) {
+      updateArticleContent();
+      prevGenericStats.current = genericStats;
+    }
+  },[articleContent,genericStats]);
 
   let breadcrumbsItems = [];
 
@@ -87,7 +114,7 @@ const Article = props => {
                 <h3>{article.label}</h3>
                 <div className="news-item-date"><i className="pe-7s-user" /> {article.author} <i className="pe-7s-clock" /> {date}</div>
                 {thumbnail}
-                <div dangerouslySetInnerHTML={{__html: article.content}}></div>
+                <div dangerouslySetInnerHTML={{__html: articleContent}}></div>
               </CardBody>
             </Card>
           </div>

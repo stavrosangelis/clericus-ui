@@ -1,5 +1,15 @@
 export const defaultState = {
-  genericStats: null,
+  genericStats: {
+    people: 0,
+    resources: 0,
+    dioceses: 0,
+    lastNames: 0,
+    organisations: 0,
+    events: 0,
+    spatial: 0,
+    temporal: 0,
+    classpieces: 0
+  },
 
   peoplePagination: {
     limit:25,
@@ -137,7 +147,7 @@ export const defaultState = {
 
 
   loadingResourcesRelationship: true,
-  
+
   loadingTemporalsRelationship: true,
 
   spatialsFilters: {

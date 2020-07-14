@@ -1,9 +1,6 @@
 import React, { Component } from 'react';
 
 import {connect} from "react-redux";
-import {
-  loadGenericStats,
-} from "../../redux/actions";
 
 const mapStateToProps = state => {
   return {
@@ -11,13 +8,6 @@ const mapStateToProps = state => {
     genericStats: state.genericStats,
    };
 };
-
-function mapDispatchToProps(dispatch) {
-  return {
-    loadGenericStats: () => dispatch(loadGenericStats()),
-  }
-}
-
 
 class SectionNumbers extends Component {
   _isMounted = false;
@@ -74,15 +64,13 @@ class SectionNumbers extends Component {
 
   componentDidMount() {
     this._isMounted = true;
-
-    this.props.loadGenericStats();
     if (this.props.genericStats!==null) {
       this.count();
     }
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (prevProps.genericStats===null && this.props.genericStats!==null) {
+    if (prevProps.genericStats!==this.props.genericStats) {
       this.count();
     }
   }
@@ -125,4 +113,4 @@ class SectionNumbers extends Component {
   }
 }
 
-export default SectionNumbers = connect(mapStateToProps, mapDispatchToProps)(SectionNumbers);
+export default SectionNumbers = connect(mapStateToProps, {})(SectionNumbers);
