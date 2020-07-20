@@ -9,8 +9,6 @@ onmessage = async(e)=>{
   nodes[0].x = props.centerX;
   nodes[0].y = props.centerY;
   let strength = -500;
-  //console.log(nodes)
-  //console.log(links)
   const simulation = d3.forceSimulation(nodes)
     .force("link",
     d3.forceLink(links)
@@ -30,5 +28,6 @@ onmessage = async(e)=>{
   }
   delete nodes['update']
   simulation.stop();
-  postMessage({ data: {nodes: nodes, links:links}, finished: true });
+  const data = JSON.stringify({nodes: nodes, links:links});
+  postMessage({ data: data, finished: true });
 };

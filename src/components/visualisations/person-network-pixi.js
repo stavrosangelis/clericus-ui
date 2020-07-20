@@ -7,8 +7,9 @@ import * as PIXI from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 import dataWorker from "./person-data.worker.js";
 import simulationWorker from "./force-simulation.worker.js";
-import {webglSupport} from "../../helpers";
+import {webglSupport,jsonStringToObject} from "../../helpers";
 import HelpArticle from '../../components/help-article';
+import GraphSearch from './graph-network-search';
 const APIPath = process.env.REACT_APP_APIPATH;
 
 /// d3 network
@@ -31,6 +32,7 @@ const redraw = () => {
   drawNodes();
   drawLines();
 }
+
 const moving = () => {
   lineContainer.removeChildren();
   textContainer.removeChildren();
@@ -40,7 +42,7 @@ const movedEnd = () => {
   let point = container.center;
   transform.x = point.x;
   transform.y = point.y;
-  redraw()
+  redraw();
 }
 
 const zoomedEnd = () => {
@@ -58,6 +60,15 @@ const hexColor = (value) => {
 
 const loader = new PIXI.Loader();
 
+const splitArray = (array, size) =>{
+  let newArr = [];
+  for (let i=0; i<array.length; i+=size) {
+    let chunk = array.slice(i, i+size);
+    newArr.push(chunk);
+  }
+  return newArr;
+}
+
 const drawNodes = async () => {
   if (typeof nodes==="undefined") {
     return false;
@@ -71,50 +82,52 @@ const drawNodes = async () => {
     let rightX = bbox.x+bbox.width;
     let topY = bbox.y;
     let bottomY = bbox.y+bbox.height;
-    for (let i=0; i<nodes.length; i++) {
-      let d = nodes[i];
-      d.visible = false;
-      let radius = d.size;
-      let x = d.x;
-      let y = d.y;
-      if (
-        leftX<=x && rightX>=x
-        && topY<=y && bottomY>=y
-      ) {
-        d.gfx = new PIXI.Graphics();
-        d.gfx.interactive = true;
-        d.gfx.on("click", ()=>publicFunctions.clickNode(d))
-        d.gfx.on("tap", ()=>publicFunctions.clickNode(d))
-        let lineWidth = 1;
-        let strokeStyle = hexColor(d.strokeColor);
+    let nodesSplit = splitArray(nodes, 500);
+    for (let j=0;j<nodesSplit.length;j++) {
+      let newNodes = nodesSplit[j];
+      for (let i=0; i<newNodes.length; i++) {
+        let d = newNodes[i];
         d.visible = true;
-        // circle
-        if (typeof d.selected!=="undefined" && d.selected) {
-          lineWidth = 3;
-          strokeStyle = "0x33729f";
-          radius+=5;
-        }
-        else if (typeof d.associated!=="undefined" && d.associated) {
-          lineWidth = 3;
-        }
-        else {
-          lineWidth = 1;
-        }
-        d.gfx.beginFill(hexColor(d.color));
-        if (container.scaled>0.3) {
-          d.gfx.lineStyle(lineWidth,strokeStyle);
-        }
-        d.gfx.drawCircle(x, y, radius);
-        nodesContainer.addChild(d.gfx);
-        if (d.label!=="" && container.scaled>0.3) {
-          let label = d.label.trim().replace(/  +/g," ");
-          let spaces = label.split(" ");
-          let minusY = spaces.length/2;
-          label = label.replace(/\s/g,"\n");
-          let text = new PIXI.BitmapText(label,{fontName: "Arial", fontSize: 11, align : 'center'});
-          text.x = x-((radius/2)+(lineWidth*2));
-          text.y = y-(10*minusY);
-          textContainer.addChild(text);
+        let radius = d.size || 30;
+        let x = d.x;
+        let y = d.y;
+        if (leftX<=x && rightX>=x && topY<=y && bottomY>=y) {
+          d.gfx = new PIXI.Graphics();
+          d.gfx.interactive = true;
+          d.gfx.on("click", ()=>publicFunctions.clickNode(d))
+          d.gfx.on("tap", ()=>publicFunctions.clickNode(d))
+          let lineWidth = 1;
+          let strokeStyle = hexColor(d.strokeColor);
+          d.visible = true;
+          // circle
+          if (typeof d.selected!=="undefined" && d.selected) {
+            lineWidth = 3;
+            strokeStyle = "0x33729f";
+            radius+=5;
+          }
+          else if (typeof d.associated!=="undefined" && d.associated) {
+            lineWidth = 3;
+          }
+          else {
+            lineWidth = 1;
+          }
+          d.gfx.beginFill(hexColor(d.color));
+          if (container.scaled>0.3) {
+            d.gfx.lineStyle(lineWidth,strokeStyle);
+          }
+          d.gfx.drawCircle(x, y, radius);
+          nodesContainer.addChild(d.gfx);
+          if (d.label!=="" && container.scaled>0.3) {
+            let label = d.label.trim().replace(/  +/g," ");
+            let spaces = label.split(" ");
+            let minusY = spaces.length/2;
+            label = label.replace(/\s/g,"\n");
+            let text = new PIXI.BitmapText(label,{fontName: "Arial", fontSize: 11, align : 'center'});
+            text.maxWidth = radius+(lineWidth*2);
+            text.x = x-((radius/2)+(lineWidth*2)+1);
+            text.y = y-(10*minusY);
+            textContainer.addChild(text);
+          }
         }
       }
     }
@@ -131,60 +144,34 @@ const drawLines = () => {
   let rightX = bbox.x+bbox.width;
   let topY = bbox.y;
   let bottomY = bbox.y+bbox.height;
-  for (let i=0; i<links.length; i++) {
-    let d = links[i];
-    let sx = d.source.x;
-    let sy = d.source.y;
-    let tx = d.target.x;
-    let ty = d.target.y;
-    if (
-      leftX<=sx && rightX>=sx
-      && topY<=sy && bottomY>=sy
-    ) {
-      let line = new PIXI.Graphics();
-      let lWidth = 1;
-      let strokeStyle = 0x666666;
-      if (typeof d.associated!=="undefined" && d.associated) {
-        lWidth = 2;
-        strokeStyle = 0x33729f;
+  let linksSplit = splitArray(links, 500);
+  for (let j=0;j<linksSplit.length; j++) {
+    let newLinks = linksSplit[j];
+    for (let i=0; i<newLinks.length; i++) {
+      let d = newLinks[i];
+      let sx = d.source.x;
+      let sy = d.source.y;
+      let tx = d.target.x;
+      let ty = d.target.y;
+      if (leftX<=sx && rightX>=sx && topY<=sy && bottomY>=sy) {
+        let line = new PIXI.Graphics();
+        let lWidth = 1;
+        let strokeStyle = 0x666666;
+        if (typeof d.associated!=="undefined" && d.associated) {
+          lWidth = 2;
+          strokeStyle = 0x33729f;
+        }
+        line.lineStyle(lWidth,strokeStyle);
+        line.moveTo(sx, sy);
+        line.lineTo(tx, ty);
+        lineContainer.addChild(line)
       }
-      line.lineStyle(lWidth,strokeStyle);
-      line.moveTo(sx, sy);
-      line.lineTo(tx, ty);
-      lineContainer.addChild(line);
-      // line label
-      /*let lineWidth = 0;
-      let lineHeight = 0;
-      let textX = 0;
-      let textY = 0;
-      let smallX,smallY;
-      if (sx>tx) {
-        smallX = tx;
-        lineWidth = sx-tx;
-      }
-      else {
-        smallX = sx;
-        lineWidth = tx-sx;
-      }
-      textX = smallX+(lineWidth/2);
-      if (sy>ty) {
-        smallY = ty;
-        lineHeight = sy-ty;
-      }
-      else {
-        smallY = sy;
-        lineHeight = ty-sy;
-      }
-      textY= smallY+(lineHeight/2);
-      let text = new PIXI.Text(d.label,{fontFamily : 'sans-serif', fontSize: 9, fill : 0x666666, align : 'center'});
-      text.x = textX;
-      text.y = textY;
-      lineContainer.addChild(text);*/
     }
   }
 }
 
 const dataLoadingWorker = new dataWorker();
+
 const forceSimulationWorker = new simulationWorker();
 
 const PersonNetwork = props => {
@@ -200,6 +187,7 @@ const PersonNetwork = props => {
   const [searchContainerVisible, setSearchContainerVisible] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [searchInputType, setSearchInputType] = useState("");
+  const [searchContainerReload, setSearchContainerReload] = useState(false);
   const [helpVisible, setHelpVisible] = useState(false);
 
   const toggleDetailsCard = (value=null) => {
@@ -220,7 +208,6 @@ const PersonNetwork = props => {
       setInitiated(true);
       let graphContainer = document.getElementById('graph-container');
       width = graphContainer.offsetWidth-2;
-
       PIXI.Renderer.create = function create (options) {
         if (webglSupport()) {
             return new PIXI.Renderer(options);
@@ -240,6 +227,7 @@ const PersonNetwork = props => {
         powerPreference: "high-performance",
         sharedTicker: true
       });
+
       document.getElementById("pixi-network").appendChild(app.view);
 
       container = new Viewport({
@@ -318,12 +306,10 @@ const PersonNetwork = props => {
           resolve(e.data);
         }, false);
       });
+      let simulationData = jsonStringToObject(simulation.data);
       setDrawingIndicator("drawing...");
-      nodes = simulation.data.nodes;
-      links = simulation.data.links;
-
-      // recenter viewport
-      container.moveCenter(nodes[0].x, nodes[0].y)
+      nodes = simulationData.nodes;
+      links = simulationData.links;
 
       d3.select("#graph-zoom-in")
       .on("click", function() {
@@ -332,7 +318,7 @@ const PersonNetwork = props => {
       });
       d3.select("#graph-zoom-out")
       .on("click", function() {
-        if(container.scaled<0.15) {
+        if(container.scaled<0.1) {
           return false;
         }
         container.zoomPercent(-0.25, true);
@@ -366,21 +352,11 @@ const PersonNetwork = props => {
         container.moveCenter(newX, newY);
         zoomedEnd();
       });
-
-      lineContainer.destroy();
-      nodesContainer.destroy();
-      textContainer.destroy();
-      lineContainer = new PIXI.Container();
-      nodesContainer = new PIXI.Container();
-      textContainer = new PIXI.Container();
-      container.addChild(lineContainer);
-      container.addChild(nodesContainer);
-      container.addChild(textContainer);
-
-      drawLines();
-      drawNodes();
       setDrawingIndicator("drawing complete.");
       setTimeout(()=>{setDrawingIndicator("");},1000);
+
+      // recenter viewport and draw
+      container.moveCenter(nodes[0].x, nodes[0].y)
     }
     if (drawing && initiated) {
       drawGraph();
@@ -571,7 +547,6 @@ const PersonNetwork = props => {
     });
     associatedNodes = newAssociatedNodes;
     associatedLinks = mergedAssociatedLinks;
-
     redraw();
   };
 
@@ -586,7 +561,7 @@ const PersonNetwork = props => {
     setSearchInput(value);
     let visibleNodes = data.nodes.filter(n=>{
       if (searchInputType!=="") {
-        if (n.type===searchInputType && n.label.toLowerCase().includes(value.toLowerCase())) {
+        if (n.type.toLowerCase()===searchInputType.toLowerCase() && n.label.toLowerCase().includes(value.toLowerCase())) {
           return true;
         }
       }
@@ -605,6 +580,7 @@ const PersonNetwork = props => {
     }
     data.nodes = dataNodes;
     setData(data);
+    setSearchContainerReload(true);
   }
 
   const searchNodeType = (e) =>{
@@ -613,7 +589,7 @@ const PersonNetwork = props => {
     setSearchInputType(value);
 
     let visibleNodes = data.nodes.filter(n=>{
-      if (n.type===value && n.label.toLowerCase().includes(searchInput.toLowerCase())) {
+      if (n.type.toLowerCase()===value.toLowerCase() && n.label.toLowerCase().includes(searchInput.toLowerCase())) {
         return true;
       }
       return false;
@@ -628,6 +604,7 @@ const PersonNetwork = props => {
     }
     data.nodes = dataNodes;
     setData(data);
+    setSearchContainerReload(true);
   }
 
   const clearSearchNode = () => {
@@ -640,6 +617,7 @@ const PersonNetwork = props => {
     }
     data.nodes = dataNodes;
     setData(data);
+    setSearchContainerReload(true);
   }
 
   const centerNode = (_id) => {
@@ -738,12 +716,7 @@ const PersonNetwork = props => {
   }
   let searchContainerNodes = [];
   if (!loading && data!==null) {
-    for (let i=0;i<data.nodes.length; i++) {
-      let n = data.nodes[i];
-      if (typeof n.visible==="undefined" || n.visible===true) {
-        searchContainerNodes.push(<div key={i} onClick={()=>centerNode(n.id)}>{n.label} <small>[{n.type}]</small></div>);
-      }
-    }
+    searchContainerNodes = <GraphSearch nodes={data.nodes} centerNode={centerNode} reload={searchContainerReload} />;
   }
   let searchContainer = <div className={"graph-search-container"+searchContainerVisibleClass}>
     <div className="close-graph-search-container" onClick={()=>toggleSearchContainerVisible()}>
@@ -763,9 +736,7 @@ const PersonNetwork = props => {
         <option value="Resource">Resource</option>
       </Input>
     </FormGroup>
-    <div className="graph-search-container-nodes">
-      {searchContainerNodes}
-    </div>
+    {searchContainerNodes}
   </div>
 
   const legendPanel = <div className="graph-legend-panel">
