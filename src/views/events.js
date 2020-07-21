@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, lazy, Suspense } from 'react';
 import axios from 'axios';
 import {
   Spinner,
@@ -9,10 +9,7 @@ import {
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import PageActions from '../components/page-actions';
-import Filters from '../components/filters';
-import SearchForm from '../components/search-form';
-import {updateDocumentTitle} from '../helpers';
+import {updateDocumentTitle,renderLoader} from '../helpers';
 import HelpArticle from '../components/help-article';
 
 import {connect} from "react-redux";
@@ -21,6 +18,10 @@ import {
   setRelationshipParams,
   updateFilters
 } from "../redux/actions";
+
+const Filters = lazy(() => import('../components/filters'));
+const SearchForm = lazy(() => import('../components/search-form'));
+const PageActions = lazy(() => import('../components/page-actions'));
 
 const mapStateToProps = state => {
   return {
@@ -362,17 +363,19 @@ class Events extends Component {
     </div>
 
     if (!this.state.loading) {
-      let pageActions = <PageActions
-        limit={this.state.limit}
-        current_page={this.state.page}
-        gotoPageValue={this.state.gotoPage}
-        total_pages={this.state.totalPages}
-        updatePage={this.updatePage}
-        gotoPage={this.gotoPage}
-        handleChange={this.handleChange}
-        updateLimit={this.updateLimit}
-        pageType="events"
-      />
+      let pageActions = <Suspense fallback={renderLoader()}>
+        <PageActions
+          limit={this.state.limit}
+          current_page={this.state.page}
+          gotoPageValue={this.state.gotoPage}
+          total_pages={this.state.totalPages}
+          updatePage={this.updatePage}
+          gotoPage={this.gotoPage}
+          handleChange={this.handleChange}
+          updateLimit={this.updateLimit}
+          pageType="events"
+        />
+      </Suspense>
       let events = <div className="row">
         <div className="col-12">
           <div style={{padding: '40pt',textAlign: 'center'}}>
@@ -388,28 +391,32 @@ class Events extends Component {
       ]
 
       let searchBox = <Collapse isOpen={this.state.searchVisible}>
-        <SearchForm
-          name="events"
-          searchElements={searchElements}
-          simpleSearchTerm={this.state.simpleSearchTerm}
-          simpleSearch={this.simpleSearch}
-          clearSearch={this.clearSearch}
-          handleChange={this.handleChange}
-          adadvancedSearchEnable={false}
-          />
+        <Suspense fallback={renderLoader()}>
+          <SearchForm
+            name="events"
+            searchElements={searchElements}
+            simpleSearchTerm={this.state.simpleSearchTerm}
+            simpleSearch={this.simpleSearch}
+            clearSearch={this.clearSearch}
+            handleChange={this.handleChange}
+            adadvancedSearchEnable={false}
+            />
+        </Suspense>
       </Collapse>
 
       let filterType = ["eventType", "temporals"];
       content = <div>
         <div className="row">
           <div className="col-xs-12 col-sm-4">
-            <Filters
-              name="events"
-              filterType = {filterType}
-              filtersSet={this.props.eventsFilters}
-              relationshipSet={this.props.eventsRelationship}
-              updateType={this.updateType}
-              updatedata={this.load}/>
+            <Suspense fallback={renderLoader()}>
+              <Filters
+                name="events"
+                filterType = {filterType}
+                filtersSet={this.props.eventsFilters}
+                relationshipSet={this.props.eventsRelationship}
+                updateType={this.updateType}
+                updatedata={this.load}/>
+            </Suspense>
           </div>
           <div className="col-xs-12 col-sm-8">
             <h2>{heading}

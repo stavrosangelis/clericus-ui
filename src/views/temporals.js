@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, lazy, Suspense } from 'react';
 import axios from 'axios';
 import {
   Spinner,
@@ -7,9 +7,7 @@ import {
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import PageActions from '../components/page-actions';
-import Filters from '../components/filters';
-import {updateDocumentTitle} from '../helpers';
+import {updateDocumentTitle,renderLoader} from '../helpers';
 
 import {connect} from "react-redux";
 import {
@@ -32,6 +30,8 @@ function mapDispatchToProps(dispatch) {
   }
 }
 
+const Filters = lazy(() => import('../components/filters'));
+const PageActions = lazy(() => import('../components/page-actions'));
 
 class Temporals extends Component {
   constructor(props) {
@@ -274,17 +274,20 @@ class Temporals extends Component {
     </div>
 
     if (!this.state.loading) {
-      let pageActions = <PageActions
-        limit={this.state.limit}
-        current_page={this.state.page}
-        gotoPageValue={this.state.gotoPage}
-        total_pages={this.state.totalPages}
-        updatePage={this.updatePage}
-        gotoPage={this.gotoPage}
-        handleChange={this.handleChange}
-        updateLimit={this.updateLimit}
-        pageType="temporals"
-      />
+      let pageActions = <Suspense fallback={renderLoader()}>
+        <PageActions
+          limit={this.state.limit}
+          sort={false}
+          current_page={this.state.page}
+          gotoPageValue={this.state.gotoPage}
+          total_pages={this.state.totalPages}
+          updatePage={this.updatePage}
+          gotoPage={this.gotoPage}
+          handleChange={this.handleChange}
+          updateLimit={this.updateLimit}
+          pageType="temporals"
+        />
+      </Suspense>
       let temporals = <div className="row">
         <div className="col-12">
           <div style={{padding: '40pt',textAlign: 'center'}}>
@@ -300,12 +303,14 @@ class Temporals extends Component {
       content = <div>
         <div className="row">
           <div className="col-xs-12 col-sm-4">
-            <Filters
-              name="temporals"
-              filterType = {filterType}
-              filtersSet={this.props.temporalsFilters}
-              relationshipSet={this.props.temporalsRelationship}
-              updatedata={this.load}/>
+            <Suspense fallback={renderLoader()}>
+              <Filters
+                name="temporals"
+                filterType = {filterType}
+                filtersSet={this.props.temporalsFilters}
+                relationshipSet={this.props.temporalsRelationship}
+                updatedata={this.load}/>
+            </Suspense>
           </div>
           <div className="col-xs-12 col-sm-8">
             <h2>{heading}

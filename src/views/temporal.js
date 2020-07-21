@@ -1,12 +1,12 @@
-import React, { Component } from 'react';
+import React, { Component, lazy, Suspense } from 'react';
 import axios from 'axios';
 import {
   Spinner,
   Card, CardBody,
 } from 'reactstrap';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {updateDocumentTitle, outputDate} from '../helpers';
-import EventsBlock from '../components/item-blocks/events';
+import {updateDocumentTitle, outputDate,renderLoader} from '../helpers';
+const EventsBlock = lazy(() => import('../components/item-blocks/events'));
 
 class Temporal extends Component {
   constructor(props) {
@@ -89,7 +89,9 @@ class Temporal extends Component {
       eventsVisibleClass = "hidden";
     }
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
-      eventsRow = <EventsBlock key="eventsRow" toggleTable={this.toggleTable} hidden={eventsHidden} visible={eventsVisibleClass} events={item.events} />
+      eventsRow = <Suspense fallback={renderLoader()} key="events">
+        <EventsBlock toggleTable={this.toggleTable} hidden={eventsHidden} visible={eventsVisibleClass} events={item.events} />
+      </Suspense>
     }
 
     // dates

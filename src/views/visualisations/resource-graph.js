@@ -1,11 +1,10 @@
-import React, { useEffect, useState} from 'react';
+import React, { useEffect, useState, lazy, Suspense} from 'react';
 import axios from 'axios';
-import PersonNetwork from '../../components/visualisations/person-network-pixi';
 import {Breadcrumbs} from '../../components/breadcrumbs';
 import { Spinner } from 'reactstrap';
 import { useSelector } from "react-redux";
-import {updateDocumentTitle} from '../../helpers';
-
+import {updateDocumentTitle,renderLoader} from '../../helpers';
+const PersonNetwork = lazy(() => import('../../components/visualisations/person-network-pixi'));
 const APIPath = process.env.REACT_APP_APIPATH;
 
 const ResourceGraph = props => {
@@ -70,7 +69,9 @@ const ResourceGraph = props => {
     let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
     updateDocumentTitle(documentTitle);
     content = <div className="graph-container" id="graph-container">
-      <PersonNetwork _id={_idGraph} relatedLinks={[]} relatedNodes={[]} />
+      <Suspense fallback={renderLoader()}>
+        <PersonNetwork _id={_idGraph} relatedLinks={[]} relatedNodes={[]} />
+      </Suspense>
     </div>;
   }
   return (

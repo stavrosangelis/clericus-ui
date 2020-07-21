@@ -1,3 +1,6 @@
+import React from 'react';
+import { Spinner } from 'reactstrap';
+
 const domain = process.env.REACT_APP_DOMAIN;
 
 export const getPersonThumbnailURL = (person) => {
@@ -161,3 +164,5 @@ export const webglSupport = () => {
    let output = `${d} ${month} ${y}`;
    return output;
  }
+
+export const renderLoader = () => <div className="generic-loading"><i>Loading data...</i> <Spinner color="info" /></div>;

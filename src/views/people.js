@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, lazy, Suspense } from 'react';
 import axios from 'axios';
 import {
   Spinner,
@@ -9,11 +9,7 @@ import {
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getPersonThumbnailURL} from '../helpers';
-import PageActions from '../components/page-actions';
-import Filters from '../components/filters';
-import SearchForm from '../components/search-form';
-import {updateDocumentTitle} from '../helpers';
+import {getPersonThumbnailURL,updateDocumentTitle,renderLoader} from '../helpers';
 import defaultThumbnail from '../assets/images/spcc.jpg';
 import HelpArticle from '../components/help-article';
 
@@ -22,6 +18,10 @@ import {
   setPaginationParams,
   setRelationshipParams
 } from "../redux/actions";
+
+const Filters = lazy(() => import('../components/filters'));
+const SearchForm = lazy(() => import('../components/search-form'));
+const PageActions = lazy(() => import('../components/page-actions'));
 
 const mapStateToProps = state => {
   let peopleFilters = state.peopleFilters || null;
@@ -487,21 +487,23 @@ class People extends Component {
     </div>
 
     if (!this.state.loading) {
-      let pageActions = <PageActions
-        limit={this.state.limit}
-        sort={true}
-        orderField={this.state.orderField}
-        orderDesc={this.state.orderDesc}
-        current_page={this.state.page}
-        gotoPageValue={this.state.gotoPage}
-        total_pages={this.state.totalPages}
-        updatePage={this.updatePage}
-        gotoPage={this.gotoPage}
-        handleChange={this.handleChange}
-        updateLimit={this.updateLimit}
-        updateSort={this.updateSort}
-        pageType="people"
-      />
+      let pageActions = <Suspense fallback={renderLoader()}>
+        <PageActions
+          limit={this.state.limit}
+          sort={true}
+          orderField={this.state.orderField}
+          orderDesc={this.state.orderDesc}
+          current_page={this.state.page}
+          gotoPageValue={this.state.gotoPage}
+          total_pages={this.state.totalPages}
+          updatePage={this.updatePage}
+          gotoPage={this.gotoPage}
+          handleChange={this.handleChange}
+          updateLimit={this.updateLimit}
+          updateSort={this.updateSort}
+          pageType="people"
+        />
+      </Suspense>
       let people = <div className="row">
         <div className="col-12">
           <div style={{padding: '40pt',textAlign: 'center'}}>
@@ -534,32 +536,36 @@ class People extends Component {
       ]
       let advancedSearchInputsLength = this.state.advancedSearchInputs.length;
       let searchBox = <Collapse isOpen={this.state.searchVisible}>
-        <SearchForm
-          searchElements={searchElements}
-          simpleSearchTerm={this.state.simpleSearchTerm}
-          simpleSearch={this.simpleSearch}
-          clearSearch={this.clearSearch}
-          handleChange={this.handleChange}
-          adadvancedSearchEnable={true}
-          advancedSearch={this.advancedSearchSubmit}
-          updateAdvancedSearchRows={this.updateAdvancedSearchRows}
-          clearAdvancedSearch={this.clearAdvancedSearch}
-          updateAdvancedSearchInputs={this.updateAdvancedSearchInputs}
-          advancedSearchInputsLength={advancedSearchInputsLength}
-          advancedSearchInputs={this.state.advancedSearchInputs}
-          />
+        <Suspense fallback={renderLoader()}>
+          <SearchForm
+            searchElements={searchElements}
+            simpleSearchTerm={this.state.simpleSearchTerm}
+            simpleSearch={this.simpleSearch}
+            clearSearch={this.clearSearch}
+            handleChange={this.handleChange}
+            adadvancedSearchEnable={true}
+            advancedSearch={this.advancedSearchSubmit}
+            updateAdvancedSearchRows={this.updateAdvancedSearchRows}
+            clearAdvancedSearch={this.clearAdvancedSearch}
+            updateAdvancedSearchInputs={this.updateAdvancedSearchInputs}
+            advancedSearchInputsLength={advancedSearchInputsLength}
+            advancedSearchInputs={this.state.advancedSearchInputs}
+            />
+        </Suspense>
       </Collapse>
 
       let filterType = ["events", "organisations", "temporals"];
       content = <div>
         <div className="row">
           <div className="col-xs-12 col-sm-4">
-            <Filters
-              name="people"
-              filterType = {filterType}
-              filtersSet={this.props.peopleFilters}
-              relationshipSet={this.props.peopleRelationship}
-              updatedata={this.load}/>
+            <Suspense fallback={renderLoader()}>
+              <Filters
+                name="people"
+                filterType = {filterType}
+                filtersSet={this.props.peopleFilters}
+                relationshipSet={this.props.peopleRelationship}
+                updatedata={this.load}/>
+            </Suspense>
           </div>
           <div className="col-xs-12 col-sm-8">
             <h2>{heading}

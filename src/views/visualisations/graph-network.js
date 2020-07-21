@@ -1,14 +1,16 @@
-import React from 'react';
-import GraphNetwork from '../../components/visualisations/graph-network-pixi';
+import React, {lazy, Suspense} from 'react';
 import {Breadcrumbs} from '../../components/breadcrumbs';
-import {updateDocumentTitle} from '../../helpers';
+import {updateDocumentTitle,renderLoader} from '../../helpers';
+const GraphNetwork = lazy(() => import('../../components/visualisations/graph-network-pixi'));
 
 const NetworkGraph = props => {
   let heading = "Network graph";
   let breadcrumbsItems = [{label: heading, icon: "pe-7s-graph1", active: true, path: ""}];
   updateDocumentTitle(heading);
   let content = <div className="graph-container" id="graph-container">
-      <GraphNetwork relatedLinks={[]} relatedNodes={[]} />
+      <Suspense fallback={renderLoader()}>
+        <GraphNetwork relatedLinks={[]} relatedNodes={[]} />
+      </Suspense>
     </div>;
   return (
     <div className="container">

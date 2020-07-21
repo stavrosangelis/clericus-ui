@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Spinner,
   Carousel,
@@ -18,8 +18,27 @@ const HomeSlider = (props) => {
   const [animating, setAnimating] = useState(false);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState([]);
+  const [imgPaths, setImgPaths] = useState([]);
+  const prevImgPaths = useRef(null);
 
   useEffect(()=> {
+    const loadImages = (items) => {
+      if (imgPaths.length>0) {
+        let newImagePaths = Object.assign([],imgPaths);
+        for (let i=0;i<items.length;i++) {
+          let item = items[i];
+          let path = item.imageDetails.paths.find(p=>p.pathType==="source").path;
+
+          const imageLoader = new Image();
+          imageLoader.src = path;
+          imageLoader.onload = () => {
+            newImagePaths[i] = path;
+            setImgPaths(newImagePaths);
+          };
+        }
+      }
+    }
+
     const load = async() => {
       setLoading(false);
       let responseData = await axios({
@@ -32,12 +51,19 @@ const HomeSlider = (props) => {
       })
       .catch(function (error) {
       });
-      setItems(responseData.data);
+      let newItems = responseData.data;
+      let newPaths = newItems.map(i=>i.imageDetails.paths.find(p=>p.pathType==="thumbnail").path);
+      setItems(newItems);
+      setImgPaths(newPaths);
     }
     if (loading) {
       load();
     }
-  },[loading]);
+    if (prevImgPaths.current===null && imgPaths.length>0 && items.length>0) {
+      prevImgPaths.current = imgPaths;
+      loadImages(items);
+    }
+  },[loading,items,imgPaths]);
 
   const next = () => {
     if (animating) return;
@@ -66,6 +92,7 @@ const HomeSlider = (props) => {
     </div>
     <img height={460} alt="" src={defaultImg}/>
   </CarouselItem>
+
   let slides = [defaultItem];
   let itemsLength = items.length;
   if (itemsLength>0) {
@@ -73,9 +100,10 @@ const HomeSlider = (props) => {
   }
   for (let i=0;i<itemsLength;i++) {
     let item = items[i];
-    let fullImg = item.imageDetails.paths.find(p=>p.pathType==="source").path;
+    let imgURL = imgPaths[i];
+
     let carouselImgStyle = {
-      backgroundImage: `url(${fullImg})`,
+      backgroundImage: `url(${imgURL})`,
       backgroundSize: 'cover',
     }
     let caption = [];

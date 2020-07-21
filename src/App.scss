@@ -2,7 +2,7 @@
 
 body {
   font-size: 15px;
-  font-family: Roboto;
+  font-family: "Roboto",Helvetica,Arial,sans-serif;
 }
 
 h1, h2, h3, h4, h5 {
@@ -273,7 +273,7 @@ h1, h2, h3, h4, h5 {
 }
 .carousel-control-next-icon:after{
   content: "\f054";
-  font-family: FontAwesome;
+  font-family: 'FontAwesome';
   font-size: 30px;
   color: #fff;
   text-shadow: 1px 1px rgba(0,0,0,0.5);
@@ -281,7 +281,7 @@ h1, h2, h3, h4, h5 {
 
 .carousel-control-prev-icon:after {
   content: "\f053";
-  font-family: FontAwesome;
+  font-family: 'FontAwesome';
   font-size: 30px;
   color: #fff;
   text-shadow: 1px 1px rgba(0,0,0,0.5);
@@ -1011,7 +1011,7 @@ section {
   margin-bottom: 40px;
   color: $dark-green;
   font-weight: 300;
-  font-family: 'Spartan';
+  font-family: 'Spartan',Helvetica,Arial,sans-serif;
 }
 .section-title > span {
   border-bottom: 3px solid $dark-green;
@@ -1101,7 +1101,7 @@ section {
 }
 .news-item-date {
   font-size: 13px;
-  color: #999;
+  color: #666;
   padding-bottom: 10px;
 }
 .news-item-small {
@@ -1804,6 +1804,12 @@ section {
 .graph-loading {
   height: 600px;
   line-height: 500px;
+  display: block;
+  text-align: center;
+}
+.generic-loading {
+  height: 200px;
+  line-height: 150px;
   display: block;
   text-align: center;
 }
@@ -2702,7 +2708,7 @@ section {
   z-index: 2;
 }
 .cookies-consent-content a, .cookies-consent-content a:visited {
-  color: #07cbff;
+  color: #aee9f2;
 }
 .cookies-consent-content button {
   border: 2px solid #fff;

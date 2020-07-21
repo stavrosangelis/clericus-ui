@@ -81,7 +81,7 @@ const Block = props => {
       let person = people[i];
       if (person.ref.label.toLowerCase().includes(simpleSearchSet.toLowerCase())) {
         let url = "/person/"+person.ref._id;
-        peopleData.push(<li key={person.ref._id} ><Link className="tag-bg tag-item" href={url} to={url}><i>{person.term.label}</i> {person.ref.label}</Link></li>);
+        peopleData.push(<li key={`${i}-${person.ref._id}`} ><Link className="tag-bg tag-item" href={url} to={url}><i>{person.term.label}</i> {person.ref.label}</Link></li>);
       }
     }
     let searchVisibleClass = "";

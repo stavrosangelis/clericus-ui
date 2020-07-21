@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, lazy, Suspense } from 'react';
 import axios from 'axios';
 import {
   Spinner,
@@ -8,11 +8,9 @@ import {
 import { Map, Marker, Popup, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {updateDocumentTitle} from '../helpers';
-import ResourcesBlock from '../components/item-blocks/resources';
-import EventsBlock from '../components/item-blocks/events';
-import OrganisationsBlock from '../components/item-blocks/organisations';
-import PeopleBlock from '../components/item-blocks/people';
+import {updateDocumentTitle,renderLoader} from '../helpers';
+const EventsBlock = lazy(() => import('../components/item-blocks/events'));
+const OrganisationsBlock = lazy(() => import('../components/item-blocks/organisations'));
 
 class Spatial extends Component {
   constructor(props) {
@@ -135,24 +133,6 @@ class Spatial extends Component {
       <div className={descriptionVisibleClass}>{descriptionContent}</div>
     </div>
 
-    // resources
-    let resourcesRow = [];
-    let classpiecesHidden = "";
-    let classpiecesVisibleClass = "";
-    if(!this.state.classpiecesVisible){
-      classpiecesHidden = " closed";
-      classpiecesVisibleClass = "hidden";
-    }
-    let resourcesHidden = "";
-    let resourcesVisibleClass = "";
-    if(!this.state.resourcesVisible){
-      resourcesHidden = " closed";
-      resourcesVisibleClass = "hidden";
-    }
-    if (typeof item.resources!=="undefined" && item.resources!==null && item.resources!=="") {
-      resourcesRow = <ResourcesBlock key="resourcesRow" toggleTable={this.toggleTable} classpiecesHidden={classpiecesHidden} classpiecesVisible={classpiecesVisibleClass} resourcesHidden={resourcesHidden} resourcesVisible={resourcesVisibleClass} resources={item.resources} />
-    }
-
     // events
     let eventsRow = [];
     let eventsHidden = "";
@@ -162,7 +142,9 @@ class Spatial extends Component {
       eventsVisibleClass = "hidden";
     }
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
-      eventsRow = <EventsBlock key="eventsRow" toggleTable={this.toggleTable} hidden={eventsHidden} visible={eventsVisibleClass} events={item.events} />
+      eventsRow = <Suspense fallback={renderLoader()} key="events">
+        <EventsBlock toggleTable={this.toggleTable} hidden={eventsHidden} visible={eventsVisibleClass} events={item.events} />
+      </Suspense>
     }
 
     // organisations
@@ -174,24 +156,14 @@ class Spatial extends Component {
       organisationsVisibleClass = "hidden";
     }
     if (typeof item.organisations!=="undefined" && item.organisations!==null && item.organisations!=="") {
-      organisationsRow = <OrganisationsBlock key="organisationsRow" toggleTable={this.toggleTable} hidden={organisationsHidden} visible={organisationsVisibleClass} organisations={item.organisations} />
-    }
-
-    // people
-    let peopleRow = [];
-    if (typeof item.people!=="undefined" && item.people.length>0) {
-      peopleRow = <PeopleBlock
-        key ={"people"}
-        name = {"spatial"}
-        peopleItem = {item.people}
-      />
+      organisationsRow = <Suspense fallback={renderLoader()} key="organisations">
+        <OrganisationsBlock toggleTable={this.toggleTable} hidden={organisationsHidden} visible={organisationsVisibleClass} organisations={item.organisations} />
+      </Suspense>
     }
 
     meta.push(descriptionRow);
     meta.push(organisationsRow);
     meta.push(eventsRow);
-    meta.push(resourcesRow);
-    meta.push(peopleRow);
     return meta;
   }
 

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, lazy, Suspense } from 'react';
 import axios from 'axios';
 import {
   Spinner,
@@ -11,15 +11,16 @@ import { Link} from 'react-router-dom';
 import { Map, Marker, Popup, TileLayer } from 'react-leaflet'
 import L from 'leaflet';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import PageActions from '../components/page-actions';
-import SearchForm from '../components/search-form';
-import {updateDocumentTitle} from '../helpers';
+import {updateDocumentTitle,renderLoader} from '../helpers';
 
 import {connect} from "react-redux";
 import {
   setPaginationParams,
   setRelationshipParams
 } from "../redux/actions";
+
+const PageActions = lazy(() => import('../components/page-actions'));
+const SearchForm = lazy(() => import('../components/search-form'));
 
 const mapStateToProps = state => {
   return {
@@ -386,17 +387,20 @@ class Spatials extends Component {
     </div>
 
     if (!this.state.loading) {
-      let pageActions = <PageActions
-        limit={this.state.limit}
-        current_page={this.state.page}
-        gotoPageValue={this.state.gotoPage}
-        total_pages={this.state.totalPages}
-        updatePage={this.updatePage}
-        gotoPage={this.gotoPage}
-        handleChange={this.handleChange}
-        updateLimit={this.updateLimit}
-        pageType="spatials"
-      />
+      let pageActions = <Suspense fallback={renderLoader()}>
+        <PageActions
+          limit={this.state.limit}
+          sort={false}
+          current_page={this.state.page}
+          gotoPageValue={this.state.gotoPage}
+          total_pages={this.state.totalPages}
+          updatePage={this.updatePage}
+          gotoPage={this.gotoPage}
+          handleChange={this.handleChange}
+          updateLimit={this.updateLimit}
+          pageType="spatials"
+        />
+      </Suspense>
       let spatials = <div className="row">
         <div className="col-12">
           <div style={{padding: '40pt',textAlign: 'center'}}>
@@ -412,15 +416,17 @@ class Spatials extends Component {
       ]
 
       let searchBox = <Collapse isOpen={this.state.searchVisible}>
-        <SearchForm
-          name="spatials"
-          searchElements={searchElements}
-          simpleSearchTerm={this.state.simpleSearchTerm}
-          simpleSearch={this.simpleSearch}
-          clearSearch={this.clearSearch}
-          handleChange={this.handleChange}
-          adadvancedSearchEnable={false}
-          />
+        <Suspense fallback={renderLoader()}>
+          <SearchForm
+            name="spatials"
+            searchElements={searchElements}
+            simpleSearchTerm={this.state.simpleSearchTerm}
+            simpleSearch={this.simpleSearch}
+            clearSearch={this.clearSearch}
+            handleChange={this.handleChange}
+            adadvancedSearchEnable={false}
+            />
+        </Suspense>
       </Collapse>
 
       //map

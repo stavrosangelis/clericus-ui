@@ -1,13 +1,13 @@
-import React, { Component } from 'react';
+import React, { Component, lazy, Suspense } from 'react';
+import {updateDocumentTitle,renderLoader} from '../helpers';
 
-import HomeSlider from '../components/home/carousel';
-import SectionNumbers from '../components/home/section-numbers';
-import About from '../components/home/about';
-import HighLights from '../components/home/highlights';
-import News from '../components/home/news';
-import Welcome from '../components/home/welcome';
-import Visualisations from '../components/home/visualisations';
-import {updateDocumentTitle} from '../helpers';
+const HomeSlider = lazy(() => import('../components/home/carousel'));
+const SectionNumbers = lazy(() => import('../components/home/section-numbers'));
+const About = lazy(() => import('../components/home/about'));
+const HighLights = lazy(() => import('../components/home/highlights'));
+const News = lazy(() => import('../components/home/news'));
+const Welcome = lazy(() => import('../components/home/welcome'));
+const Visualisations = lazy(() => import('../components/home/visualisations'));
 
 class Home extends Component {
 
@@ -15,14 +15,20 @@ class Home extends Component {
     updateDocumentTitle();
     return (
       <div className="container-fluid">
-        <HomeSlider />
+        <Suspense fallback={renderLoader()}>
+          <HomeSlider />
+        </Suspense>
 
-        <SectionNumbers />
+        <Suspense fallback={renderLoader()}>
+          <SectionNumbers />
+        </Suspense>
         <section className="white-section">
           <div className="container">
             <div className="row">
               <div className="col-xs-12">
-                <About />
+                <Suspense fallback={renderLoader()}>
+                  <About />
+                </Suspense>
               </div>
               <div className="col-xs-12 col-md-5">
               </div>
@@ -33,7 +39,9 @@ class Home extends Component {
           <div className="container">
             <div className="row">
               <div className="col-12">
-                <HighLights />
+                <Suspense fallback={renderLoader()}>
+                  <HighLights />
+                </Suspense>
               </div>
             </div>
           </div>
@@ -42,10 +50,14 @@ class Home extends Component {
           <div className="container">
             <div className="row">
               <div className="col-12 col-md-7">
-                <News />
+                <Suspense fallback={renderLoader()}>
+                  <News />
+                </Suspense>
               </div>
               <div className="col-12 col-md-5">
-                <Welcome />
+                <Suspense fallback={renderLoader()}>
+                  <Welcome />
+                </Suspense>
               </div>
             </div>
           </div>
@@ -54,7 +66,9 @@ class Home extends Component {
           <div className="container">
             <div className="row">
               <div className="col-12">
-                <Visualisations />
+                <Suspense fallback={renderLoader()}>
+                  <Visualisations />
+                </Suspense>
               </div>
             </div>
           </div>

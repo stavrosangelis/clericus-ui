@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, lazy, Suspense } from 'react';
 import axios from 'axios';
 import {
   Spinner,
@@ -6,16 +6,15 @@ import {
 } from 'reactstrap';
 import {Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getResourceThumbnailURL, getResourceFullsizeURL} from '../helpers';
+import {getResourceThumbnailURL, getResourceFullsizeURL,renderLoader,updateDocumentTitle} from '../helpers';
 import {parseMetadata} from '../helpers/parse-metadata';
-import Viewer from '../components/image-viewer-resource.js';
-import {updateDocumentTitle} from '../helpers';
-import DescriptionBlock from '../components/item-blocks/description';
-import ResourcesBlock from '../components/item-blocks/resources';
-import ClasspiecesBlock from '../components/item-blocks/classpieces';
-import EventsBlock from '../components/item-blocks/events';
-import OrganisationsBlock from '../components/item-blocks/organisations';
-import PeopleBlock from '../components/item-blocks/people';
+const Viewer = lazy(() => import('../components/image-viewer-resource.js'));
+const DescriptionBlock = lazy(() => import('../components/item-blocks/description'));
+const ResourcesBlock = lazy(() => import('../components/item-blocks/resources'));
+const ClasspiecesBlock = lazy(() => import('../components/item-blocks/classpieces'));
+const EventsBlock = lazy(() => import('../components/item-blocks/events'));
+const OrganisationsBlock = lazy(() => import('../components/item-blocks/organisations'));
+const PeopleBlock = lazy(() => import('../components/item-blocks/people'));
 
 export default class Resource extends Component {
   constructor(props) {
@@ -120,7 +119,9 @@ export default class Resource extends Component {
       descriptionVisibleClass = "hidden";
     }
     if (typeof item.description!=="undefined" && item.description!==null && item.description!=="") {
-      descriptionRow = <DescriptionBlock key="descriptionRow" toggleTable={this.toggleTable} hidden={descriptionHidden} visible={descriptionVisibleClass} description={item.description}/>
+      descriptionRow = <Suspense fallback={renderLoader()} key="description">
+        <DescriptionBlock toggleTable={this.toggleTable} hidden={descriptionHidden} visible={descriptionVisibleClass} description={item.description}/>
+      </Suspense>
     }
 
     // classpieces
@@ -132,7 +133,9 @@ export default class Resource extends Component {
       classpiecesVisibleClass = "hidden";
     }
     if (typeof item.classpieces!=="undefined" && item.classpieces!==null && item.classpieces!=="") {
-      classpiecesRow = <ClasspiecesBlock key="classpieces" toggleTable={this.toggleTable} hidden={classpiecesHidden} visible={classpiecesVisibleClass} items={item.classpieces} />
+      classpiecesRow = <Suspense fallback={renderLoader()} key="classpieces">
+        <ClasspiecesBlock toggleTable={this.toggleTable} hidden={classpiecesHidden} visible={classpiecesVisibleClass} items={item.classpieces} />
+      </Suspense>
     }
 
     // resources
@@ -144,7 +147,9 @@ export default class Resource extends Component {
       resourcesVisibleClass = "hidden";
     }
     if (typeof item.resources!=="undefined" && item.resources!==null && item.resources!=="") {
-      resourcesRow = <ResourcesBlock key="resources" toggleTable={this.toggleTable} hidden={resourcesHidden} visible={resourcesVisibleClass} resources={item.resources} />
+      resourcesRow = <Suspense fallback={renderLoader()} key="resources">
+        <ResourcesBlock toggleTable={this.toggleTable} hidden={resourcesHidden} visible={resourcesVisibleClass} resources={item.resources} />
+      </Suspense>
     }
 
     // events
@@ -156,7 +161,9 @@ export default class Resource extends Component {
       eventsVisibleClass = "hidden";
     }
     if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
-      eventsRow = <EventsBlock key="eventsRow" toggleTable={this.toggleTable} hidden={eventsHidden} visible={eventsVisibleClass} events={item.events} />
+      eventsRow = <Suspense fallback={renderLoader()} key="events">
+        <EventsBlock toggleTable={this.toggleTable} hidden={eventsHidden} visible={eventsVisibleClass} events={item.events} />
+      </Suspense>
     }
 
     // organisations
@@ -168,15 +175,15 @@ export default class Resource extends Component {
       organisationsVisibleClass = "hidden";
     }
     if (typeof item.organisations!=="undefined" && item.organisations!==null && item.organisations!=="") {
-      organisationsRow = <OrganisationsBlock key="organisationsRow" toggleTable={this.toggleTable} hidden={organisationsHidden} visible={organisationsVisibleClass} organisations={item.organisations} />
+      organisationsRow = <Suspense fallback={renderLoader()} key="organisations">
+        <OrganisationsBlock toggleTable={this.toggleTable} hidden={organisationsHidden} visible={organisationsVisibleClass} organisations={item.organisations} />
+      </Suspense>
     }
 
     // people
-    let peopleRow = <PeopleBlock
-      key ={"resourceTagPeople"}
-      name = {"resource"}
-      peopleItem = {item.people}
-    />
+    let peopleRow = <Suspense fallback={renderLoader()} key="people">
+      <PeopleBlock name="resource" peopleItem={item.people} />
+    </Suspense>
 
     detailsOutput.push(descriptionRow);
     detailsOutput.push(eventsRow);
@@ -312,13 +319,15 @@ export default class Resource extends Component {
         if (fullsizePath!==null && resource.resourceType==="image") {
           let fullsizePath = getResourceFullsizeURL(resource);
           if (resource.resourceType!=="document") {
-            imgViewer = <Viewer
-              visible={this.state.viewerVisible}
-              path={fullsizePath}
-              label={label}
-              toggle={this.toggleViewer}
-              item={resource}
-            />
+            imgViewer = <Suspense fallback={renderLoader()}>
+              <Viewer
+                visible={this.state.viewerVisible}
+                path={fullsizePath}
+                label={label}
+                toggle={this.toggleViewer}
+                item={resource}
+              />
+            </Suspense>
           }
         }
       }

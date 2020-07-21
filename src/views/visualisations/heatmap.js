@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef} from 'react';
+import React, { useEffect, useState, useRef, lazy, Suspense} from 'react';
 import {
   Spinner,
   FormGroup, Input
@@ -12,9 +12,9 @@ import '../../assets/leaflet/leaflet.css';
 import markerIconPath from '../../assets/leaflet/images/marker-icon.png';
 import MarkerClusterGroup from '../../components/markercluster';
 import L from 'leaflet';
-import {updateDocumentTitle} from '../../helpers';
-import PeopleBlock from '../../components/item-blocks/people';
+import {updateDocumentTitle,renderLoader} from '../../helpers';
 import HelpArticle from '../../components/help-article';
+const PeopleBlock = lazy(() => import('../../components/item-blocks/people'));
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
@@ -125,7 +125,9 @@ const Heatmap = props => {
       let people = [];
       if(typeof item.people!=="undefined" && item.people.length>0) {
         people = <div className="popup-people">
-          <PeopleBlock key="people" name="people" peopleItem={item.people} />
+          <Suspense fallback={renderLoader()}>
+            <PeopleBlock key="people" name="people" peopleItem={item.people} />
+          </Suspense>
         </div>
       }
       let popupContent = <div>

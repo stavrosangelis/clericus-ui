@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, lazy, Suspense } from 'react';
 import axios from 'axios';
 import {
   Spinner,
@@ -9,16 +9,16 @@ import {
 } from 'reactstrap';
 import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
-import {getResourceThumbnailURL} from '../helpers';
-import PageActions from '../components/page-actions';
-import SearchForm from '../components/search-form';
-import {updateDocumentTitle} from '../helpers';
+import {updateDocumentTitle,getResourceThumbnailURL,renderLoader} from '../helpers';
 import HelpArticle from '../components/help-article';
 
 import {connect} from "react-redux";
 import {
   setPaginationParams
 } from "../redux/actions";
+
+const SearchForm = lazy(() => import('../components/search-form'));
+const PageActions = lazy(() => import('../components/page-actions'));
 
 const mapStateToProps = state => {
   return {
@@ -305,18 +305,21 @@ class Resources extends Component {
     </div>
 
     if (!this.state.loading) {
-      let pageActions = <PageActions
-        limit={this.state.limit}//sort={this.state.sort}
-        current_page={this.state.page}
-        gotoPageValue={this.state.gotoPage}
-        total_pages={this.state.totalPages}
-        updatePage={this.updatePage}
-        gotoPage={this.gotoPage}
-        handleChange={this.handleChange}
-        updateLimit={this.updateLimit}
-        updateSort={this.updateSort}
-        pageType="resources"
-      />
+      let pageActions = <Suspense fallback={renderLoader()}>
+        <PageActions
+          limit={this.state.limit}
+          sort={false}
+          current_page={this.state.page}
+          gotoPageValue={this.state.gotoPage}
+          total_pages={this.state.totalPages}
+          updatePage={this.updatePage}
+          gotoPage={this.gotoPage}
+          handleChange={this.handleChange}
+          updateLimit={this.updateLimit}
+          updateSort={this.updateSort}
+          pageType="resources"
+        />
+      </Suspense>
       let resources = <div className="row">
         <div className="col-12">
           <div style={{padding: '40pt',textAlign: 'center'}}>
@@ -331,14 +334,16 @@ class Resources extends Component {
           inputType: "text", inputData: null}]
 
       let searchBox = <Collapse isOpen={this.state.searchVisible}>
-        <SearchForm
-          searchElements={searchElements}
-          simpleSearchTerm={this.state.simpleSearchTerm}
-          simpleSearch={this.simpleSearch}
-          clearSearch={this.clearSearch}
-          handleChange={this.handleChange}
-          adadvancedSearchEnable={false}
-          />
+        <Suspense fallback={renderLoader()}>
+          <SearchForm
+            searchElements={searchElements}
+            simpleSearchTerm={this.state.simpleSearchTerm}
+            simpleSearch={this.simpleSearch}
+            clearSearch={this.clearSearch}
+            handleChange={this.handleChange}
+            adadvancedSearchEnable={false}
+            />
+        </Suspense>
       </Collapse>
 
       content = <div>

@@ -17,7 +17,7 @@ export default class Topbar extends Component {
             </span>
           </li>
           <li>
-            <Link href="/contact" to="/contact">
+            <Link href="/contact" to="/contact" title="contact" alt="contact" >
               <span className="social-icon">
                 <i className="fa fa-envelope" />
               </span>
