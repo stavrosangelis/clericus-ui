@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, lazy, Suspense} from 'react';
 import {
   Card, CardBody,
   Spinner,
@@ -7,13 +7,13 @@ import {
 } from 'reactstrap';
 import axios from 'axios';
 import {Breadcrumbs} from '../../components/breadcrumbs';
-import {Link} from 'react-router-dom';
-import DatePicker from "react-datepicker";
 import moment from "moment";
-import {getResourceThumbnailURL, updateDocumentTitle} from '../../helpers';
+import {Link} from 'react-router-dom';
+import {getResourceThumbnailURL, updateDocumentTitle, renderLoader} from '../../helpers';
 import HelpArticle from '../../components/help-article';
 
 import "react-datepicker/dist/react-datepicker.css";
+const DatePicker = lazy(() => import("react-datepicker"));
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
@@ -511,14 +511,14 @@ const Timeline = props =>{
     if (typeof item==="undefined") {
       return false;
     }
-    let newPosition = elem[0].offsetTop-50;
-    timelineContainer.current.scrollTo({top: newPosition, behavior: 'smooth'});
-    elem[0].classList.add("found");
-    setTimeout(()=>{
-      elem[0].classList.remove("found");
-    },3000);
-
-    //01/01/1990
+    if (typeof elem[0]!=="undefined") {
+      let newPosition = elem[0].offsetTop-50;
+      timelineContainer.current.scrollTo({top: newPosition, behavior: 'smooth'});
+      elem[0].classList.add("found");
+      setTimeout(()=>{
+        elem[0].classList.remove("found");
+      },3000);
+    }
   }
 
   const updateZoom = (val=null) => {
@@ -808,14 +808,16 @@ const Timeline = props =>{
       <Form onSubmit={(e)=>searchDate(e)}>
         <FormGroup>
           <label>Search for date</label>
-          <DatePicker
-            placeholderText="dd/mm/yyyy"
-            selected={startDate}
-            onChange={(val)=>setStartDate(val)}
-            dateFormat="dd/MM/yyyy"
-            showMonthDropdown
-            showYearDropdown
-            />
+          <Suspense fallback={renderLoader()}>
+            <DatePicker
+              placeholderText="dd/mm/yyyy"
+              selected={startDate}
+              onChange={(val)=>setStartDate(val)}
+              dateFormat="dd/MM/yyyy"
+              showMonthDropdown
+              showYearDropdown
+              />
+          </Suspense>
         </FormGroup>
         <Button size="sm" outline>Submit</Button>
       </Form>

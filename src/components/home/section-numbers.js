@@ -32,10 +32,10 @@ class SectionNumbers extends Component {
 
   count() {
     let stats = this.props.genericStats;
-    this.animateValue(this.peopleCountRef, 0, stats.people, 2000);
-    this.animateValue(this.resourcesCountRef, 0, stats.resources, 2000);
-    this.animateValue(this.diocesesCountRef, 0, stats.dioceses, 2000);
-    this.animateValue(this.uniqueLastNamesCountRef, 0, stats.lastNames, 2000);
+    this.animateValue(this.peopleCountRef, 0, stats.people, 1500);
+    this.animateValue(this.resourcesCountRef, 0, stats.resources, 1500);
+    this.animateValue(this.diocesesCountRef, 0, stats.dioceses, 1500);
+    this.animateValue(this.uniqueLastNamesCountRef, 0, stats.lastNames, 1500);
   }
 
   animateValue(ref, start, end, duration) {

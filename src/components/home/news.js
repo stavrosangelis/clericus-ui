@@ -81,7 +81,7 @@ const News = props => {
         items.push(item);
       }
     }
-    content = <div>
+    content = <div className="news-container">
       <h4 className="section-title"><span><span>N</span>ews</span></h4>
       <div className="row">
         <div className="col-12 col-sm-6">{item1}</div>

@@ -1,5 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
-import DatePicker from "react-datepicker";
+import React, {useState, useEffect, useRef, lazy, Suspense} from 'react';
 import {
   Form,FormGroup, Input,
   Card, CardBody,
@@ -8,6 +7,8 @@ import {
 import PropTypes from 'prop-types';
 import moment from "moment";
 import "react-datepicker/dist/react-datepicker.css";
+import {renderLoader} from '../helpers';
+const DatePicker = lazy(() => import("react-datepicker"));
 
 const FilterTemporal = props => {
   const [loading, setLoading] = useState(true);
@@ -125,23 +126,27 @@ const FilterTemporal = props => {
             <FormGroup>
               <label className={endDateHidden}>Date</label>
               <label className={endDateVisible}>Start date</label>
-              <DatePicker
-                selected={startDate}
-                onChange={(val)=>setStartDate(val)}
-                dateFormat="dd/MM/yyyy"
-                showMonthDropdown
-                showYearDropdown
-                />
+              <Suspense fallback={renderLoader()}>
+                <DatePicker
+                  selected={startDate}
+                  onChange={(val)=>setStartDate(val)}
+                  dateFormat="dd/MM/yyyy"
+                  showMonthDropdown
+                  showYearDropdown
+                  />
+              </Suspense>
             </FormGroup>
             <FormGroup className={endDateVisible}>
               <label>End date</label>
-              <DatePicker
-                selected={endDate}
-                onChange={(val)=>setEndDate(val)}
-                dateFormat="dd/MM/yyyy"
-                showMonthDropdown
-                showYearDropdown
-                />
+              <Suspense fallback={renderLoader()}>
+                <DatePicker
+                  selected={endDate}
+                  onChange={(val)=>setEndDate(val)}
+                  dateFormat="dd/MM/yyyy"
+                  showMonthDropdown
+                  showYearDropdown
+                  />
+              </Suspense>
             </FormGroup>
             <div className="text-center">
               <Button size="sm" outline>Submit</Button>

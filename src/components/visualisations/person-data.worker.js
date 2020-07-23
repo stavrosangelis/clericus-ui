@@ -17,12 +17,11 @@ onmessage = async(e)=>{
           pushData();
         });
       }
-
       pushData();
     }
   });
   const streamedResponse = new Response(stream, { headers: { "Content-Type": "application/json" } });
 
   const data = await streamedResponse.text();
-  postMessage({ data: data, finished: true });
+  postMessage(data);
 };

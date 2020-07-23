@@ -9,8 +9,6 @@ import {
 } from 'reactstrap';
 import axios from 'axios';
 
-import defaultImg from '../../assets/images/carousel-default.jpg';
-
 const APIPath = process.env.REACT_APP_APIPATH;
 
 const HomeSlider = (props) => {
@@ -90,7 +88,6 @@ const HomeSlider = (props) => {
     <div className="carousel-default-item">
       <Spinner style={{ width: '60px', height: '60px' }} color="info" />
     </div>
-    <img height={460} alt="" src={defaultImg}/>
   </CarouselItem>
 
   let slides = [defaultItem];
@@ -125,7 +122,6 @@ const HomeSlider = (props) => {
       >
         <div className="carousel-img" style={carouselImgStyle}></div>
         {overlay}
-        <img height={460} alt={item.label} src={defaultImg}/>
         <CarouselCaption captionText={caption} captionHeader={item.label} />
       </CarouselItem>
     );

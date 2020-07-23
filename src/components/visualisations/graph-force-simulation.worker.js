@@ -14,12 +14,12 @@ onmessage = async(e)=>{
     d3.forceLink(links)
         .id(d => d.id)
         .strength(d=>1)
-        .distance(d=>200)
+        .distance(d=>400)
       )
-    .force("charge", d32.forceManyBodyReuse().strength(strength))
-    .force("center", d3.forceCenter(e.data.centerX, e.data.centerY))
-    .force('collide', d3.forceCollide(60))
-    .alphaDecay(0.06)
+    //.force("charge", d32.forceManyBodyReuse().strength(strength))
+    //.force("center", d3.forceCenter(e.data.centerX, e.data.centerY))
+    .force('collide', d3.forceCollide(100))
+    .alphaDecay(0.8)
     .stop();
 
   let max = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay()));

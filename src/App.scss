@@ -236,6 +236,14 @@ h1, h2, h3, h4, h5 {
   background-attachment: fixed;
   background-position: center center;
   background-size: cover;
+  z-index: 1;
+}
+.carousel-item {
+  min-height: 460px;
+}
+.carousel-item img {
+  position: relative;
+  z-index: 0;
 }
 .carousel-overlay {
   z-index:2;
@@ -352,7 +360,14 @@ h1, h2, h3, h4, h5 {
   }
 }
 @media screen and (max-width: 576px) {
-  .home-highlight-container {
+  .highlights-container, .highlights-container-inner {
+    height: 350px !important;
+  }
+  .home-highlight {
+    height: 350px;
+  }
+  .home-highlight-text {
+    top: 240px;
   }
 }
 
@@ -1131,6 +1146,14 @@ section {
 .news-item-small:last-child {
   border-bottom: 0 none;
 }
+@media screen and (max-width: 576px) {
+  .news-container  {
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #ddd;
+  }
+}
+
 
 .footer {
   min-height: 200px;

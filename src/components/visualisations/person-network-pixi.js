@@ -120,11 +120,21 @@ const drawNodes = async () => {
           if (d.label!=="" && container.scaled>0.3) {
             let label = d.label.trim().replace(/  +/g," ");
             let spaces = label.split(" ");
-            let minusY = spaces.length/2;
-            label = label.replace(/\s/g,"\n");
+            let newSpaces = [];
+            for (let i=0;i<spaces.length;i++) {
+              let space = spaces[i];
+              let nextIndex = i+1;
+              if (nextIndex<(spaces.length-1) && space.length<6 && spaces[nextIndex].length<6) {
+                space += " "+spaces[nextIndex];
+                spaces.splice(nextIndex, 1);
+              }
+              newSpaces.push(space);
+            }
+            let minusY = newSpaces.length/2;
+
             let text = new PIXI.BitmapText(label,{fontName: "Arial", fontSize: 11, align : 'center'});
-            text.maxWidth = radius+(lineWidth*2);
-            text.x = x-((radius/2)+(lineWidth*2)+1);
+            text.maxWidth = (radius*2)+(lineWidth*2);
+            text.x = x-radius+(lineWidth*2);
             text.y = y-(10*minusY);
             textContainer.addChild(text);
           }
@@ -275,8 +285,9 @@ const PersonNetwork = props => {
           resolve(e.data);
         }, false);
       });
-      let parsedData = JSON.parse(newData.data);
-      parsedData = JSON.parse(parsedData.data);
+      let parsedData = jsonStringToObject(newData);
+      parsedData = jsonStringToObject(parsedData.data);
+      console.log(parsedData);
       setData(parsedData);
       setDrawing(true);
       setSearchInput("");
