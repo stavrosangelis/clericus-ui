@@ -287,7 +287,6 @@ const PersonNetwork = props => {
       });
       let parsedData = jsonStringToObject(newData);
       parsedData = jsonStringToObject(parsedData.data);
-      console.log(parsedData);
       setData(parsedData);
       setDrawing(true);
       setSearchInput("");

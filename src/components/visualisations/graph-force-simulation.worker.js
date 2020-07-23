@@ -14,11 +14,11 @@ onmessage = async(e)=>{
     d3.forceLink(links)
         .id(d => d.id)
         .strength(d=>1)
-        .distance(d=>400)
+        .distance(d=>300)
       )
     //.force("charge", d32.forceManyBodyReuse().strength(strength))
-    //.force("center", d3.forceCenter(e.data.centerX, e.data.centerY))
-    .force('collide', d3.forceCollide(100))
+    .force("center", d3.forceCenter(e.data.centerX, e.data.centerY))
+    .force('collide', d3.forceCollide(80))
     .alphaDecay(0.8)
     .stop();
 

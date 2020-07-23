@@ -87,6 +87,7 @@ const Heatmap = props => {
         if (typeof addressPoint.latitude!=="undefined") {
           let newAddressPoint = [addressPoint.latitude, addressPoint.longitude];
           setCenter(newAddressPoint);
+          itemDetails(_id, newAddressPoint, node.label);
         }
       }
     }
