@@ -1125,6 +1125,9 @@ section {
   margin-top: 0;
   vertical-align: top;
 }
+.news-item-small > a {
+  vertical-align: top;
+}
 .news-item-small .news-item-image {
   width: 50px;
   height: 50px;
@@ -1138,6 +1141,7 @@ section {
   width: calc(100% - 65px);
 }
 .news-item-small .news-item-details h4 {
+  padding-top: 0;
   font-size: 15px;
 }
 .news-item-small:first-child {

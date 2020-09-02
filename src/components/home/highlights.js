@@ -5,13 +5,17 @@ import { Card, CardBody } from 'reactstrap';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
+
 const HighLights = props => {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
   const [width, setWidth] = useState("100%");
   const [containerInnerWidth, setContainerInnerWidth] = useState("100%");
   const [containerInnerLeft, setContainerInnerLeft] = useState(0);
+  const [timerActive, setTimerActive] = useState(true);
   const container = useRef(null);
+
+
 
   const resize = useCallback(() => {
     let bbox = container.current.getBoundingClientRect();
@@ -75,7 +79,8 @@ const HighLights = props => {
     })
   })
 
-  const flipItems = (direction) => {
+  const flipItems = useCallback(
+    (direction) => {
       let bbox = container.current.getBoundingClientRect();
       let containerWidth = bbox.width;
       let newLeft = 0;
@@ -109,8 +114,7 @@ const HighLights = props => {
         newLeft = 0
       }
       setContainerInnerLeft(newLeft)
-
-  }
+  },[containerInnerLeft,containerInnerWidth,width])
 
   const itemHTML = (item, key) => {
     let parseUrl = `/article/${item.permalink}`;
@@ -148,15 +152,25 @@ const HighLights = props => {
 
   let highlights = [];
   if (!loading && items.length>0) {
-
     highlights = items.map(item=>itemHTML(item, 1));
   }
   let containerInnerStyle = {
     width: containerInnerWidth,
     left: containerInnerLeft
   }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      flipItems("right")
+    }, 3000);
+    if (!timerActive) {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [timerActive,flipItems]);
+
   return (
-    <div>
+    <div onMouseOver={()=>setTimerActive(false)} onMouseOut={()=>setTimerActive(true)}>
       <h3 className="section-title"><span><span>H</span>ighlights</span></h3>
       <div className="highlights-controls">
         <div className="left" onClick={()=>{flipItems("left")}}><i className="fa fa-chevron-left" /></div>
