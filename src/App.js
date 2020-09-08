@@ -38,10 +38,6 @@ function mapDispatchToProps(dispatch) {
     loadOrganisationsType: () => dispatch(loadOrganisationsType()),
     loadOrganisations: () => dispatch(loadOrganisations()),
     loadEventsType: () => dispatch(loadEventsType()),
-    //loadPeople: () => dispatch(loadPeople()),
-    //loadClasspieces: () => dispatch(loadClasspieces()),
-    //loadTemporals: () => dispatch(loadTemporals()),
-    //loadSpatials: () => dispatch(loadSpatials()),
     loadResourcesType: () => dispatch(loadResourcesType()),
     loadGenericStats: () => dispatch(loadGenericStats()),
   }
@@ -54,10 +50,6 @@ class App extends Component{
     this.props.loadOrganisationsType();
     this.props.loadOrganisations();
     this.props.loadEventsType();
-    //this.props.loadPeople();
-    //this.props.loadClasspieces();
-    //this.props.loadTemporals();
-    //this.props.loadSpatials();
     this.props.loadResourcesType();
     this.props.loadGenericStats();
   }

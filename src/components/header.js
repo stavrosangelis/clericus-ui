@@ -106,14 +106,12 @@ export default class Header extends React.Component {
         <div className="container">
           <Navbar expand="md">
             <Link to="/" href="/" className="logo-container">
-
                 <div className="bw-logo">
                   <img src={logosrc} className="logo-img" alt="Clericus logo" />
                   <div className="simple-text bw-normal">Clericus</div>
                 </div>
-
             </Link>
-            <button type="button" className="navbar-toggler navbar-toggler-nopadding" onClick={this.toggle}>
+            <button type="button" className="navbar-toggler navbar-toggler-nopadding" onClick={this.toggle} aria-label="Toggle navigation">
               <span className="navbar-toggler-icon">
                   <i className="fa fa-navicon"></i>
               </span>

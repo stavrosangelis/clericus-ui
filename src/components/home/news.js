@@ -61,7 +61,7 @@ const News = props => {
       if (i===0) {
         item1 = <div className="news-item">
           <div className="news-item-image">
-            <Link href={link} to={link}><img className="img-fluid" alt={article.label} src={thumbPath} /></Link>
+            <Link href={link} to={link} title={article.label}><img className="img-fluid" alt={article.label} src={thumbPath} /></Link>
           </div>
           <div className="news-item-details">
             <h4><Link href={link} to={link}>{article.label}</Link></h4>
@@ -72,7 +72,7 @@ const News = props => {
       }
       else {
         let item = <div className="news-item-small" key={i}>
-          <Link href={link} to={link}><span className="news-item-image" style={{backgroundImage: `url("${thumbPath}")`}}></span></Link>
+          <Link href={link} to={link} title={article.label}><span className="news-item-image" style={{backgroundImage: `url("${thumbPath}")`}}></span></Link>
           <div className="news-item-details">
             <h4><Link href={link} to={link}>{article.label}</Link></h4>
             <div className="news-item-date"><i className="pe-7s-user" /> {article.author} <i className="pe-7s-clock" /> {date}</div>

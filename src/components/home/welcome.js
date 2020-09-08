@@ -105,7 +105,10 @@ const About = props => {
         {logoImg}
         <div className="home-welcome-body text-justify" dangerouslySetInnerHTML={{__html: articleBody}}></div>
         <div className="text-center">
-          <Link className="btn btn-default" href={`/article/${article.permalink}`} to={`/article/${article.permalink}`}>More</Link>
+          <Link className="btn btn-default" href={`/article/${article.permalink}`} to={`/article/${article.permalink}`} title={article.label}>
+            <span className="hidden">{article.label}</span>
+            <span aria-hidden="true" focusable="false">More</span>
+          </Link>
         </div>
       </div>
       return articlePage;

@@ -15,8 +15,6 @@ const HighLights = props => {
   const [timerActive, setTimerActive] = useState(true);
   const container = useRef(null);
 
-
-
   const resize = useCallback(() => {
     let bbox = container.current.getBoundingClientRect();
     let containerWidth = bbox.width;
@@ -111,7 +109,10 @@ const HighLights = props => {
         newLeft = 0;
       }
       if(newLeft>0) {
-        newLeft = 0
+        newLeft = 0;
+      }
+      if(isNaN(newLeft)) {
+        newLeft = 0;
       }
       setContainerInnerLeft(newLeft)
   },[containerInnerLeft,containerInnerWidth,width])

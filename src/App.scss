@@ -77,6 +77,20 @@ h1, h2, h3, h4, h5 {
 .top-bar .top-bar-link span {
   font-size: 13px;
 }
+
+@media screen and (max-width: 400px) {
+  .top-bar {
+    height: 50px;
+  }
+  .top-bar .social-icon {
+    width: 48px;
+    height: 50px;
+    line-height: 50px;
+  }
+  .top-bar .social-icon i {
+    font-size: 22px;
+  }
+}
 .header {
   background-color: #fff;
 }
@@ -1124,6 +1138,7 @@ section {
   padding-top: 0;
   margin-top: 0;
   vertical-align: top;
+  margin-bottom: 10px;
 }
 .news-item-small > a {
   vertical-align: top;
@@ -2343,6 +2358,7 @@ section {
 .timeline-container {
   height: 500px;
   overflow-y: auto;
+  margin-right: -20px;
 }
 .timeline-container > ul {
   margin: 0;
@@ -2582,12 +2598,12 @@ section {
 .graph-search-toggle.events-timeline {
   position: absolute;
   top: 110px;
-  right: 10px;
+  right: 15px;
 }
 .graph-help-toggle.events-timeline {
   position: absolute;
   top: 170px;
-  right: 10px;
+  right: 15px;
 }
 .events-timeline-search-container {
   position: absolute;
@@ -2603,7 +2619,7 @@ section {
 .zoom-panel.events-timeline {
   position: absolute;
   top: 15px;
-  right: 10px;
+  right: 15px;
   z-index: 9;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   border-radius: 6px;
@@ -2735,7 +2751,8 @@ section {
   z-index: 2;
 }
 .cookies-consent-content a, .cookies-consent-content a:visited {
-  color: #aee9f2;
+  color: #f6f9cf;
+  text-decoration: underline;
 }
 .cookies-consent-content button {
   border: 2px solid #fff;
@@ -2918,4 +2935,10 @@ section {
 }
 .heatmap-container .map-search-container-nodes {
   max-height: 420px;
+}
+.node-details-loader {
+  margin-top: -15px;
+  position: relative;
+  margin-left: 5px;
+  display: inline-block;
 }

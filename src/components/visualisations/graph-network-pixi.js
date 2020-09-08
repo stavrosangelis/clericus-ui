@@ -2,7 +2,7 @@ import React, { useEffect, useState} from 'react';
 import axios from 'axios';
 import * as d3 from "d3";
 import {Link} from 'react-router-dom';
-import { Badge, FormGroup, Input } from 'reactstrap';
+import { Spinner, Badge, FormGroup, Input } from 'reactstrap';
 import * as PIXI from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 import dataWorker from "./graph-data.worker.js";
@@ -180,6 +180,7 @@ const PersonNetwork = props => {
   const [drawingIndicator, setDrawingIndicator] = useState([]);
   const [data, setData] = useState(null);
   const [step, setStep] = useState(1);
+  const [stepLoading, setStepLoading] = useState(false);
   const [detailsCardVisible, setDetailsCardVisible] = useState(false);
   const [searchContainerVisible, setSearchContainerVisible] = useState(false);
   const [searchInput, setSearchInput] = useState("");
@@ -370,6 +371,7 @@ const PersonNetwork = props => {
     if (newStep===null) {
       newStep = step;
     }
+    setStepLoading(true);
     let responseData = await axios({
       method: 'get',
       url: APIPath+'item-network-related-nodes',
@@ -408,6 +410,7 @@ const PersonNetwork = props => {
     }
     setRelatedNodesHTML(nodesHTML);
     redraw();
+    setStepLoading(false);
   }
 
   const setSteps = (val=1)=> {
@@ -635,11 +638,16 @@ const PersonNetwork = props => {
   if (step===6) {
     step6Color = "secondary";
   }
+
+  let detailsLoader = [];
+  if (stepLoading) {
+    detailsLoader = <Spinner className="node-details-loader" color="info" size="sm"/>;
+  }
   let detailsCard =  <div className={"card graph-details-card"+detailsCardVisibleClass}>
       <div className="graph-details-card-close" onClick={()=>toggleDetailsCard()}>
         <i className="fa fa-times" />
       </div>
-      <div className="card-title"><h4>Node details</h4></div>
+      <div className="card-title"><h4>Node details {detailsLoader}</h4></div>
 
       <div className="card-body">
         <div className="card-content">

@@ -46,7 +46,10 @@ const About = props => {
       {logoImg}
       <div className="text-justify" dangerouslySetInnerHTML={{__html: article.teaser}}></div>
       <div className="text-center">
-        <Link className="btn btn-default" href={`/article/about`} to={`/article/about`}>More</Link>
+        <Link className="btn btn-default" href={`/article/about`} to={`/article/about`} title={title}>
+          <span className="hidden">{title}</span>
+          <span aria-hidden="true" focusable="false">More</span>
+        </Link>
       </div>
     </div>
   }
