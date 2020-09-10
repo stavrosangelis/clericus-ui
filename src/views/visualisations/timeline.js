@@ -431,9 +431,9 @@ const Timeline = props =>{
     let newEventsHTML = [];
     for (let i=0;i<item.events.length; i++) {
       let newItem = item.events[i];
-      let dateLabel = outputDate(newItem.startDate);
-      if (typeof newItem.endDate!=="undefined" && newItem.endDate!=="" && newItem.endDate!==newItem.startDate) {
-        dateLabel += " - "+outputDate(newItem.endDate);
+      let dateLabel = outputDate(item.startDate);
+      if (typeof item.endDate!=="undefined" && item.endDate!=="" && item.endDate!==item.startDate) {
+        dateLabel += " - "+outputDate(item.endDate);
       }
       newEventsHTML.push(<div className="timeline-event-item" key={i} onClick={()=>loadEvent(newItem._id)}>{newItem.label}  <small>[{dateLabel}]</small></div>);
     }
