@@ -1,0 +1,75 @@
+.home-carousel {
+  margin: -30px -15px 0 -15px;
+}
+.carousel-default-item {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -30px;
+  margin-top: -30px;
+}
+.carousel-img {
+  width: 100%;
+  height: 460px;
+  position: absolute;
+  background-attachment: fixed;
+  background-position: center center;
+  background-size: cover;
+  z-index: 1;
+}
+.carousel-item {
+  min-height: 460px;
+}
+.carousel-item img {
+  position: relative;
+  z-index: 0;
+}
+.carousel-overlay {
+  z-index:2;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0,0,0,0.5);
+}
+.carousel-caption {
+  z-index: 3;
+  font-weight: bold;
+  font-size: 16px;
+}
+.carousel-caption h3 {
+  font-size: 36px;
+  font-weight: bold;
+}
+.carousel-caption.d-none {
+  display: block !important;
+}
+.carousel-caption-link {
+  margin: 15px auto 0 auto;
+  display: block;
+  width: 100px;
+  text-shadow: none;
+  color: #fff !important;
+}
+.carousel-control-prev, .carousel-control-next {
+  z-index: 4;
+}
+.carousel-control-next-icon, .carousel-control-prev-icon {
+  background-image: none;
+}
+.carousel-control-next-icon:after{
+  content: "\f054";
+  font-family: 'FontAwesome';
+  font-size: 30px;
+  color: #fff;
+  text-shadow: 1px 1px rgba(0,0,0,0.5);
+}
+
+.carousel-control-prev-icon:after {
+  content: "\f053";
+  font-family: 'FontAwesome';
+  font-size: 30px;
+  color: #fff;
+  text-shadow: 1px 1px rgba(0,0,0,0.5);
+}

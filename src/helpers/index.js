@@ -1,5 +1,6 @@
 import React from 'react';
 import { Spinner } from 'reactstrap';
+import moment from "moment";
 
 const domain = process.env.REACT_APP_DOMAIN;
 
@@ -166,3 +167,21 @@ export const webglSupport = () => {
  }
 
 export const renderLoader = () => <div className="generic-loading"><i>Loading data...</i> <Spinner color="info" /></div>;
+
+export const getClosestDate = (query=null, dates=[], type="years") => {
+  if (query===null || query==="" || dates.length===0) {
+    return false;
+  }
+  let minDiff = null;
+  let closestDate = [];
+  for (let i=0;i<dates.length; i++) {
+    let date = dates[i];
+    let mDate = moment(date, "DD-MM-YYYY");
+    let diff = Math.abs(moment(query, "DD/MM/YYYY").diff(mDate, type, true));
+    if (!minDiff || diff < minDiff) {
+      minDiff = diff;
+      closestDate = date;
+    }
+  }
+  return closestDate;
+}

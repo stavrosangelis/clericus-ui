@@ -3,6 +3,8 @@ import {Link} from 'react-router-dom';
 import axios from 'axios';
 import { Card, CardBody } from 'reactstrap';
 
+import '../../scss/highlights.scss';
+
 const APIPath = process.env.REACT_APP_APIPATH;
 
 
@@ -138,7 +140,9 @@ const HighLights = props => {
     return <div className="home-highlight-container" key={item._id+"-"+key} style={{width: width}}>
       <Card className="home-highlight">
         <CardBody>
-          <div className="home-highlight-img" style={{backgroundImage: `url("${thumbnailPath}")`}}></div>
+          <div className="home-highlight-img" style={{backgroundImage: `url("${thumbnailPath}")`}}>
+            <Link to={parseUrl} href={parseUrl}><span className="hidden">{item.label}</span></Link>
+          </div>
           <div className="home-highlight-text">
             <h4><Link to={parseUrl} href={parseUrl}>{item.label}</Link></h4>
             <div className="home-highlight-caption">

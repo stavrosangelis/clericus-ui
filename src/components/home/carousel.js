@@ -9,6 +9,8 @@ import {
 } from 'reactstrap';
 import axios from 'axios';
 
+import '../../scss/carousel.scss';
+
 const APIPath = process.env.REACT_APP_APIPATH;
 
 const HomeSlider = (props) => {

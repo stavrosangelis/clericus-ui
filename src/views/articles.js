@@ -8,6 +8,8 @@ import {Breadcrumbs} from '../components/breadcrumbs';
 import {updateDocumentTitle} from '../helpers';
 import {Link} from 'react-router-dom';
 
+import '../scss/articles.scss';
+
 const APIPath = process.env.REACT_APP_APIPATH;
 
 const Articles = props => {

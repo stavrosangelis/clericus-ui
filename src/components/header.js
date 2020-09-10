@@ -117,7 +117,7 @@ export default class Header extends React.Component {
               </span>
             </button>
             <Collapse isOpen={this.state.isOpen} navbar>
-              <TopMenu />
+              <TopMenu toggle={this.toggle}/>
               <div className="search-trigger"><span onClick={this.toggleSearch}><i className="fa fa-search" /></span></div>
             </Collapse>
           </Navbar>

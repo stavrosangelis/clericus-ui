@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { Breadcrumb, BreadcrumbItem } from 'reactstrap';
 import {Link} from 'react-router-dom';
 
+import '../scss/breadcrumbs.scss';
+
 export class Breadcrumbs extends Component {
   render() {
 

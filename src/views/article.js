@@ -8,6 +8,8 @@ import {Breadcrumbs} from '../components/breadcrumbs';
 import {updateDocumentTitle} from '../helpers';
 import { useSelector } from "react-redux";
 
+import '../scss/article.scss';
+
 const APIPath = process.env.REACT_APP_APIPATH;
 
 const Article = props => {
@@ -112,9 +114,9 @@ const Article = props => {
             <Card>
               <CardBody>
                 <h3>{article.label}</h3>
-                <div className="news-item-date"><i className="pe-7s-user" /> {article.author} <i className="pe-7s-clock" /> {date}</div>
+                <div className="article-date"><i className="pe-7s-user" /> {article.author} <i className="pe-7s-clock" /> {date}</div>
                 {thumbnail}
-                <div dangerouslySetInnerHTML={{__html: articleContent}}></div>
+                <div className="article-content" dangerouslySetInnerHTML={{__html: articleContent}}></div>
               </CardBody>
             </Card>
           </div>

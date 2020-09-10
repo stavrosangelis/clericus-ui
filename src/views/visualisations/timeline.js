@@ -7,9 +7,8 @@ import {
 } from 'reactstrap';
 import axios from 'axios';
 import {Breadcrumbs} from '../../components/breadcrumbs';
-import moment from "moment";
 import {Link} from 'react-router-dom';
-import {getResourceThumbnailURL, updateDocumentTitle, outputDate, renderLoader} from '../../helpers';
+import {getResourceThumbnailURL, updateDocumentTitle, outputDate, getClosestDate, renderLoader} from '../../helpers';
 import "react-datepicker/dist/react-datepicker.css";
 import HelpArticle from '../../components/help-article';
 
@@ -503,22 +502,12 @@ const Timeline = props =>{
     if(newStartDate!==""){
       newStartDate = new Intl.DateTimeFormat('en-GB').format(startDate);
     }
-    let item;
-    let elem;
-    if (zoom==="day") {
-      newStartDate = newStartDate.replace(/\//g,"-");
-      item = items.find(i=>moment(i.startDate, "DD-MM-YYYY").valueOf()>=moment(newStartDate, "DD-MM-YYYY").valueOf());
-      elem = document.querySelectorAll(`[data-date='${item.startDate}']`);
+    let compareDates = items.map(i=>i.startDate);
+    let closestDate = getClosestDate(newStartDate,compareDates);
+    if (zoom!=="day") {
+      closestDate = closestDate.split("-")[2];
     }
-    else {
-      newStartDate = newStartDate.replace(/\//g,"-");
-      item = items.find(i=>moment(i.startDate, "DD-MM-YYYY").valueOf()>=moment(newStartDate, "DD-MM-YYYY").valueOf());
-      newStartDate = newStartDate.split("-")[2];
-      elem = document.querySelectorAll(`[data-date='${newStartDate}']`);
-    }
-    if (typeof item==="undefined") {
-      return false;
-    }
+    let elem = document.querySelectorAll(`[data-date='${closestDate}']`);
     if (typeof elem[0]!=="undefined") {
       let newPosition = elem[0].offsetTop-50;
       timelineContainer.current.scrollTo({top: newPosition, behavior: 'smooth'});

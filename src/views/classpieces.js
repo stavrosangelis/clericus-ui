@@ -18,6 +18,8 @@ import {
   setRelationshipParams
 } from "../redux/actions";
 
+import '../scss/classpieces.scss';
+
 const Filters = lazy(() => import('../components/filters'));
 const SearchForm = lazy(() => import('../components/search-form'));
 const PageActions = lazy(() => import('../components/page-actions'));

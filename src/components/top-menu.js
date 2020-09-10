@@ -26,6 +26,17 @@ const TopMenu = props => {
         parent.classList.add("right");
       }
     }
+    const toggleActive = (item) => {
+      let elem = document.getElementById(`menu-item-${item._id}`);
+      elem.classList.toggle("active");
+    }
+
+    const toggle = () => {
+      if (window.innerWidth<767) {
+        props.toggle();
+      }
+    }
+
     const returnMenuItem = (item, i) =>{
       let url = "#";
       if (item.link!=="") {
@@ -38,9 +49,10 @@ const TopMenu = props => {
         url = `/${url}`;
       }
       let menuItem;
+
       if (item.children.length===0) {
         menuItem = <NavItem key={i}>
-          <NavLink key={i} to={url} href={url}>{item.label}</NavLink>
+          <NavLink key={i} to={url} href={url} onClick={()=>toggle()}>{item.label}</NavLink>
         </NavItem>;
       }
       else {
@@ -48,10 +60,14 @@ const TopMenu = props => {
           let menuItem = returnMenuItem(item,i);
           return menuItem;
         });
-
-        menuItem = <UncontrolledDropdown nav key={i}>
-          <NavLink to={url} href={url} onMouseOver={(e)=>setHovered(e)}>{item.label}</NavLink>
-          <DropdownMenu tag="ul">
+        menuItem = <UncontrolledDropdown nav key={i} id={`menu-item-${item._id}`}>
+          <div className="nav-item-wc">
+            <NavLink to={url} href={url} onMouseOver={(e)=>setHovered(e)}  onClick={()=>toggle()}>{item.label}</NavLink>
+            <div className="nav-item-wct" onClick={()=>toggleActive(item)}>
+              <i className="fa fa-chevron-down" />
+            </div>
+          </div>
+          <DropdownMenu tag="ul" id={`menu-dropdown-${item._id}`}>
             {menuItemChildren}
           </DropdownMenu>
         </UncontrolledDropdown>;
@@ -83,8 +99,7 @@ const TopMenu = props => {
     if (loading) {
       load();
     }
-  },[loading]);
-
+  },[loading, props]);
 
 
   return (

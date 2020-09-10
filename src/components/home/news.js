@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {Link} from 'react-router-dom';
 
+import '../../scss/news.scss';
+
 const APIPath = process.env.REACT_APP_APIPATH;
 
 const News = props => {

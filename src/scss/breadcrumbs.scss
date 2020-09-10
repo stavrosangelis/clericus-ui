@@ -1,0 +1,22 @@
+.breadcrumb {
+  background-color: #fff;
+  justify-content: flex-end;
+  font-size: 13px;
+  padding: 0.5rem;
+  border: 1px solid rgba(0,0,0,.125)
+}
+.breadcrumb-item a {
+  color: #137184;
+}
+.breadcrumb-item a:hover {
+  text-decoration: none;
+  color: #1689a0;
+}
+.breadcrumb-item a:active {
+  color: #105b6b;
+}
+.breadcrumb-item i {
+  line-height: 13px;
+  margin-right: 5px;
+  margin-top: 3px;
+}
