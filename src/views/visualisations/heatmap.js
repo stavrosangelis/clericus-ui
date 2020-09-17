@@ -5,7 +5,7 @@ import {
 } from 'reactstrap';
 import axios from 'axios';
 import {Breadcrumbs} from '../../components/breadcrumbs';
-import { Map, TileLayer, Marker, Popup } from 'react-leaflet';
+import { Map, TileLayer, Marker, Popup, ZoomControl } from 'react-leaflet';
 import HeatmapLayer from 'react-leaflet-heatmap-layer';
 import '../../assets/leaflet/css/MarkerCluster.css';
 import '../../assets/leaflet/leaflet.css';
@@ -14,6 +14,7 @@ import MarkerClusterGroup from '../../components/markercluster';
 import L from 'leaflet';
 import {updateDocumentTitle,renderLoader} from '../../helpers';
 import HelpArticle from '../../components/help-article';
+import LazyList from '../../components/lazylist';
 const PeopleBlock = lazy(() => import('../../components/item-blocks/people'));
 
 const APIPath = process.env.REACT_APP_APIPATH;
@@ -21,6 +22,7 @@ const APIPath = process.env.REACT_APP_APIPATH;
 const Heatmap = props => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState([]);
+  const [listData, setListData] = useState([]);
   const [center, setCenter] = useState([53.3497645,-6.2602732]);
   const zoom = 8;
   const mapRef = useRef(null);
@@ -47,6 +49,7 @@ const Heatmap = props => {
       .catch(function (error) {
       });
       setData(responseData.data);
+      setListData(responseData.data);
     }
     if (loading) {
       load();
@@ -58,25 +61,12 @@ const Heatmap = props => {
     let value = target.type === 'checkbox' ? target.checked : target.value;
     setSearchInput(value);
     let visibleNodes = data.filter(n=>n.label.toLowerCase().includes(value.toLowerCase()));
-    let dataNodes = data;
-    for (let i=0;i<dataNodes.length; i++) {
-      let n = dataNodes[i];
-      if (visibleNodes.indexOf(n)>-1) {
-        n.visible = true;
-      }
-      else n.visible = false;
-    }
-    setData(dataNodes);
+    setListData(visibleNodes);
   }
 
   const clearSearchNode = () => {
     setSearchInput("");
-    let dataNodes = data;
-    for (let i=0;i<dataNodes.length; i++) {
-      let n = dataNodes[i];
-      n.visible = true;
-    }
-    setData(dataNodes);
+    setListData(data);
   }
 
   const centerNode = (_id) => {
@@ -148,7 +138,6 @@ const Heatmap = props => {
   const toggleHelp = () => {
     setHelpVisible(!helpVisible)
   }
-
 
   const markerIcon = new L.Icon({
     iconUrl: markerIconPath,
@@ -239,16 +228,18 @@ const Heatmap = props => {
       searchContainerVisibleClass = " visible";
     }
     let searchContainerNodes = [];
-    if (!loading && data!==null) {
-      for (let i=0;i<data.length; i++) {
-        let n = data[i];
-        if (n.features!==null) {
-          if (typeof n.visible==="undefined" || n.visible===true) {
-            searchContainerNodes.push(<div key={i} onClick={()=>centerNode(n._id)}>{n.label} <small>({n.count}) [{n.organisationType}]</small></div>);
-          }
-        }
+    if (!loading && data!==null && typeof data.length!=="undefined" && data.length>0) {
+      searchContainerNodes = listData;
+    }
+    const renderSearchLItem = (item=null, i=0) => {
+      if (item===null || item.features===null) {
+        return ;
+      }
+      if (typeof item.visible==="undefined" || item.visible===true) {
+        return <div key={i} onClick={()=>centerNode(item._id)}>{item.label} <small>({item.count}) [{item.organisationType}]</small></div>;
       }
     }
+
     let searchContainer = <div className={"map-search-container"+searchContainerVisibleClass}>
       <div className="close-map-search-container" onClick={()=>toggleSearchContainerVisible()}>
         <i className="fa fa-times" />
@@ -257,9 +248,13 @@ const Heatmap = props => {
         <Input type="text" name="text" placeholder="Search location..." value={searchInput} onChange={(e)=>searchNode(e)}/>
         <i className="fa fa-times-circle" onClick={()=>clearSearchNode()}/>
       </FormGroup>
-      <div className="map-search-container-nodes">
-        {searchContainerNodes}
-      </div>
+      <LazyList
+        limit={20}
+        range={5}
+        items={searchContainerNodes}
+        containerClass="map-search-container-nodes"
+        renderItem={renderSearchLItem}
+        />
     </div>
 
     let markerPopup = [];
@@ -275,6 +270,7 @@ const Heatmap = props => {
         center={center}
         zoom={zoom}
         maxZoom={18}
+        zoomControl={false}
         ref={mapRef}>
         {markerPopup}
         <MarkerClusterGroup>
@@ -296,6 +292,7 @@ const Heatmap = props => {
           attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <ZoomControl position="topright" />
         {searchIcon}
         {helpIcon}
       </Map>

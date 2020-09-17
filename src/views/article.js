@@ -48,6 +48,9 @@ const Article = props => {
     if (loading) {
       load();
     }
+    return () => {
+      return false;
+    }
   },[loading,props.match.params.permalink]);
 
   useEffect(()=>{

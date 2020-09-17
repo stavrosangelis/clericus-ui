@@ -8,7 +8,7 @@ import { Viewport } from 'pixi-viewport';
 import dataWorker from "./graph-data.worker.js";
 import {webglSupport} from "../../helpers";
 import HelpArticle from '../../components/help-article';
-import GraphSearch from './graph-network-search';
+import LazyList from '../../components/lazylist';
 const APIPath = process.env.REACT_APP_APIPATH;
 
 /// d3 network
@@ -75,6 +75,7 @@ const drawNodes = async () => {
   if(typeof loader.resources['Arial']==="undefined") {
     loader.add("Arial", "/arial-bitmap/Arial.xml");
   }
+
   loader.load((loader, resources) => {
     let bbox = container.getVisibleBounds();
     let leftX = bbox.x;
@@ -100,18 +101,20 @@ const drawNodes = async () => {
           //d.visible = true;
           // circle
           if (typeof d.selected!=="undefined" && d.selected) {
-            lineWidth = 3;
-            strokeStyle = "0x33729f";
+            lineWidth = 5;
+            strokeStyle = 0x33729f;
             radius+=5;
           }
           else if (typeof d.associated!=="undefined" && d.associated) {
-            lineWidth = 3;
+            lineWidth = 4;
+            strokeStyle = 0x33729f;
+            radius+=4;
           }
           else {
             lineWidth = 1;
           }
           d.gfx.beginFill(hexColor(d.color));
-          if (container.scaled>0.3) {
+          if (container.scaled>0.1) {
             d.gfx.lineStyle(lineWidth,strokeStyle);
           }
           d.gfx.drawCircle(x, y, radius);
@@ -159,7 +162,7 @@ const drawLines = () => {
         let lWidth = 1;
         let strokeStyle = 0x666666;
         if (typeof d.associated!=="undefined" && d.associated) {
-          lWidth = 3;
+          lWidth = 5;
           strokeStyle = 0x33729f;
         }
         line.lineStyle(lWidth,strokeStyle);
@@ -179,15 +182,15 @@ const PersonNetwork = props => {
   const [drawing, setDrawing] = useState(false);
   const [drawingIndicator, setDrawingIndicator] = useState([]);
   const [data, setData] = useState(null);
+  const [searchData, setSearchData] = useState([]);
   const [step, setStep] = useState(1);
   const [stepLoading, setStepLoading] = useState(false);
   const [detailsCardVisible, setDetailsCardVisible] = useState(false);
   const [searchContainerVisible, setSearchContainerVisible] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [searchInputType, setSearchInputType] = useState("");
-  const [searchContainerReload, setSearchContainerReload] = useState(false);
   const [nodeLink, setNodeLink] = useState([]);
-  const [relatedNodesHTML, setRelatedNodesHTML] = useState([]);
+  const [relatedNodesItems, setRelatedNodesItems] = useState([]);
   const [helpVisible, setHelpVisible] = useState(false);
 
   const toggleDetailsCard = (value=null) => {
@@ -276,6 +279,7 @@ const PersonNetwork = props => {
       let parsedData = JSON.parse(newData.data);
       parsedData = JSON.parse(parsedData.data);
       setData(parsedData);
+      setSearchData(parsedData.nodes);
       setDrawing(true);
       setSearchInput("");
       setSearchInputType("");
@@ -371,6 +375,7 @@ const PersonNetwork = props => {
     if (newStep===null) {
       newStep = step;
     }
+    setRelatedNodesItems([]);
     setStepLoading(true);
     let responseData = await axios({
       method: 'get',
@@ -388,19 +393,21 @@ const PersonNetwork = props => {
     setNodeLink(<Link href={"/"+nodeType+"/"+selectedNode.id} to={"/"+nodeType+"/"+selectedNode.id}><b>{selectedNode.label}</b> [{nodeType}]</Link>);
 
     let relatedNodesIds = [_id];
-    let linkArray = ["Classpiece", "Organisation", "Person", "Event"];
-    let nodesHTML = responseData.map((node,i)=>{
+    let linkArray = ["Classpiece", "Organisation", "Person", "Event", "Resource"];
+    let nodesItems = [];
+    for (let i=0;i<responseData.length; i++) {
+      let node = responseData[i];
       if (relatedNodesIds.indexOf(node._id)===-1) {
         relatedNodesIds.push(node._id);
       }
-      let nodeType = node.type;
-      let nodeLink = <span><b>{node.label}</b> <small>[{nodeType}]</small></span>
+      let link = false;
       if (linkArray.indexOf(nodeType)>-1) {
-        nodeLink = <Link href={`${nodeType}/${node._id}`} to={`${nodeType}/${node._id}`}><b>{node.label}</b> <small>[{nodeType}]</small></Link>;
+        link = true;
       }
-      return <li key={i}>{nodeLink}</li>;
-    });
-
+      node.i = i;
+      node.link = link;
+      nodesItems.push(node);
+    }
     for (let i=0;i<links.length;i++) {
       let link = links[i];
       if (relatedNodesIds.indexOf(link.source.id)>-1 && relatedNodesIds.indexOf(link.target.id)>-1) {
@@ -408,9 +415,21 @@ const PersonNetwork = props => {
       }
       else link.associated = false;
     }
-    setRelatedNodesHTML(nodesHTML);
+    setRelatedNodesItems(nodesItems);
     redraw();
     setStepLoading(false);
+  }
+
+  const renderRelatedNodeHTMLItem = (item) => {
+    if (typeof item==="undefined" || item===null) {
+      return null;
+    }
+    let itemType = item.type;
+    let itemLink = <span><b>{item.label}</b> <small>[{itemType}]</small></span>
+    if (item.link) {
+      itemLink = <Link href={`${itemType}/${item._id}`} to={`${itemType}/${item._id}`}><b>{item.label}</b> <small>[{itemType}]</small></Link>;
+    }
+    return <div key={item.i}>{itemLink}</div>;
   }
 
   const setSteps = (val=1)=> {
@@ -425,9 +444,9 @@ const PersonNetwork = props => {
     }
     d.selected=true;
     selectedNode = nodes.find(n=>n.id===d.id);
+    toggleDetailsCard(true);
     // load node details;
     loadNodeDetails(d.id);
-    toggleDetailsCard(true);
     selectedNodes();
   }
 
@@ -516,31 +535,35 @@ const PersonNetwork = props => {
     }
     data.nodes = dataNodes;
     setData(data);
-    setSearchContainerReload(true);
+    setSearchData(visibleNodes);
   }
 
   const searchNodeType = (e) =>{
     let target = e.target;
     let value = target.type === 'checkbox' ? target.checked : target.value;
     setSearchInputType(value);
-
-    let visibleNodes = data.nodes.filter(n=>{
-      if (n.type.toLowerCase()===value.toLowerCase() && n.label.toLowerCase().includes(searchInput.toLowerCase())) {
-        return true;
-      }
-      return false;
-    });
-    let dataNodes = data.nodes;
-    for (let i=0;i<dataNodes.length; i++) {
-      let n = dataNodes[i];
-      if (visibleNodes.indexOf(n)>-1) {
-        n.visible = true;
-      }
-      else n.visible = false;
+    if (value==="") {
+      clearSearchNode();
     }
-    data.nodes = dataNodes;
-    setData(data);
-    setSearchContainerReload(true);
+    else {
+      let visibleNodes = data.nodes.filter(n=>{
+        if (n.type.toLowerCase()===value.toLowerCase() && n.label.toLowerCase().includes(searchInput.toLowerCase())) {
+          return true;
+        }
+        return false;
+      });
+      let dataNodes = data.nodes;
+      for (let i=0;i<dataNodes.length; i++) {
+        let n = dataNodes[i];
+        if (visibleNodes.indexOf(n)>-1) {
+          n.visible = true;
+        }
+        else n.visible = false;
+      }
+      data.nodes = dataNodes;
+      setData(data);
+      setSearchData(visibleNodes);
+    }
   }
 
   const clearSearchNode = () => {
@@ -553,7 +576,7 @@ const PersonNetwork = props => {
     }
     data.nodes = dataNodes;
     setData(data);
-    setSearchContainerReload(true);
+    setSearchData(data.nodes);
   }
 
   const centerNode = (_id) => {
@@ -566,6 +589,13 @@ const PersonNetwork = props => {
       node.selected=true;
       container.moveCenter(node.x, node.y)
     }
+  }
+
+  const renderSearchItemHTML = (n) => {
+    if (typeof n==="undefined") {
+      return ;
+    }
+    return <div key={n.id} data-id={n.id} onClick={()=>centerNode(n.id)}>{n.label} <small>[{n.type}]</small></div>
   }
 
   const toggleHelp = () => {
@@ -666,11 +696,16 @@ const PersonNetwork = props => {
             </div>
           </div>
           <div>
-            <label>Related nodes [<b>{relatedNodesHTML.length}</b>]</label>
+            <label>Related nodes [<b>{relatedNodesItems.length}</b>]</label>
           </div>
-          <div  className="node-relations-list">
-            <ul className="entries-list">{relatedNodesHTML}</ul>
-          </div>
+          <LazyList
+            limit={20}
+            range={10}
+            items={relatedNodesItems}
+            containerClass="node-relations-list"
+            listClass="entries-list"
+            renderItem={renderRelatedNodeHTMLItem}
+            />
         </div>
         <div className="card-footer">
           <button type="button" className="btn btn-xs btn-outline btn-secondary" onClick={()=>toggleDetailsCard()}>Close</button>
@@ -682,8 +717,15 @@ const PersonNetwork = props => {
     searchContainerVisibleClass = " visible";
   }
   let searchContainerNodes = [];
-  if (!loading && data!==null) {
-    searchContainerNodes = <GraphSearch nodes={data.nodes} centerNode={centerNode} reload={searchContainerReload} />;
+  if (!loading && searchData.length>0) {
+
+    searchContainerNodes = <LazyList
+      limit={30}
+      range={5}
+      items={searchData}
+      containerClass="graph-search-container-nodes"
+      renderItem={renderSearchItemHTML}
+      />
   }
   let searchContainer = <div className={"graph-search-container"+searchContainerVisibleClass}>
     <div className="close-graph-search-container" onClick={()=>toggleSearchContainerVisible()}>

@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef, lazy, Suspense} from 'react';
+import React, {useState, useEffect, useRef, lazy, Suspense, useCallback} from 'react';
 import {
   Card, CardBody,
   Spinner,
@@ -10,6 +10,7 @@ import {Breadcrumbs} from '../../components/breadcrumbs';
 import {Link} from 'react-router-dom';
 import {getResourceThumbnailURL, updateDocumentTitle, outputDate, getClosestDate, renderLoader} from '../../helpers';
 import HelpArticle from '../../components/help-article';
+import LazyList from '../../components/lazylist';
 
 import "react-datepicker/dist/react-datepicker.css";
 const DatePicker = lazy(() => import("react-datepicker"));
@@ -20,12 +21,14 @@ const Timeline = props =>{
   const [loading, setLoading] = useState(true);
   const [item,setItem] = useState(null);
   const [items,setItems] = useState([]);
+  const [itemsHTML,setItemsHTML] = useState([]);
   const [eventsContainerVisible,setEventsContainerVisible] = useState(false);
   const [eventsContainerTop,setEventsContainerTop] = useState(0);
   const [eventsContainerLeft,setEventsContainerLeft] = useState(0);
   const [eventsContainerWidth,setEventsContainerWidth] = useState(0);
   const [selectedItem,setSelectedItem] = useState(null);
   const [eventsHTML,setEventsHTML] = useState([]);
+  const [eventsNum,setEventsNum] = useState(0);
   const [selectedEvent,setSelectedEvent] = useState(null);
   const [selectedEventVisible,setSelectedEventVisible] = useState(false);
   const timelineContainer = useRef(null);
@@ -38,25 +41,9 @@ const Timeline = props =>{
   const [zoomVal,setZoomVal] = useState(zoomIndex);
   const [zoom,setZoom] = useState(zoomValues[(zoomIndex-1)]);
   const [helpVisible, setHelpVisible] = useState(false);
+  const [scrollIndex, setScrollIndex] = useState(0);
 
-  const groupByDay = (data) => {
-    let itemsHTML = [];
-    for (let i=0;i<data.length; i++) {
-      let item = items[i];
-      itemsHTML.push(
-        <li key={i} data-date={item.startDate}>
-          <div className="timeline-point" onClick={(e)=>showEvents(e, item)}>
-            <label>{item.label} <small>[{item.events.length}]</small></label>
-            <div className="triangle-up"></div>
-            <div className="triangle-down"></div>
-          </div>
-        </li>
-      )
-    }
-    return itemsHTML;
-  }
-
-  const groupByYear = (data) => {
+  const initialData = (data) => {
     let initialVal = {
       startYear: 0,
       endYear: 0,
@@ -65,21 +52,29 @@ const Timeline = props =>{
     let newItems = [initialVal];
     for (let i=0;i<data.length;i++) {
       let item = data[i];
-      let startDate = item.startDate || null;
-      let endDate = item.endDate || null;
-      let startYear=null, endYear = null;
-      if (startDate!==null) {
-        let startDateArr = startDate.split("-");
-        startYear = startDateArr[2];
+      if (typeof item.startDate==="undefined" || item.startDate==="") {
+        continue;
       }
+      let startDate = item.startDate;
+      let endDate = null;
+      if (typeof item.endDate!=="undefined" && item.endDate!=="" && item.endDate!==item.startDate) {
+        endDate = item.endDate;
+      }
+      let startDateArr = startDate.split("-");
+      let endDateArr = [];
       if (endDate!==null) {
-        let endDateArr = endDate.split("-");
+        endDate.split("-");
+      }
+      let startYear = startDateArr[2];
+      let endYear = startDateArr[2];
+      if (endDate!==null) {
         endYear = endDateArr[2];
       }
       let newItem = {
         startYear: startYear,
         endYear: endYear,
-        item: item
+        item: item,
+        i: i
       }
       newItems.push(newItem);
     }
@@ -88,36 +83,97 @@ const Timeline = props =>{
     let newGroup = [];
     for (let key in grouped) {
       if (key!=="endYear" && key!=="startYear" && key!=="item") {
-        newGroup.push({date: key, label: key, items:grouped[key]})
+        newGroup.push({date: key, label: key, items:grouped[key], i:key, group: true})
       }
     }
-    let itemsHTML = groupItemsHTML(newGroup);
-    return itemsHTML;
-  }
+    return newGroup;
+  };
 
-  const groupBy10 = (data) => {
+  const groupByDay = useCallback(() => {
+    let newItems = items.map((item,i)=>{
+      item.i = i;
+      return item;
+    });
+    return newItems;
+  },[items]);
+
+  const groupByYear = useCallback(() => {
     let initialVal = {
-      date: 1850,
-      items: []
+      startYear: 0,
+      endYear: 0,
+      item: null
     }
     let newItems = [initialVal];
-    for (let i=0;i<data.length;i++) {
-      let item = data[i];
-      let startDate = item.startDate || null;
-      let endDate = item.endDate || null;
-      let startYear=null, endYear = null;
-      if (startDate!==null) {
-        let startDateArr = startDate.split("-");
-        startYear = startDateArr[2];
+    for (let i=0;i<items.length;i++) {
+      let item = items[i];
+      if (typeof item.startDate==="undefined" || item.startDate==="") {
+        continue;
       }
+      let startDate = item.startDate;
+      let endDate = null;
+      if (typeof item.endDate!=="undefined" && item.endDate!=="" && item.endDate!==item.startDate) {
+        endDate = item.endDate;
+      }
+      let startDateArr = startDate.split("-");
+      let endDateArr = [];
       if (endDate!==null) {
-        let endDateArr = endDate.split("-");
+        endDate.split("-");
+      }
+      let startYear = startDateArr[2];
+      let endYear = startDateArr[2];
+      if (endDate!==null) {
         endYear = endDateArr[2];
       }
       let newItem = {
         startYear: startYear,
         endYear: endYear,
-        item: item
+        item: item,
+        i: i
+      }
+      newItems.push(newItem);
+    }
+    const reducer = (accumulator, item) => Object.assign(accumulator, { [item.startYear]:( accumulator[item.startYear] || [] ).concat(item) });
+    let grouped = newItems.reduce(reducer);
+    let newGroup = [];
+    for (let key in grouped) {
+      if (key!=="endYear" && key!=="startYear" && key!=="item") {
+        newGroup.push({date: key, label: key, items:grouped[key], i:key, group: true})
+      }
+    }
+    return newGroup;
+  },[items]);
+
+  const groupBy10 = useCallback(() => {
+    let initialVal = {
+      date: 1850,
+      items: []
+    }
+    let newItems = [initialVal];
+    for (let i=0;i<items.length;i++) {
+      let item = items[i];
+      if (typeof item.startDate==="undefined" || item.startDate==="") {
+        continue;
+      }
+      let startDate = item.startDate;
+      let endDate = null;
+      if (typeof item.endDate!=="undefined" && item.endDate!=="" && item.endDate!==item.startDate) {
+        endDate = item.endDate;
+      }
+      let startDateArr = startDate.split("-");
+      let endDateArr = [];
+      if (endDate!==null) {
+        endDate.split("-");
+      }
+      let startYear = startDateArr[2];
+      let endYear = startDateArr[2];
+      if (endDate!==null) {
+        endYear = endDateArr[2];
+      }
+      let newItem = {
+        startYear: startYear,
+        endYear: endYear,
+        item: item,
+        i: i
       }
       newItems.push(newItem);
     }
@@ -150,36 +206,42 @@ const Timeline = props =>{
           returnItemsItems.push(yearItems[key][items].items[item])
         }
       }
-      returnItems.push({date: key, label: key, items: returnItemsItems});
+      returnItems.push({date: key, label: key, items: returnItemsItems, i:key, group: true});
     }
-    let itemsHTML = groupItemsHTML(returnItems);
-    return itemsHTML;
-  }
+    return returnItems;
+  },[items]);
 
-  const groupBy50 = (data) => {
+  const groupBy50 = useCallback(() => {
     let initialVal = {
       date: 1850,
       items: []
     }
     let newItems = [initialVal];
-    for (let i=0;i<data.length;i++) {
-      let item = data[i];
-      let startDate = item.startDate || null;
-      let endDate = item.endDate || null;
-
-      let startYear=null, endYear = null;
-      if (startDate!==null) {
-        let startDateArr = startDate.split("-");
-        startYear = startDateArr[2];
+    for (let i=0;i<items.length;i++) {
+      let item = items[i];
+      if (typeof item.startDate==="undefined" || item.startDate==="") {
+        continue;
       }
+      let startDate = item.startDate;
+      let endDate = null;
+      if (typeof item.endDate!=="undefined" && item.endDate!=="" && item.endDate!==item.startDate) {
+        endDate = item.endDate;
+      }
+      let startDateArr = startDate.split("-");
+      let endDateArr = [];
       if (endDate!==null) {
-        let endDateArr = endDate.split("-");
+        endDate.split("-");
+      }
+      let startYear = startDateArr[2];
+      let endYear = startDateArr[2];
+      if (endDate!==null) {
         endYear = endDateArr[2];
       }
       let newItem = {
         startYear: startYear,
         endYear: endYear,
-        item: item
+        item: item,
+        i: i
       }
       newItems.push(newItem);
     }
@@ -212,35 +274,42 @@ const Timeline = props =>{
           returnItemsItems.push(yearItems[key][items].items[item])
         }
       }
-      returnItems.push({date: key, label: key, items: returnItemsItems});
+      returnItems.push({date: key, label: key, items: returnItemsItems, i:key, group: true});
     }
-    let itemsHTML = groupItemsHTML(returnItems);
-    return itemsHTML;
-  }
+    return returnItems;
+  },[items]);
 
-  const groupBy100 = (data) => {
+  const groupBy100 = useCallback(() => {
     let initialVal = {
       date: 1800,
       items: []
     }
     let newItems = [initialVal];
-    for (let i=0;i<data.length;i++) {
-      let item = data[i];
-      let startDate = item.startDate || null;
-      let endDate = item.endDate || null;
-      let startYear=null, endYear = null;
-      if (startDate!==null) {
-        let startDateArr = startDate.split("-");
-        startYear = startDateArr[2];
+    for (let i=0;i<items.length;i++) {
+      let item = items[i];
+      if (typeof item.startDate==="undefined" || item.startDate==="") {
+        continue;
       }
+      let startDate = item.startDate;
+      let endDate = null;
+      if (typeof item.endDate!=="undefined" && item.endDate!=="" && item.endDate!==item.startDate) {
+        endDate = item.endDate;
+      }
+      let startDateArr = startDate.split("-");
+      let endDateArr = [];
       if (endDate!==null) {
-        let endDateArr = endDate.split("-");
+        endDate.split("-");
+      }
+      let startYear = startDateArr[2];
+      let endYear = startDateArr[2];
+      if (endDate!==null) {
         endYear = endDateArr[2];
       }
       let newItem = {
         startYear: startYear,
         endYear: endYear,
-        item: item
+        item: item,
+        i: i
       }
       newItems.push(newItem);
     }
@@ -273,16 +342,30 @@ const Timeline = props =>{
           returnItemsItems.push(yearItems[key][items].items[item])
         }
       }
-      returnItems.push({date: key, label: key, items: returnItemsItems});
+      returnItems.push({date: key, label: key, items: returnItemsItems, i:key, group: true});
     }
-    let itemsHTML = groupItemsHTML(returnItems);
-    return itemsHTML;
-  }
+    return returnItems;
+  },[items]);
 
-  const groupItemsHTML = (newGroup) => {
-    let itemsHTML = [];
-    for (let i=0;i<newGroup.length; i++) {
-      let item = newGroup[i];
+  const renderTimelineItem = (item=null) => {
+    if (item===null) {
+      return null;
+    }
+    if (typeof item.group==="undefined" || !item.group) {
+      return <div data-date={item.startDate} className="timeline-point" onClick={(e)=>showEvents(e, item)}>
+          <label>{item.label} <small>[{item.events.length}]</small></label>
+          <div className="triangle-up"></div>
+          <div className="triangle-down"></div>
+        </div>
+    }
+    else {
+      let eventsLength = 0;
+      if (typeof item.items!=="undefined") {
+        for (let i=0;i<item.items.length; i++) {
+          let child = item.items[i]
+          eventsLength += child.item.events.length;
+        }
+      }
       let yearClass = "";
       if (Number(item.date)%10===0) {
         yearClass = " decade";
@@ -293,17 +376,12 @@ const Timeline = props =>{
       if (Number(item.date)%100===0) {
         yearClass = " century";
       }
-      itemsHTML.push(
-        <li key={i} data-date={item.date}>
-          <div className={"timeline-point"+yearClass} onClick={(e)=>showEventsGroup(e, item)}>
-            <label>{item.date} <small>[{item.items.length}]</small></label>
-            <div className="triangle-up"></div>
-            <div className="triangle-down"></div>
-          </div>
-        </li>
-      )
+      return <div data-date={item.date} className={"timeline-point"+yearClass} onClick={(e)=>showEventsGroup(e, item, eventsLength)}>
+          <label>{item.date} <small>[{eventsLength}]</small></label>
+          <div className="triangle-up"></div>
+          <div className="triangle-down"></div>
+        </div>
     }
-    return itemsHTML;
   }
 
   useEffect(()=> {
@@ -346,7 +424,8 @@ const Timeline = props =>{
       })
       .catch(function (error) {
       });
-      setItem(responseData.data);
+      let respData = responseData.data;
+      setItem(respData);
       let eventsData = await axios({
         method: 'get',
         url: `${APIPath}item-timeline`,
@@ -358,10 +437,16 @@ const Timeline = props =>{
       })
       .catch(function (error) {
       });
-      setItems(eventsData.data);
+      let evtData = eventsData.data;
+      setItems(evtData);
+      let newData = initialData(evtData);
+      setItemsHTML(newData);
     }
     if (loading) {
       load();
+    }
+    return () => {
+      return false;
     }
   },[loading, props.match.params]);
 
@@ -423,6 +508,12 @@ const Timeline = props =>{
   }
 
   const showEvents = (e, item) => {
+    let itemsNum = item.events.length;
+    setEventsNum(itemsNum);
+    if (itemsNum>9) {
+      itemsNum = 9;
+    }
+    let bboxHeight = itemsNum*30;
     let container = timelineContainer.current;
     let containerBbox = container.getBoundingClientRect();
     let elem = e.target;
@@ -432,6 +523,10 @@ const Timeline = props =>{
     let bbox = elem.getBoundingClientRect();
     let elemLeft = bbox.x-containerBbox.x+bbox.width+30;
     let elemTop = bbox.y-containerBbox.y;
+    if (elemTop+bboxHeight>500) {
+      let diff = (elemTop+bboxHeight)-500;
+      elemTop -= diff;
+    }
     let elemWidth = containerBbox.width-elemLeft;
     toggleEventsContainer(true);
     setSelectedItem(item);
@@ -448,12 +543,23 @@ const Timeline = props =>{
       if (typeof item.endDate!=="undefined" && item.endDate!=="" && item.endDate!==item.startDate) {
         dateLabel += " - "+outputDate(item.endDate);
       }
-      newEventsHTML.push(<div className="timeline-event-item" key={i} onClick={()=>loadEvent(newItem._id)}>{newItem.label}  <small>[{dateLabel}]</small></div>);
+      newItem.i = i;
+      newItem.dateLabel = dateLabel;
+      newEventsHTML.push(newItem);
     }
     setEventsHTML(newEventsHTML);
   }
 
-  const showEventsGroup = (e, item) => {
+  const renderEventHTML = (item) => {
+    return <div className="timeline-event-item" key={item.i} onClick={()=>loadEvent(item._id)}>{item.label}  <small>[{item.dateLabel}]</small></div>
+  }
+
+  const showEventsGroup = (e, item, itemsNum) => {
+    setEventsNum(itemsNum);
+    if (itemsNum>9) {
+      itemsNum = 9;
+    }
+    let bboxHeight = itemsNum*30;
     let container = timelineContainer.current;
     let containerBbox = container.getBoundingClientRect();
     let elem = e.target;
@@ -463,6 +569,10 @@ const Timeline = props =>{
     let bbox = elem.getBoundingClientRect();
     let elemLeft = bbox.x-containerBbox.x+bbox.width+30;
     let elemTop = bbox.y-containerBbox.y;
+    if (elemTop+bboxHeight>500) {
+      let diff = (elemTop+bboxHeight)-500;
+      elemTop -= diff;
+    }
     let elemWidth = containerBbox.width-elemLeft;
     toggleEventsContainer(true);
     setSelectedItem(item);
@@ -481,8 +591,10 @@ const Timeline = props =>{
         dateLabel += " - "+outputDate(newItem.endDate);
       }
       for (let i=0;i<events.length; i++) {
-        let event = events[i];
-        newEventsHTML.push(<div className="timeline-event-item" key={j+"-"+i} onClick={()=>loadEvent(event._id)}>{event.label} <small>[{dateLabel}]</small></div>);
+        let newEvent = events[i];
+        newEvent.i = `${j}-${i}`;
+        newEvent.dateLabel = dateLabel;
+        newEventsHTML.push(newEvent);
       }
     }
 
@@ -515,27 +627,33 @@ const Timeline = props =>{
     if(newStartDate!==""){
       newStartDate = new Intl.DateTimeFormat('en-GB').format(startDate);
     }
-    let compareDates = items.map(i=>i.startDate);
+    let compareDates = [];
+    if (zoom==="day") {
+     compareDates = itemsHTML.map(i=>i.startDate);
+    }
+    else {
+      compareDates = itemsHTML.map(i=>`01-01-${i.date}`);
+    }
     let closestDate = getClosestDate(newStartDate,compareDates);
-    if (zoom!=="day") {
-      closestDate = closestDate.split("-")[2];
-    }
-    let elem = document.querySelectorAll(`[data-date='${closestDate}']`);
-    if (typeof elem[0]!=="undefined") {
-      let newPosition = elem[0].offsetTop-50;
-      timelineContainer.current.scrollTo({top: newPosition, behavior: 'smooth'});
-      elem[0].classList.add("found");
-      setTimeout(()=>{
-        elem[0].classList.remove("found");
-      },3000);
-    }
+    let newIndex = compareDates.indexOf(closestDate);
+    setScrollIndex(newIndex);
+
+    // highlight found dom element
+    setTimeout(()=>{
+      let elem = document.querySelectorAll(`*[data-lazylist-index="${newIndex}"]`);
+      if (typeof elem[0]!=="undefined") {
+        elem[0].classList.add("found");
+        setTimeout(()=>{
+          elem[0].classList.remove("found");
+        },3000);
+      }
+    },500);
   }
 
   const updateZoom = (val=null) => {
     if (val===null) {
       return false;
     }
-
     let newVal;
     if (val==="+") {
       newVal = zoomVal+1;
@@ -547,8 +665,26 @@ const Timeline = props =>{
     if (newIndex<0 || newVal>zoomValues.length) {
       return false;
     }
+    let newZoom = zoomValues[newIndex];
     setZoomVal(newVal);
-    setZoom(zoomValues[newIndex]);
+    setZoom(newZoom);
+    let newItems = [];
+    if (newZoom==='day') {
+      newItems = groupByDay(items);
+    }
+    if (newZoom==='year') {
+      newItems = groupByYear();
+    }
+    if (newZoom==='10') {
+      newItems = groupBy10();
+    }
+    if (newZoom==='50') {
+      newItems = groupBy50();
+    }
+    if (newZoom==='100') {
+      newItems = groupBy100();
+    }
+    setItemsHTML(newItems);
   }
 
   const toggleHelp = () => {
@@ -619,24 +755,7 @@ const Timeline = props =>{
         </div>
       </div>
     </div>
-  if (!loading && items.length>0) {
-    let itemsHTML = [];
-    if (zoom==='day') {
-      itemsHTML = groupByDay(items);
-    }
-    if (zoom==='year') {
-      itemsHTML = groupByYear(items);
-    }
-    if (zoom==='10') {
-      itemsHTML = groupBy10(items);
-    }
-    if (zoom==='50') {
-      itemsHTML = groupBy50(items);
-    }
-    if (zoom==='100') {
-      itemsHTML = groupBy100(items);
-    }
-
+  if (!loading && itemsHTML.length>0) {
     let ecstyle = {
       left: eventsContainerLeft,
       top: eventsContainerTop,
@@ -648,14 +767,7 @@ const Timeline = props =>{
     }
     let eventsContainerHeading = "";
     if (selectedItem!==null) {
-      let count = 0;
-      if (typeof selectedItem.items!=="undefined") {
-        count = selectedItem.items.length;
-      }
-      if (typeof selectedItem.events!=="undefined") {
-        count = selectedItem.events.length;
-      }
-      eventsContainerHeading = <div>{selectedItem.label} <small>[{count}]</small></div>;
+      eventsContainerHeading = <div>{selectedItem.label} <small>[{eventsNum}]</small></div>;
     }
     let eventsListVisible = "";
     let eventDetailsVisible = " hidden";
@@ -763,9 +875,13 @@ const Timeline = props =>{
       <div className="graph-details-card-close" onClick={()=>toggleEventsContainer()}>
         <i className="fa fa-times" />
       </div>
-      <div className={`events-list-container ${eventsListVisible}`}>
-        {eventsHTML}
-      </div>
+      <LazyList
+        limit={20}
+        range={5}
+        items={eventsHTML}
+        renderItem={renderEventHTML}
+        containerClass={`events-list-container ${eventsListVisible}`}
+        />
       <div className={"event-details"+eventDetailsVisible}>
         <h4>
           <div className="event-details-back">
@@ -847,9 +963,13 @@ const Timeline = props =>{
         <Card className="timeline-card">
           <CardBody>
             <div className="timeline-container" ref={timelineContainer}>
-              <ul>
-                {itemsHTML}
-              </ul>
+              <LazyList
+                limit={50}
+                range={25}
+                items={itemsHTML}
+                renderItem={renderTimelineItem}
+                scrollIndex={scrollIndex}
+                />
               {zoomPanel}
               {searchIcon}
               {helpIcon}

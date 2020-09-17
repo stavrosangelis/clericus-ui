@@ -49,12 +49,12 @@ class Home extends Component {
         <section className="white-section">
           <div className="container">
             <div className="row">
-              <div className="col-12 col-md-7">
+              <div className="col-12 col-md-7 col-lg-8">
                 <Suspense fallback={renderLoader()}>
                   <News />
                 </Suspense>
               </div>
-              <div className="col-12 col-md-5">
+              <div className="col-12 col-md-5 col-lg-4">
                 <Suspense fallback={renderLoader()}>
                   <Welcome />
                 </Suspense>

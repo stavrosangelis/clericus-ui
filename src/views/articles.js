@@ -44,6 +44,9 @@ const Articles = props => {
     }
     if (loading) {
       load();
+    }    
+    return () => {
+      return false;
     }
   },[loading,props.match.params.permalink, articles, category, prevPermalink]);
 

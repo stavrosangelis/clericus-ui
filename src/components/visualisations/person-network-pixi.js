@@ -9,7 +9,7 @@ import dataWorker from "./person-data.worker.js";
 import simulationWorker from "./force-simulation.worker.js";
 import {webglSupport,jsonStringToObject} from "../../helpers";
 import HelpArticle from '../../components/help-article';
-import GraphSearch from './graph-network-search';
+import LazyList from '../../components/lazylist';
 const APIPath = process.env.REACT_APP_APIPATH;
 
 /// d3 network
@@ -190,6 +190,7 @@ const PersonNetwork = props => {
   const [drawing, setDrawing] = useState(false);
   const [drawingIndicator, setDrawingIndicator] = useState([]);
   const [data, setData] = useState(null);
+  const [searchData, setSearchData] = useState([]);
   const [step, setStep] = useState(1);
   const [detailsCardVisible, setDetailsCardVisible] = useState(false);
   const [detailsCardEntityInfo, setDetailsCardEntityInfo] = useState([]);
@@ -197,7 +198,6 @@ const PersonNetwork = props => {
   const [searchContainerVisible, setSearchContainerVisible] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [searchInputType, setSearchInputType] = useState("");
-  const [searchContainerReload, setSearchContainerReload] = useState(false);
   const [helpVisible, setHelpVisible] = useState(false);
 
   const toggleDetailsCard = (value=null) => {
@@ -288,6 +288,7 @@ const PersonNetwork = props => {
       let parsedData = jsonStringToObject(newData);
       parsedData = jsonStringToObject(parsedData.data);
       setData(parsedData);
+      setSearchData(parsedData.nodes);
       setDrawing(true);
       setSearchInput("");
       setSearchInputType("");
@@ -590,31 +591,35 @@ const PersonNetwork = props => {
     }
     data.nodes = dataNodes;
     setData(data);
-    setSearchContainerReload(true);
+    setSearchData(visibleNodes);
   }
 
   const searchNodeType = (e) =>{
     let target = e.target;
     let value = target.type === 'checkbox' ? target.checked : target.value;
     setSearchInputType(value);
-
-    let visibleNodes = data.nodes.filter(n=>{
-      if (n.type.toLowerCase()===value.toLowerCase() && n.label.toLowerCase().includes(searchInput.toLowerCase())) {
-        return true;
-      }
-      return false;
-    });
-    let dataNodes = data.nodes;
-    for (let i=0;i<dataNodes.length; i++) {
-      let n = dataNodes[i];
-      if (visibleNodes.indexOf(n)>-1) {
-        n.visible = true;
-      }
-      else n.visible = false;
+    if (value==="") {
+      clearSearchNode();
     }
-    data.nodes = dataNodes;
-    setData(data);
-    setSearchContainerReload(true);
+    else {
+      let visibleNodes = data.nodes.filter(n=>{
+        if (n.type.toLowerCase()===value.toLowerCase() && n.label.toLowerCase().includes(searchInput.toLowerCase())) {
+          return true;
+        }
+        return false;
+      });
+      let dataNodes = data.nodes;
+      for (let i=0;i<dataNodes.length; i++) {
+        let n = dataNodes[i];
+        if (visibleNodes.indexOf(n)>-1) {
+          n.visible = true;
+        }
+        else n.visible = false;
+      }
+      data.nodes = dataNodes;
+      setData(data);
+      setSearchData(visibleNodes);
+    }
   }
 
   const clearSearchNode = () => {
@@ -627,7 +632,7 @@ const PersonNetwork = props => {
     }
     data.nodes = dataNodes;
     setData(data);
-    setSearchContainerReload(true);
+    setSearchData(data.nodes);
   }
 
   const centerNode = (_id) => {
@@ -640,6 +645,13 @@ const PersonNetwork = props => {
       node.selected=true;
       container.moveCenter(node.x, node.y)
     }
+  }
+
+  const renderSearchItemHTML = (n) => {
+    if (typeof n==="undefined") {
+      return ;
+    }
+    return <div key={n.id} data-id={n.id} onClick={()=>centerNode(n.id)}>{n.label} <small>[{n.type}]</small></div>
   }
 
   const toggleHelp = () => {
@@ -725,8 +737,14 @@ const PersonNetwork = props => {
     searchContainerVisibleClass = " visible";
   }
   let searchContainerNodes = [];
-  if (!loading && data!==null) {
-    searchContainerNodes = <GraphSearch nodes={data.nodes} centerNode={centerNode} reload={searchContainerReload} />;
+  if (!loading && searchData.length>0) {
+    searchContainerNodes = <LazyList
+      limit={30}
+      range={5}
+      items={searchData}
+      containerClass="graph-search-container-nodes"
+      renderItem={renderSearchItemHTML}
+      />
   }
   let searchContainer = <div className={"graph-search-container"+searchContainerVisibleClass}>
     <div className="close-graph-search-container" onClick={()=>toggleSearchContainerVisible()}>
