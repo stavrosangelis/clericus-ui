@@ -9,24 +9,33 @@ const HelpArticle = props => {
   const [article, setArticle] = useState(null);
 
   useEffect(()=> {
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+
     const load = async() => {
-      setLoading(false);
       let responseData = await axios({
         method: 'get',
         url: APIPath+'content-article',
         crossDomain: true,
-        params: {permalink: props.permalink}
+        params: {permalink: props.permalink},
+        cancelToken: source.token
       })
       .then(function (response) {
         return response.data;
       })
       .catch(function (error) {
       });
-      setArticle(responseData.data);
+      if (typeof responseData!=="undefined") {
+        setArticle(responseData.data);
+          setLoading(false);
+      }
     }
     if (loading) {
       load();
     }
+    return () => {
+      source.cancel("api request cancelled");
+    };
   },[loading,props.permalink]);
 
   let content = [];

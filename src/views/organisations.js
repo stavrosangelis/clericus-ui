@@ -70,6 +70,16 @@ class Organisations extends Component {
     this.toggleSearch = this.toggleSearch.bind(this);
     this.updateType = this.updateType.bind(this);
     this.toggleHelp = this.toggleHelp.bind(this);
+
+    // cancelTokens
+    const cancelToken1 = axios.CancelToken;
+    this.cancelSource1 = cancelToken1.source();
+
+    const cancelToken2 = axios.CancelToken;
+    this.cancelSource2 = cancelToken2.source();
+
+    const cancelToken3 = axios.CancelToken;
+    this.cancelSource3 = cancelToken3.source();
   }
 
   updateType(val) {
@@ -97,7 +107,8 @@ class Organisations extends Component {
       method: 'get',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource1.token
     })
 	  .then(function (response) {
       return response.data.data;
@@ -105,24 +116,26 @@ class Organisations extends Component {
 	  .catch(function (error) {
       console.log(error);
 	  });
-    let organisations = responseData.data;
-    let currentPage = 1;
-    if (responseData.currentPage>0) {
-      currentPage = responseData.currentPage;
-    }
-    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
-      this.updatePage(responseData.totalPages);
-    }
-    else {
-      this.setState({
-        loading: false,
-        organisationsLoading: false,
-        page: responseData.currentPage,
-        totalPages: responseData.totalPages,
-        totalItems: responseData.totalItems,
-        items: organisations,
-      });
-      //this.updateOrganisationsRelationship(organisations);
+    if (typeof responseData!=="undefined") {
+      let organisations = responseData.data;
+      let currentPage = 1;
+      if (responseData.currentPage>0) {
+        currentPage = responseData.currentPage;
+      }
+      if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+        this.updatePage(responseData.totalPages);
+      }
+      else {
+        this.setState({
+          loading: false,
+          organisationsLoading: false,
+          page: responseData.currentPage,
+          totalPages: responseData.totalPages,
+          totalItems: responseData.totalItems,
+          items: organisations,
+        });
+        //this.updateOrganisationsRelationship(organisations);
+      }
     }
   }
 
@@ -147,7 +160,8 @@ class Organisations extends Component {
       method: 'get',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource2.token
     })
 	  .then(function (response) {
       return response.data.data;
@@ -155,24 +169,26 @@ class Organisations extends Component {
 	  .catch(function (error) {
       console.log(error);
 	  });
-    let organisations = responseData.data;
-    let currentPage = 1;
-    if (responseData.currentPage>0) {
-      currentPage = responseData.currentPage;
-    }
-    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
-      this.updatePage(responseData.totalPages);
-    }
-    else {
-      this.setState({
-        loading: false,
-        organisationsLoading: false,
-        page: responseData.currentPage,
-        totalPages: responseData.totalPages,
-        totalItems: responseData.totalItems,
-        items: organisations
-      });
-      //this.updateOrganisationsRelationship(organisations);
+    if (typeof responseData!=="undefined") {
+      let organisations = responseData.data;
+      let currentPage = 1;
+      if (responseData.currentPage>0) {
+        currentPage = responseData.currentPage;
+      }
+      if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+        this.updatePage(responseData.totalPages);
+      }
+      else {
+        this.setState({
+          loading: false,
+          organisationsLoading: false,
+          page: responseData.currentPage,
+          totalPages: responseData.totalPages,
+          totalItems: responseData.totalItems,
+          items: organisations
+        });
+        //this.updateOrganisationsRelationship(organisations);
+      }
     }
   }
 
@@ -204,17 +220,20 @@ class Organisations extends Component {
       method: 'post',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource3.token
     })
 	  .then(function (response) {
-      return response.data.data;
+      return response.data;
 	  })
 	  .catch(function (error) {
 	  });
-    let payload = {
-      organisationTypes: responseData.organisations.map(item=>item),
+    if(typeof responseData!=="undefined" && responseData.status) {
+      let payload = {
+        organisationTypes: responseData.data.organisations.map(item=>item),
+      }
+      this.props.setRelationshipParams("organisations",payload);
     }
-    this.props.setRelationshipParams("organisations",payload);
   }
 
   updatePage(e) {
@@ -329,6 +348,12 @@ class Organisations extends Component {
     if (prevProps.organisationsFilters.organisationType!==this.props.organisationsFilters.organisationType) {
       this.load();
     }
+  }
+
+  componentWillUnmount() {
+    this.cancelSource1.cancel('api request cancelled');
+    this.cancelSource2.cancel('api request cancelled');
+    this.cancelSource3.cancel('api request cancelled');
   }
 
   render() {

@@ -19,6 +19,9 @@ const Articles = props => {
   const prevPermalink = useRef(props.match.params.permalink);
 
   useEffect(()=> {
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+
     let permalink = props.match.params.permalink;
     if (prevPermalink.current!==permalink) {
       prevPermalink.current = permalink;
@@ -30,24 +33,27 @@ const Articles = props => {
         method: 'get',
         url: APIPath+'content-category',
         crossDomain: true,
-        params: {permalink: permalink}
+        params: {permalink: permalink},
+        cancelToken: source.token
       })
       .then(function (response) {
         return response.data;
       })
       .catch(function (error) {
       });
-      if (responseData.status) {
+      if (typeof responseData!=="undefined" && responseData.status) {
         setCategory(responseData.data.data.category);
         setArticles(responseData.data.data.articles);
       }
     }
     if (loading) {
       load();
-    }    
-    return () => {
-      return false;
     }
+    return () => {
+      if(!loading) {
+        source.cancel("api request cancelled");
+      }
+    };
   },[loading,props.match.params.permalink, articles, category, prevPermalink]);
 
 

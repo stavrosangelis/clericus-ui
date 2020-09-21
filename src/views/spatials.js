@@ -70,6 +70,13 @@ class Spatials extends Component {
     this.toggleMap = this.toggleMap.bind(this);
     this.updateSpatialsRelationship = this.updateSpatialsRelationship.bind(this);
     this.renderMap = this.renderMap.bind(this);
+
+    // cancelTokens
+    const cancelToken1 = axios.CancelToken;
+    this.cancelSource1 = cancelToken1.source();
+
+    const cancelToken2 = axios.CancelToken;
+    this.cancelSource2 = cancelToken2.source();
   }
 
   async load() {
@@ -88,7 +95,8 @@ class Spatials extends Component {
       method: 'get',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource1.token
     })
 	  .then(function (response) {
       return response.data.data;
@@ -96,24 +104,25 @@ class Spatials extends Component {
 	  .catch(function (error) {
       console.log(error);
 	  });
-
-    let spatials = responseData.data;
-    let currentPage = 1;
-    if (responseData.currentPage>0) {
-      currentPage = responseData.currentPage;
-    }
-    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
-      this.updatePage(responseData.totalPages);
-    }
-    else {
-      this.setState({
-        loading: false,
-        spatialsLoading: false,
-        page: responseData.currentPage,
-        totalPages: responseData.totalPages,
-        totalItems: responseData.totalItems,
-        items: spatials
-      });
+    if (typeof responseData!=="undefined") {
+      let spatials = responseData.data;
+      let currentPage = 1;
+      if (responseData.currentPage>0) {
+        currentPage = responseData.currentPage;
+      }
+      if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+        this.updatePage(responseData.totalPages);
+      }
+      else {
+        this.setState({
+          loading: false,
+          spatialsLoading: false,
+          page: responseData.currentPage,
+          totalPages: responseData.totalPages,
+          totalItems: responseData.totalItems,
+          items: spatials
+        });
+      }
     }
   }
 
@@ -181,7 +190,8 @@ class Spatials extends Component {
       method: 'get',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource1.token
     })
 	  .then(function (response) {
       return response.data.data;
@@ -189,23 +199,25 @@ class Spatials extends Component {
 	  .catch(function (error) {
       console.log(error);
 	  });
-    let spatials = responseData.data;
-    let currentPage = 1;
-    if (responseData.currentPage>0) {
-      currentPage = responseData.currentPage;
-    }
-    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
-      this.updatePage(responseData.totalPages);
-    }
-    else {
-      this.setState({
-        loading: false,
-        spatialsLoading: false,
-        page: responseData.currentPage,
-        totalPages: responseData.totalPages,
-        totalItems: responseData.totalItems,
-        items: spatials
-      });
+    if (typeof responseData!=="undefined") {
+      let spatials = responseData.data;
+      let currentPage = 1;
+      if (responseData.currentPage>0) {
+        currentPage = responseData.currentPage;
+      }
+      if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+        this.updatePage(responseData.totalPages);
+      }
+      else {
+        this.setState({
+          loading: false,
+          spatialsLoading: false,
+          page: responseData.currentPage,
+          totalPages: responseData.totalPages,
+          totalItems: responseData.totalItems,
+          items: spatials
+        });
+      }
     }
   }
 
@@ -363,6 +375,11 @@ class Spatials extends Component {
 
   componentDidMount() {
     this.load();
+  }
+
+  componentWillUnmount() {
+    this.cancelSource1.cancel('api request cancelled');
+    this.cancelSource2.cancel('api request cancelled');
   }
 
   render() {

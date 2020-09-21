@@ -63,6 +63,13 @@ class Resources extends Component {
     this.renderItems = this.renderItems.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.toggleHelp = this.toggleHelp.bind(this);
+
+    // cancelTokens
+    const cancelToken1 = axios.CancelToken;
+    this.cancelSource1 = cancelToken1.source();
+
+    const cancelToken2 = axios.CancelToken;
+    this.cancelSource2 = cancelToken2.source();
   }
 
   async load() {
@@ -81,7 +88,8 @@ class Resources extends Component {
       method: 'get',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource1.token
     })
 	  .then(function (response) {
       return response.data.data;
@@ -89,23 +97,25 @@ class Resources extends Component {
 	  .catch(function (error) {
       console.log(error);
 	  });
-    let resources = responseData.data;
-    let currentPage = 1;
-    if (responseData.currentPage>0) {
-      currentPage = responseData.currentPage;
-    }
-    if (currentPage>responseData.totalPages) {
-      this.updatePage(responseData.totalPages);
-    }
-    else {
-      this.setState({
-        loading: false,
-        resourcesLoading: false,
-        page: responseData.currentPage,
-        totalPages: responseData.totalPages,
-        totalItems: responseData.totalItems,
-        items: resources
-      });
+    if (typeof responseData!=="undefined") {
+      let resources = responseData.data;
+      let currentPage = 1;
+      if (responseData.currentPage>0) {
+        currentPage = responseData.currentPage;
+      }
+      if (currentPage>responseData.totalPages) {
+        this.updatePage(responseData.totalPages);
+      }
+      else {
+        this.setState({
+          loading: false,
+          resourcesLoading: false,
+          page: responseData.currentPage,
+          totalPages: responseData.totalPages,
+          totalItems: responseData.totalItems,
+          items: resources
+        });
+      }
     }
   }
 
@@ -128,30 +138,33 @@ class Resources extends Component {
       method: 'get',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource2.token
     })
 	  .then(function (response) {
       return response.data.data;
 	  })
 	  .catch(function (error) {
 	  });
-    let resources = responseData.data;
-    let currentPage = 1;
-    if (responseData.currentPage>0) {
-      currentPage = responseData.currentPage;
-    }
-    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
-      this.updatePage(responseData.totalPages);
-    }
-    else {
-      this.setState({
-        loading: false,
-        resourcesLoading: false,
-        page: responseData.currentPage,
-        totalPages: responseData.totalPages,
-        totalItems: responseData.totalItems,
-        items: resources
-      });
+    if (typeof responseData!=="undefined") {
+      let resources = responseData.data;
+      let currentPage = 1;
+      if (responseData.currentPage>0) {
+        currentPage = responseData.currentPage;
+      }
+      if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+        this.updatePage(responseData.totalPages);
+      }
+      else {
+        this.setState({
+          loading: false,
+          resourcesLoading: false,
+          page: responseData.currentPage,
+          totalPages: responseData.totalPages,
+          totalItems: responseData.totalItems,
+          items: resources
+        });
+      }
     }
   }
 
@@ -281,6 +294,11 @@ class Resources extends Component {
 
   componentDidMount() {
     this.load();
+  }
+
+  componentWillUnmount() {
+    this.cancelSource1.cancel('api request cancelled');
+    this.cancelSource2.cancel('api request cancelled');
   }
 
   render() {

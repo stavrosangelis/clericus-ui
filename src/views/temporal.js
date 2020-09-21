@@ -26,6 +26,9 @@ class Temporal extends Component {
     this.toggleTable = this.toggleTable.bind(this);
     this.renderItem = this.renderItem.bind(this);
     this.renderTemporalDetails = this.renderTemporalDetails.bind(this);
+
+    const cancelToken = axios.CancelToken;
+    this.cancelSource = cancelToken.source();
   }
 
   async load() {
@@ -44,28 +47,30 @@ class Temporal extends Component {
       method: 'get',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource.token
     })
 	  .then(function (response) {
       return response.data;
 	  })
 	  .catch(function (error) {
 	  });
-
-    if (responseData.status) {
-      this.setState({
-        loading: false,
-        item: responseData.data
-      });
-    }
-    else {
-      this.setState({
-        loading: false,
-        error: {
-          visible: true,
-          text: responseData.msg
-        }
-      });
+    if (typeof responseData!=="undefined") {
+      if (responseData.status) {
+        this.setState({
+          loading: false,
+          item: responseData.data
+        });
+      }
+      else {
+        this.setState({
+          loading: false,
+          error: {
+            visible: true,
+            text: responseData.msg
+          }
+        });
+      }
     }
   }
 
@@ -136,6 +141,10 @@ class Temporal extends Component {
 
   componentDidMount() {
     this.load();
+  }
+  
+  componentWillUnmount() {
+    this.cancelSource.cancel('api request cancelled');
   }
 
   render() {

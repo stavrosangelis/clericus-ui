@@ -7,6 +7,7 @@ import {
 import {Breadcrumbs} from '../components/breadcrumbs';
 import { Link } from 'react-router-dom';
 import {updateDocumentTitle} from '../helpers';
+import LazyList from '../components/lazylist';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
@@ -23,39 +24,48 @@ const Search = props => {
   const prevTerm = useRef(props.match.params.term)
 
   useEffect(()=> {
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+
     let term = props.match.params.term;
     if (prevTerm.current!==term) {
       prevTerm.current = term;
       setLoading(true)
     }
     const load = async() => {
-      setLoading(false);
       let responseData = await axios({
         method: 'post',
         url: APIPath+'search',
         crossDomain: true,
-        data: {term: term}
+        data: {term: term},
+        cancelToken: source.token
       })
       .then(function (response) {
         return response.data;
       })
       .catch(function (error) {
       });
-      if (responseData.status) {
-        let data = responseData.data
-        setArticles(data.articles);
-        setClasspieces(data.classpieces);
-        setEvents(data.events);
-        setOrganisations(data.organisations);
-        setPeople(data.people);
-        setResources(data.resources);
-        setSpatial(data.spatial);
-        setTemporal(data.temporal);
+      if (typeof responseData!=="undefined") {
+       if (responseData.status) {
+          let data = responseData.data
+          setArticles(data.articles);
+          setClasspieces(data.classpieces);
+          setEvents(data.events);
+          setOrganisations(data.organisations);
+          setPeople(data.people);
+          setResources(data.resources);
+          setSpatial(data.spatial);
+          setTemporal(data.temporal);
+        }
+        setLoading(false);
       }
     }
     if (loading) {
       load();
     }
+    return () => {
+      source.cancel("api request cancelled");
+    };
   },[loading,props.match.params.term]);
 
 
@@ -64,6 +74,14 @@ const Search = props => {
   let content = <div style={{padding: '40pt',textAlign: 'center'}}>
     <Spinner type="grow" color="info" /> <i>loading...</i>
   </div>
+  const renderRow = (item) => {
+    let link = item._id;
+    if (item.linkType==="article") {
+      link = item.permalink
+    }
+    return <Link href={`/${item.linkType}/${link}`} to={`/${item.linkType}/${link}`}>{item.label}</Link>;
+  }
+
   if (!loading) {
     let articlesContent = [];
     let classpiecesContent = [];
@@ -75,90 +93,138 @@ const Search = props => {
     let temporalContent = [];
     if (articles.length>0) {
       let articlesList = articles.map(a=>{
-        return <li key={a._id}><Link href={`/article/${a.permalink}`} to={`/article/${a.permalink}`}>{a.label}</Link></li>;
-      })
+        a.linkType="article";
+        return a;
+      });
       articlesContent = <div className="col-12 col-sm-6">
         <h4>Articles <small>({articles.length})</small></h4>
-        <ol className="search-results">
-          {articlesList}
-        </ol>
+        <LazyList
+          limit={30}
+          range={15}
+          items={articlesList}
+          renderItem={renderRow}
+          containerClass="search-results"
+          ordered={true}
+          />
       </div>
     }
     if (classpieces.length>0) {
       let classpiecesList = classpieces.map(c=>{
-        return <li key={c._id}><Link href={`/classpiece/${c._id}`} to={`/classpiece/${c._id}`}>{c.label}</Link></li>;
+        c.linkType="classpiece";
+        return c;
       })
       classpiecesContent = <div className="col-12 col-sm-6">
         <h4>Classpieces <small>({classpieces.length})</small></h4>
-        <ol className="search-results">
-          {classpiecesList}
-        </ol>
+        <LazyList
+          limit={30}
+          range={15}
+          items={classpiecesList}
+          renderItem={renderRow}
+          containerClass="search-results"
+          ordered={true}
+          />
       </div>
     }
     if (events.length>0) {
       let eventsList = events.map(e=>{
-        return <li key={e._id}><Link href={`/event/${e._id}`} to={`/event/${e._id}`}>{e.label}</Link></li>;
+        e.linkType="event";
+        return e;
       })
       eventsContent = <div className="col-12 col-sm-6">
         <h4>Events <small>({events.length})</small></h4>
-        <ol className="search-results">
-          {eventsList}
-        </ol>
+        <LazyList
+          limit={30}
+          range={15}
+          items={eventsList}
+          renderItem={renderRow}
+          containerClass="search-results"
+          ordered={true}
+          />
       </div>
     }
     if (organisations.length>0) {
       let organisationsList = organisations.map(o=>{
-        return <li key={o._id}><Link href={`/organisation/${o._id}`} to={`/organisation/${o._id}`}>{o.label}</Link></li>;
+        o.linkType="organisation";
+        return o;
       })
       organisationsContent = <div className="col-12 col-sm-6">
         <h4>Organisations <small>({organisations.length})</small></h4>
-        <ol className="search-results">
-          {organisationsList}
-        </ol>
+        <LazyList
+          limit={30}
+          range={15}
+          items={organisationsList}
+          renderItem={renderRow}
+          containerClass="search-results"
+          ordered={true}
+          />
       </div>
     }
     if (people.length>0) {
       let peopleList = people.map(p=>{
-        return <li key={p._id}><Link href={`/person/${p._id}`} to={`/person/${p._id}`}>{p.label}</Link></li>;
+        p.linkType="person";
+        return p;
       })
       peopleContent = <div className="col-12 col-sm-6">
         <h4>People <small>({people.length})</small></h4>
-        <ol className="search-results">
-          {peopleList}
-        </ol>
+        <LazyList
+          limit={30}
+          range={15}
+          items={peopleList}
+          renderItem={renderRow}
+          containerClass="search-results"
+          ordered={true}
+          />
       </div>
     }
     if (resources.length>0) {
       let resourcesList = resources.map(r=>{
-        return <li key={r._id}><Link href={`/resource/${r._id}`} to={`/resource/${r._id}`}>{r.label}</Link></li>;
+        r.linkType="resource";
+        return r;
       })
       resourcesContent = <div className="col-12 col-sm-6">
         <h4>Resources <small>({resources.length})</small></h4>
-        <ol className="search-results">
-          {resourcesList}
-        </ol>
+        <LazyList
+          limit={30}
+          range={15}
+          items={resourcesList}
+          renderItem={renderRow}
+          containerClass="search-results"
+          ordered={true}
+          />
       </div>
     }
     if (spatial.length>0) {
       let spatialList = spatial.map(s=>{
-        return <li key={s._id}><Link href={`/spatial/${s._id}`} to={`/spatial/${s._id}`}>{s.label}</Link></li>;
+        s.linkType="spatial";
+        return s;
       })
       spatialContent = <div className="col-12 col-sm-6">
         <h4>Spatial <small>({spatial.length})</small></h4>
-        <ol className="search-results">
-          {spatialList}
-        </ol>
+        <LazyList
+          limit={30}
+          range={15}
+          items={spatialList}
+          renderItem={renderRow}
+          containerClass="search-results"
+          ordered={true}
+          />
       </div>
     }
     if (temporal.length>0) {
       let temporalList = temporal.map(t=>{
-        return <li key={t._id}><Link href={`/temporal/${t._id}`} to={`/temporal/${t._id}`}>{t.label}</Link></li>;
+        t.linkType="temporal";
+        return t;
       })
       temporalContent = <div className="col-12 col-sm-6">
         <h4>Temporal <small>({temporal.length})</small></h4>
-        <ol className="search-results">
-          {temporalList}
-        </ol>
+        <LazyList
+          limit={30}
+          range={15}
+          items={temporalList}
+          renderItem={renderRow}
+          containerClass="search-results"
+          ordered={true}
+          />
       </div>
     }
     content = <div className="row">

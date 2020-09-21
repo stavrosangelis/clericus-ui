@@ -411,42 +411,55 @@ const Timeline = props =>{
     if (url===null) {
       return ;
     }
+
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+    const cancelToken2 = axios.CancelToken;
+    const source2 = cancelToken2.source();
+
     const load = async() => {
-      setLoading(false);
       let responseData = await axios({
         method: 'get',
         url: url,
         crossDomain: true,
-        params: params
+        params: params,
+        cancelToken: source.token
       })
       .then(function (response) {
         return response.data;
       })
       .catch(function (error) {
       });
-      let respData = responseData.data;
-      setItem(respData);
-      let eventsData = await axios({
-        method: 'get',
-        url: `${APIPath}item-timeline`,
-        crossDomain: true,
-        params: params
-      })
-      .then(function (response) {
-        return response.data;
-      })
-      .catch(function (error) {
-      });
-      let evtData = eventsData.data;
-      setItems(evtData);
-      let newData = initialData(evtData);
-      setItemsHTML(newData);
+      if (typeof responseData!=="undefined") {
+        let respData = responseData.data;
+        setItem(respData);
+        let eventsData = await axios({
+          method: 'get',
+          url: `${APIPath}item-timeline`,
+          crossDomain: true,
+          params: params,
+          cancelToken: source2.token
+        })
+        .then(function (response) {
+          return response.data;
+        })
+        .catch(function (error) {
+        });
+        if (typeof evtData!=="undefined") {
+          let evtData = eventsData.data;
+          setItems(evtData);
+          let newData = initialData(evtData);
+          setItemsHTML(newData);
+        }
+      }
+      setLoading(false);
     }
     if (loading) {
       load();
     }
     return () => {
-      return false;
+      source.cancel("api request cancelled");
+      source2.cancel("api request cancelled");
     }
   },[loading, props.match.params]);
 
@@ -876,8 +889,8 @@ const Timeline = props =>{
         <i className="fa fa-times" />
       </div>
       <LazyList
-        limit={20}
-        range={5}
+        limit={30}
+        range={15}
         items={eventsHTML}
         renderItem={renderEventHTML}
         containerClass={`events-list-container ${eventsListVisible}`}

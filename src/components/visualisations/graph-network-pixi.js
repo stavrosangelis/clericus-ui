@@ -192,6 +192,8 @@ const PersonNetwork = props => {
   const [nodeLink, setNodeLink] = useState([]);
   const [relatedNodesItems, setRelatedNodesItems] = useState([]);
   const [helpVisible, setHelpVisible] = useState(false);
+  const [loadingNode, setLoadingNode] = useState(false);
+  const [nodeId, setNodeId] = useState(null);
 
   const toggleDetailsCard = (value=null) => {
     let visible = !detailsCardVisible;
@@ -371,53 +373,77 @@ const PersonNetwork = props => {
     })
   })
 
-  const loadNodeDetails = async(_id, newStep=null) => {
+  useEffect(()=>{
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+
+    const loadNode = async(_id, newStep=null) => {
+      if (newStep===null) {
+        newStep = step;
+      }
+      setRelatedNodesItems([]);
+      setStepLoading(true);
+      let responseData = await axios({
+        method: 'get',
+        url: APIPath+'item-network-related-nodes',
+        crossDomain: true,
+        params: {_id:_id,step:newStep},
+        cancelToken: source.token
+      })
+      .then(function (response) {
+        return response.data.data;
+      })
+      .catch(function (error) {
+        console.log(error)
+      });
+      if (typeof responseData!=="undefined") {
+        let nodeType = selectedNode.type;
+        setNodeLink(<Link href={"/"+nodeType+"/"+selectedNode.id} to={"/"+nodeType+"/"+selectedNode.id}><b>{selectedNode.label}</b> [{nodeType}]</Link>);
+
+        let relatedNodesIds = [_id];
+        let linkArray = ["Classpiece", "Organisation", "Person", "Event", "Resource"];
+        let nodesItems = [];
+        for (let i=0;i<responseData.length; i++) {
+          let node = responseData[i];
+          if (relatedNodesIds.indexOf(node._id)===-1) {
+            relatedNodesIds.push(node._id);
+          }
+          let link = false;
+          if (linkArray.indexOf(nodeType)>-1) {
+            link = true;
+          }
+          node.i = i;
+          node.link = link;
+          nodesItems.push(node);
+        }
+        for (let i=0;i<links.length;i++) {
+          let link = links[i];
+          if (relatedNodesIds.indexOf(link.source.id)>-1 && relatedNodesIds.indexOf(link.target.id)>-1) {
+            link.associated = true;
+          }
+          else link.associated = false;
+        }
+        setRelatedNodesItems(nodesItems);
+        redraw();
+        setStepLoading(false);
+        setLoadingNode(false);
+      }
+    }
+
+    if (nodeId!==null && loadingNode) {
+      loadNode(nodeId);
+    }
+    return () => {
+      source.cancel("api request cancelled");
+    };
+  },[nodeId, loadingNode, step]);
+
+  const loadNodeDetails = (_id, newStep=null) => {
     if (newStep===null) {
       newStep = step;
     }
-    setRelatedNodesItems([]);
-    setStepLoading(true);
-    let responseData = await axios({
-      method: 'get',
-      url: APIPath+'item-network-related-nodes',
-      crossDomain: true,
-      params: {_id:_id,step:newStep}
-    })
-    .then(function (response) {
-      return response.data.data;
-    })
-    .catch(function (error) {
-      console.log(error)
-    });
-    let nodeType = selectedNode.type;
-    setNodeLink(<Link href={"/"+nodeType+"/"+selectedNode.id} to={"/"+nodeType+"/"+selectedNode.id}><b>{selectedNode.label}</b> [{nodeType}]</Link>);
-
-    let relatedNodesIds = [_id];
-    let linkArray = ["Classpiece", "Organisation", "Person", "Event", "Resource"];
-    let nodesItems = [];
-    for (let i=0;i<responseData.length; i++) {
-      let node = responseData[i];
-      if (relatedNodesIds.indexOf(node._id)===-1) {
-        relatedNodesIds.push(node._id);
-      }
-      let link = false;
-      if (linkArray.indexOf(nodeType)>-1) {
-        link = true;
-      }
-      node.i = i;
-      node.link = link;
-      nodesItems.push(node);
-    }
-    for (let i=0;i<links.length;i++) {
-      let link = links[i];
-      if (relatedNodesIds.indexOf(link.source.id)>-1 && relatedNodesIds.indexOf(link.target.id)>-1) {
-        link.associated = true;
-      }
-      else link.associated = false;
-    }
-    setRelatedNodesItems(nodesItems);
-    redraw();
-    setStepLoading(false);
+    setNodeId(_id);
+    setLoadingNode(true);
   }
 
   const renderRelatedNodeHTMLItem = (item) => {
@@ -699,8 +725,8 @@ const PersonNetwork = props => {
             <label>Related nodes [<b>{relatedNodesItems.length}</b>]</label>
           </div>
           <LazyList
-            limit={20}
-            range={10}
+            limit={30}
+            range={15}
             items={relatedNodesItems}
             containerClass="node-relations-list"
             listClass="entries-list"
@@ -721,7 +747,7 @@ const PersonNetwork = props => {
 
     searchContainerNodes = <LazyList
       limit={30}
-      range={5}
+      range={15}
       items={searchData}
       containerClass="graph-search-container-nodes"
       renderItem={renderSearchItemHTML}

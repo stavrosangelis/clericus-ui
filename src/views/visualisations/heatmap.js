@@ -36,24 +36,33 @@ const Heatmap = props => {
   }
 
   useEffect(()=> {
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+
     const load = async() => {
-      setLoading(false);
       let responseData = await axios({
         method: 'get',
         url: APIPath+'heatmap',
         crossDomain: true,
+        cancelToken: source.token
       })
       .then(function (response) {
         return response.data;
       })
       .catch(function (error) {
       });
-      setData(responseData.data);
-      setListData(responseData.data);
+      if (typeof responseData!=="undefined") {
+        setData(responseData.data);
+        setListData(responseData.data);
+        setLoading(false);
+      }
     }
     if (loading) {
       load();
     }
+    return () => {
+      source.cancel("api request cancelled");
+    };
   },[loading]);
 
   const searchNode = (e) =>{
@@ -249,8 +258,8 @@ const Heatmap = props => {
         <i className="fa fa-times-circle" onClick={()=>clearSearchNode()}/>
       </FormGroup>
       <LazyList
-        limit={20}
-        range={5}
+        limit={30}
+        range={15}
         items={searchContainerNodes}
         containerClass="map-search-container-nodes"
         renderItem={renderSearchLItem}

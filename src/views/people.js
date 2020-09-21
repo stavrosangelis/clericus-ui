@@ -78,6 +78,19 @@ class People extends Component {
     this.handleChange = this.handleChange.bind(this);
     this.updatePeopleRelationship = this.updatePeopleRelationship.bind(this);
     this.toggleHelp = this.toggleHelp.bind(this);
+
+    // cancelTokens
+    const cancelToken1 = axios.CancelToken;
+    this.cancelSource1 = cancelToken1.source();
+
+    const cancelToken2 = axios.CancelToken;
+    this.cancelSource2 = cancelToken2.source();
+
+    const cancelToken3 = axios.CancelToken;
+    this.cancelSource3 = cancelToken3.source();
+
+    const cancelToken4 = axios.CancelToken;
+    this.cancelSource4 = cancelToken4.source();
   }
 
   async load() {
@@ -108,7 +121,8 @@ class People extends Component {
       method: 'post',
       url: url,
       crossDomain: true,
-      data: params
+      data: params,
+      cancelToken: this.cancelSource1.token
     })
 	  .then(function (response) {
       return response.data.data;
@@ -116,24 +130,26 @@ class People extends Component {
 	  .catch(function (error) {
       console.log(error);
 	  });
-    let people = responseData.data;
-    let currentPage = 1;
-    if (responseData.currentPage>0) {
-      currentPage = responseData.currentPage;
-    }
-    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
-      this.updatePage(responseData.totalPages);
-    }
-    else {
-      this.setState({
-        loading: false,
-        peopleLoading: false,
-        page: responseData.currentPage,
-        totalPages: responseData.totalPages,
-        totalItems: responseData.totalItems,
-        items: people
-      });
-      this.updatePeopleRelationship();
+    if (typeof responseData!=="undefined") {
+      let people = responseData.data;
+      let currentPage = 1;
+      if (responseData.currentPage>0) {
+        currentPage = responseData.currentPage;
+      }
+      if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+        this.updatePage(responseData.totalPages);
+      }
+      else {
+        this.setState({
+          loading: false,
+          peopleLoading: false,
+          page: responseData.currentPage,
+          totalPages: responseData.totalPages,
+          totalItems: responseData.totalItems,
+          items: people
+        });
+        this.updatePeopleRelationship();
+      }
     }
   }
 
@@ -163,31 +179,34 @@ class People extends Component {
       method: 'post',
       url: url,
       crossDomain: true,
-      data: params
+      data: params,
+      cancelToken: this.cancelSource2.token
     })
     .then(function (response) {
       return response.data.data;
     })
     .catch(function (error) {
     });
-    let people = responseData.data;
-    let currentPage = 1;
-    if (responseData.currentPage>0) {
-      currentPage = responseData.currentPage;
-    }
-    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
-      this.updatePage(responseData.totalPages);
-    }
-    else {
-      this.setState({
-        loading: false,
-        peopleLoading: false,
-        page: responseData.currentPage,
-        totalPages: responseData.totalPages,
-        totalItems: responseData.totalItems,
-        items: people
-      });
-      this.updatePeopleRelationship();
+    if (typeof responseData!=="undefined") {
+      let people = responseData.data;
+      let currentPage = 1;
+      if (responseData.currentPage>0) {
+        currentPage = responseData.currentPage;
+      }
+      if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+        this.updatePage(responseData.totalPages);
+      }
+      else {
+        this.setState({
+          loading: false,
+          peopleLoading: false,
+          page: responseData.currentPage,
+          totalPages: responseData.totalPages,
+          totalItems: responseData.totalItems,
+          items: people
+        });
+        this.updatePeopleRelationship();
+      }
     }
   }
 
@@ -223,31 +242,34 @@ class People extends Component {
       method: 'post',
       url: url,
       crossDomain: true,
-      data: params
+      data: params,
+      cancelToken: this.cancelSource3.token
     })
     .then(function (response) {
       return response.data.data;
     })
     .catch(function (error) {
     });
-    let people = responseData.data;
-    let currentPage = 1;
-    if (responseData.currentPage>0) {
-      currentPage = responseData.currentPage;
-    }
-    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
-      this.updatePage(responseData.totalPages);
-    }
-    else {
-      this.setState({
-        loading: false,
-        peopleLoading: false,
-        page: responseData.currentPage,
-        totalPages: responseData.totalPages,
-        totalItems: responseData.totalItems,
-        items: people
-      });
-      this.updatePeopleRelationship();
+    if (typeof responseData!=="undefined") {
+      let people = responseData.data;
+      let currentPage = 1;
+      if (responseData.currentPage>0) {
+        currentPage = responseData.currentPage;
+      }
+      if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+        this.updatePage(responseData.totalPages);
+      }
+      else {
+        this.setState({
+          loading: false,
+          peopleLoading: false,
+          page: responseData.currentPage,
+          totalPages: responseData.totalPages,
+          totalItems: responseData.totalItems,
+          items: people
+        });
+        this.updatePeopleRelationship();
+      }
     }
   }
 
@@ -304,19 +326,22 @@ class People extends Component {
       method: 'post',
       url: url,
       crossDomain: true,
-      data: params
+      data: params,
+      cancelToken: this.cancelSource4.token
     })
 	  .then(function (response) {
-      return response.data.data;
+      return response.data;
 	  })
 	  .catch(function (error) {
       console.log(error);
 	  });
-    let payload = {
-      events: responseData.events.map(item=>{return item}),
-      organisations: responseData.organisations.map(item=>item),
+    if(typeof responseData!=="undefined" && responseData.status) {
+      let payload = {
+        events: responseData.data.events.map(item=>{return item}),
+        organisations: responseData.data.organisations.map(item=>item),
+      }
+      this.props.setRelationshipParams("people",payload);
     }
-    this.props.setRelationshipParams("people",payload);
   }
 
   updatePage(e) {
@@ -460,6 +485,13 @@ class People extends Component {
 
   componentDidMount() {
     this.load();
+  }
+
+  componentWillUnmount() {
+    this.cancelSource1.cancel('api request cancelled');
+    this.cancelSource2.cancel('api request cancelled');
+    this.cancelSource3.cancel('api request cancelled');
+    this.cancelSource4.cancel('api request cancelled');
   }
 
   render() {

@@ -11,28 +11,37 @@ const TemporalGraph = props => {
   const [temporal, setTemporal] = useState(null);
 
   useEffect(()=> {
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+
     const load = async() => {
       let _id = props.match.params._id;
       if (typeof _id==="undefined" || _id===null || _id==="") {
         return false;
       }
-      setLoading(false);
       let responseData = await axios({
         method: 'get',
         url: APIPath+'temporal',
         crossDomain: true,
-        params: {_id:_id}
+        params: {_id:_id},
+        cancelToken: source.token
       })
       .then(function (response) {
         return response.data.data;
       })
       .catch(function (error) {
       });
-      setTemporal(responseData);
+      if (typeof responseData!=="undefined") {
+        setTemporal(responseData);
+        setLoading(false);
+      }
     }
     if (loading) {
       load();
     }
+    return () => {
+      source.cancel("api request cancelled");
+    };
   },[loading,props.match.params._id]);
 
   let breadcrumbsItems = [{label: "Temporals", icon: "pe-7s-date", active: false, path: "/temporals"}];

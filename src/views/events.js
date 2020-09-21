@@ -72,6 +72,16 @@ class Events extends Component {
     this.updateEventsRelationship = this.updateEventsRelationship.bind(this);
     this.updateType = this.updateType.bind(this);
     this.toggleHelp = this.toggleHelp.bind(this);
+
+    // cancelTokens
+    const cancelToken1 = axios.CancelToken;
+    this.cancelSource1 = cancelToken1.source();
+
+    const cancelToken2 = axios.CancelToken;
+    this.cancelSource2 = cancelToken2.source();
+
+    const cancelToken3 = axios.CancelToken;
+    this.cancelSource3 = cancelToken3.source();
   }
 
   updateType(val) {
@@ -101,7 +111,8 @@ class Events extends Component {
       method: 'get',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource1.token
     })
 	  .then(function (response) {
       return response.data.data;
@@ -109,25 +120,26 @@ class Events extends Component {
 	  .catch(function (error) {
       console.log(error)
 	  });
-
-    let events = responseData.data;
-    let currentPage = 1;
-    if (responseData.currentPage>0) {
-      currentPage = responseData.currentPage;
-    }
-    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
-      this.updatePage(responseData.totalPages);
-    }
-    else {
-      this.setState({
-        loading: false,
-        eventsLoading: false,
-        page: responseData.currentPage,
-        totalPages: responseData.totalPages,
-        totalItems: responseData.totalItems,
-        items: events
-      });
-      //this.updateEventsRelationship(events);
+    if (typeof responseData!=="undefined") {
+      let events = responseData.data;
+      let currentPage = 1;
+      if (responseData.currentPage>0) {
+        currentPage = responseData.currentPage;
+      }
+      if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+        this.updatePage(responseData.totalPages);
+      }
+      else {
+        this.setState({
+          loading: false,
+          eventsLoading: false,
+          page: responseData.currentPage,
+          totalPages: responseData.totalPages,
+          totalItems: responseData.totalItems,
+          items: events
+        });
+        //this.updateEventsRelationship(events);
+      }
     }
   }
 
@@ -153,7 +165,8 @@ class Events extends Component {
       method: 'get',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource2.token
     })
 	  .then(function (response) {
       return response.data.data;
@@ -161,25 +174,26 @@ class Events extends Component {
 	  .catch(function (error) {
       console.log(error);
 	  });
-
-    let events = responseData.data;
-    let currentPage = 1;
-    if (responseData.currentPage>0) {
-      currentPage = responseData.currentPage;
-    }
-    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
-      this.updatePage(responseData.totalPages);
-    }
-    else {
-      this.setState({
-        loading: false,
-        eventsLoading: false,
-        page: responseData.currentPage,
-        totalPages: responseData.totalPages,
-        totalItems: responseData.totalItems,
-        items: events
-      });
-      //this.updateEventsRelationship(events);
+    if (typeof responseData!=="undefined") {
+      let events = responseData.data;
+      let currentPage = 1;
+      if (responseData.currentPage>0) {
+        currentPage = responseData.currentPage;
+      }
+      if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+        this.updatePage(responseData.totalPages);
+      }
+      else {
+        this.setState({
+          loading: false,
+          eventsLoading: false,
+          page: responseData.currentPage,
+          totalPages: responseData.totalPages,
+          totalItems: responseData.totalItems,
+          items: events
+        });
+        //this.updateEventsRelationship(events);
+      }
     }
   }
 
@@ -211,17 +225,20 @@ class Events extends Component {
       method: 'post',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource3.token
     })
 	  .then(function (response) {
-      return response.data.data;
+      return response.data;
 	  })
 	  .catch(function (error) {
 	  });
-    let payload = {
-      events: responseData.events.map(item=>item),
+    if(typeof responseData!=="undefined" && responseData.status) {
+      let payload = {
+        events: responseData.data.events.map(item=>item),
+      }
+      this.props.setRelationshipParams("events",payload);
     }
-    this.props.setRelationshipParams("events",payload);
   }
 
   updatePage(e) {
@@ -336,6 +353,12 @@ class Events extends Component {
     if (prevProps.eventsFilters.eventType!==this.props.eventsFilters.eventType) {
       this.load();
     }
+  }
+
+  componentWillUnmount() {
+    this.cancelSource1.cancel('api request cancelled');
+    this.cancelSource2.cancel('api request cancelled');
+    this.cancelSource3.cancel('api request cancelled');
   }
 
   render() {

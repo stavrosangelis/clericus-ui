@@ -11,8 +11,10 @@ const News = props => {
   const [articles, setArticles] = useState([]);
 
   useEffect(()=> {
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+
     const load = async() => {
-      setLoading(false);
       let params = {
         categoryName: 'News',
         page: 1,
@@ -22,18 +24,25 @@ const News = props => {
         method: 'get',
         url: APIPath+'content-articles',
         crossDomain: true,
-        params: params
+        params: params,
+        cancelToken: source.token
       })
       .then(function (response) {
         return response.data.data;
       })
       .catch(function (error) {
       });
-      setArticles(responseData.data);
+      if (typeof responseData!=="undefined") {
+        setArticles(responseData.data);
+        setLoading(false);
+      }
     }
     if (loading) {
       load();
     }
+    return () => {
+      source.cancel("api request cancelled");
+    };
   },[loading]);
 
   let content = [];

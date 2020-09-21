@@ -4,6 +4,7 @@ import {
   Spinner,
   FormGroup, Input
 } from 'reactstrap';
+import LazyList from '../components/lazylist';
 
 const Viewer = (props) => {
   const [loading, setLoading] = useState(true);
@@ -18,13 +19,9 @@ const Viewer = (props) => {
   const [y, setY] = useState(0);
   const imgRef = useRef(null);
   const tooltipRef = useRef(null);
-  let peopleProps = props.item.resources.filter(r=>{
-    if (r.ref.resourceType==="image" && r.term.label==="hasPart") {
-      return true;
-    }
-    return false
-  });
-  const [peopleData, setPeopleData] = useState(peopleProps);
+
+  const [peopleData, setPeopleData] = useState([]);
+  const [searchData, setSearchData] = useState([]);
 
   const [tooltipVisible, setTooltipVisible] = useState(false);
   const [tooltipTop, setTooltipTop] = useState(0);
@@ -41,6 +38,13 @@ const Viewer = (props) => {
   }
 
   const imgLoaded = () => {
+    let peopleProps = props.item.resources.filter(r=>{
+      if (r.ref.resourceType==="image" && r.term.label==="hasPart") {
+        return true;
+      }
+      return false
+    });
+    setPeopleData(peopleProps);
     setLoading(false);
   }
 
@@ -150,6 +154,34 @@ const Viewer = (props) => {
     setLeft(newLeft);
   }
 
+  const peopleToSearchData = (data) => {
+    let newData = [];
+    for (let i=0;i<data.length; i++) {
+      let n = data[i];
+      let _id = null;
+      let name = "";
+      let altName = "";
+      if (typeof n.ref!=="undefined") {
+        _id = n.ref._id;
+        name = n.ref.label.replace(/\s\s/g,' ')
+      }
+      if (typeof n.ref.person!=="undefined" && n.ref.person.label!=="") {
+        let personLabel = n.ref.person.label.replace(/\s\s/g,' ');
+        if (personLabel!==name) {
+          altName = personLabel;
+        }
+      }
+      let newitem = {
+        i: i,
+        _id: _id,
+        name: name,
+        altName: altName
+      }
+      newData.push(newitem)
+    }
+    return newData;
+  }
+
   useEffect(()=> {
     if (!loading && props.visible && !dimensionsLoaded) {
       imgDimensions();
@@ -207,6 +239,13 @@ const Viewer = (props) => {
     }
   },[props.visible, top, left])
 
+  useEffect(()=>{
+    if (!loading && peopleData.length>0) {
+      let newData = peopleToSearchData(peopleData);
+      setSearchData(newData);
+    }
+  },[peopleData, loading])
+
   // render
   let visibilityStyle = {visibility: "hidden"};
   if (props.visible) {
@@ -224,6 +263,21 @@ const Viewer = (props) => {
 
   const hideTooltip =()=> {
     setTooltipVisible(false);
+  }
+
+  const renderSearchItemHTML = (n) => {
+    if (n._id===null) {
+      return false;
+    }
+    let label = [];
+    if (n.name!=="") {
+      label.push(<span key="name">{n.name}</span>)
+    }
+    if (n.altName!=="") {
+      label.push(<br key="break"/>)
+      label.push(<small key="alname">[{n.altName}]</small>)
+    }
+    return <div key={n._id} data-id={n._id} onClick={()=>centerNode(n._id)}>{label}</div>
   }
 
   if (imgPath!==null) {
@@ -295,42 +349,43 @@ const Viewer = (props) => {
     }
     let people = [];
     for (let i=0;i<peopleData.length; i++) {
-        let r = peopleData[i];
-        let resource = r.ref;
-        if (typeof resource.person==="undefined") {
-          continue;
-        }
-        let selected = "";
-        if(typeof r.selected!=="undefined" && r.selected) {
-          selected = " selected";
-        }
-        let meta = resource.metadata.image.default;
-        let personStyle = {
-          width: parseFloat(meta.width,10),
-          height: parseFloat(meta.height,10),
-          top: meta.y,
-          left: meta.x,
-        }
-        if (parseFloat(meta.rotate,10)!==0) {
-          personStyle.transform = "rotate("+meta.rotate+"deg)";
-        }
+      let r = peopleData[i];
+      let resource = r.ref;
+      if (typeof resource.person==="undefined") {
+        continue;
+      }
+      let selected = "";
+      if(typeof r.selected!=="undefined" && r.selected) {
+        selected = " selected";
+      }
+      let meta = resource.metadata.image.default;
+      let personStyle = {
+        width: parseFloat(meta.width,10),
+        height: parseFloat(meta.height,10),
+        top: meta.y,
+        left: meta.x,
+      }
+      if (parseFloat(meta.rotate,10)!==0) {
+        personStyle.transform = "rotate("+meta.rotate+"deg)";
+      }
 
-        let link = "/person/"+resource.person._id;
-        let person = <Link
-          id={"tooltip-toggle-"+resource._id}
-          key={i}
-          to={link}
-          href={link}
-          className={"classpiece-person"+selected}
-          style={personStyle}
-          alt={resource.label}
-          onMouseOver={(e)=>showTooltip(e, resource)}
-          onMouseLeave={()=>hideTooltip()}
-          >
-            <span>{resource.label}</span>
-          </Link>;
-        people.push(person);
-      };
+      let link = "/person/"+resource.person._id;
+      let person = <Link
+        id={"tooltip-toggle-"+resource._id}
+        key={i}
+        to={link}
+        href={link}
+        className={"classpiece-person"+selected}
+        style={personStyle}
+        alt={resource.label}
+        onMouseOver={(e)=>showTooltip(e, resource)}
+        onMouseLeave={()=>hideTooltip()}
+        >
+          <span>{resource.label}</span>
+        </Link>;
+      people.push(person);
+    }
+
     let peopleLayer = <div
       className="classpiece-people"
       onMouseDown={(e)=>imgDragStart(e)}
@@ -377,25 +432,14 @@ const Viewer = (props) => {
       }
       return false;
     });
-    let dataNodes = peopleData;
-    for (let i=0;i<dataNodes.length; i++) {
-      let n = dataNodes[i];
-      if (visibleNodes.indexOf(n)>-1) {
-        n.visible = true;
-      }
-      else n.visible = false;
-    }
-    setPeopleData(dataNodes);
+    let newData = peopleToSearchData(visibleNodes);
+    setSearchData(newData);
   }
 
   const clearSearchNode = () => {
     setSearchInput("");
-    let dataNodes = peopleData;
-    for (let i=0;i<dataNodes.length; i++) {
-      let n = dataNodes[i];
-      n.visible = true;
-    }
-    setPeopleData(dataNodes);
+    let newData = peopleToSearchData(peopleData);
+    setSearchData(newData);
   }
 
   const centerNode = (_id) => {
@@ -454,26 +498,16 @@ const Viewer = (props) => {
   if (searchContainerVisible) {
     searchContainerVisibleClass = " visible";
   }
-  let searchContainerNodes = [];
-  if (!loading && peopleData!==null) {
-    for (let i=0;i<peopleData.length; i++) {
-      let n = peopleData[i];
-      if (typeof n.visible==="undefined" || n.visible===true) {
-        let label = [];
-        if (typeof n.ref!=="undefined") {
-          label.push(<span key="name">{n.ref.label}</span>)
-        }
-        let resourceLabel = n.ref.label.replace(/\s\s/g,' ');
-        if (typeof n.ref.person!=="undefined" && n.ref.person.label!=="") {
-          let personLabel = n.ref.person.label.replace(/\s\s/g,' ');
-          if (personLabel!==resourceLabel) {
-            label.push(<br key="break"/>)
-            label.push(<small key="alname">[{personLabel}]</small>)
-          }
-        }
-        searchContainerNodes.push(<div key={i} onClick={()=>centerNode(n.ref._id)}>{label}</div>);
-      }
-    }
+
+  let searchList = [];
+  if (!loading && searchData.length>0) {
+    searchList = <LazyList
+      limit={30}
+      range={15}
+      items={searchData}
+      containerClass="graph-search-container-nodes"
+      renderItem={renderSearchItemHTML}
+      />
   }
   let searchContainer = <div className={"img-viewer-search-container graph-search-container"+searchContainerVisibleClass}>
     <div className="close-graph-search-container" onClick={()=>toggleSearchContainerVisible()}>
@@ -483,9 +517,7 @@ const Viewer = (props) => {
       <Input type="text" name="text" placeholder="Search node..." value={searchInput} onChange={(e)=>searchNode(e)}/>
       <i className="fa fa-times-circle" onClick={()=>clearSearchNode()}/>
     </FormGroup>
-    <div className="graph-search-container-nodes">
-      {searchContainerNodes}
-    </div>
+    {searchList}
   </div>
 
   // tooltip

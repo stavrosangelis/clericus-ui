@@ -199,6 +199,8 @@ const PersonNetwork = props => {
   const [searchInput, setSearchInput] = useState("");
   const [searchInputType, setSearchInputType] = useState("");
   const [helpVisible, setHelpVisible] = useState(false);
+  const [loadingNode, setLoadingNode] = useState(false);
+  const [nodeId, setNodeId] = useState(null);
 
   const toggleDetailsCard = (value=null) => {
     let visible = !detailsCardVisible;
@@ -277,7 +279,6 @@ const PersonNetwork = props => {
       if (typeof _id==="undefined" || _id===null || _id==="") {
         return false;
       }
-      setLoading(false);
       let workerParams = {_id:_id, step: step, APIPath:APIPath};
       dataLoadingWorker.postMessage(workerParams);
       let newData = await new Promise ((resolve,reject)=>{
@@ -292,6 +293,7 @@ const PersonNetwork = props => {
       setDrawing(true);
       setSearchInput("");
       setSearchInputType("");
+      setLoading(false);
     }
     if (loading) {
       load();
@@ -372,6 +374,9 @@ const PersonNetwork = props => {
     if (drawing && initiated) {
       drawGraph();
     }
+    return () => {
+      return false;
+    }
   },[drawing,initiated,data]);
 
   useEffect(()=>{
@@ -428,15 +433,11 @@ const PersonNetwork = props => {
     return outputHTML;
   }
 
-  const loadNodeDetails = async(_id) => {
-    if (_id===props._id) {
-      let node = data.nodes.find(n=>n.id===_id);
-      if (typeof node!=="undefined") {
-        setDetailsCardEntityInfo(node.label);
-        setDetailsCardContent("");
-      }
-    }
-    else {
+  useEffect(()=>{
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+
+    const loadNode = async(_id) => {
       setDetailsCardEntityInfo("");
       setDetailsCardContent(<div style={{padding: '20pt',textAlign: 'center'}}>
         <Spinner type="grow" color="info" /> <i>loading...</i>
@@ -445,43 +446,68 @@ const PersonNetwork = props => {
         method: 'get',
         url: APIPath+'item-network-related-paths',
         crossDomain: true,
-        params: {sourceId:props._id,targetId:_id,step:step}
+        params: {sourceId:props._id,targetId:_id,step:step},
+        cancelToken: source.token
       })
       .then(function (response) {
         return response.data.data;
       })
       .catch(function (error) {
       });
-      let source = responseData[0].source;
-      let target = responseData[0].target;
-      let segments = [];
-      for (let i=0;i<responseData.length; i++) {
-        let responseDataItem = responseData[i];
-        let segmentsHTML = parseSegments(responseDataItem.segments, i);
-        segments.push(<div key={i} className="related-nodes-paths-block">
-          <div className="related-nodes-paths-count">[{i+1}]</div>
-          <ul className="related-nodes-paths">{segmentsHTML}</ul>
-        </div>);
+      if (typeof responseData!=="undefined") {
+        let source = responseData[0].source;
+        let target = responseData[0].target;
+        let segments = [];
+        for (let i=0;i<responseData.length; i++) {
+          let responseDataItem = responseData[i];
+          let segmentsHTML = parseSegments(responseDataItem.segments, i);
+          segments.push(<div key={i} className="related-nodes-paths-block">
+            <div className="related-nodes-paths-count">[{i+1}]</div>
+            <ul className="related-nodes-paths">{segmentsHTML}</ul>
+          </div>);
+        }
+        let linkArray = ["Classpiece", "Organisation", "Person", "Event", "Resource"];
+        let sourceType = source.type;
+        let targetType = target.type;
+        let sourceLabel = <span>{source.label}</span>;
+        let targetLabel = <span>{target.label}</span>
+        if (linkArray.indexOf(sourceType)>-1) {
+          let sourceHref = `/${source.type.toLowerCase()}/${source._id}`;
+          sourceLabel = <Link href={sourceHref} to={sourceHref}><span>{source.label}</span></Link>;
+        }
+        if (linkArray.indexOf(targetType)>-1) {
+          let targetHref = `/${target.type.toLowerCase()}/${target._id}`;
+          targetLabel = <Link href={targetHref} to={targetHref}><span>{target.label}</span></Link>;
+        }
+        let title = <div className="related-nodes-paths-label">
+          <div className="source"><label>Source</label>: {sourceLabel}</div>
+          <div className="target"><label>Target</label>: {targetLabel}</div>
+        </div>
+        setDetailsCardEntityInfo(title);
+        setDetailsCardContent(segments);
+        setLoadingNode(false);
       }
-      let linkArray = ["Classpiece", "Organisation", "Person", "Event", "Resource"];
-      let sourceType = source.type;
-      let targetType = target.type;
-      let sourceLabel = <span>{source.label}</span>;
-      let targetLabel = <span>{target.label}</span>
-      if (linkArray.indexOf(sourceType)>-1) {
-        let sourceHref = `/${source.type.toLowerCase()}/${source._id}`;
-        sourceLabel = <Link href={sourceHref} to={sourceHref}><span>{source.label}</span></Link>;
+    }
+
+    if (nodeId!==null && loadingNode) {
+      loadNode(nodeId);
+    }
+    return () => {
+      source.cancel("api request cancelled");
+    };
+  },[nodeId, loadingNode, step, props._id]);
+
+  const loadNodeDetails = (_id) => {
+    if (_id===props._id) {
+      let node = data.nodes.find(n=>n.id===_id);
+      if (typeof node!=="undefined") {
+        setDetailsCardEntityInfo(node.label);
+        setDetailsCardContent("");
       }
-      if (linkArray.indexOf(targetType)>-1) {
-        let targetHref = `/${target.type.toLowerCase()}/${target._id}`;
-        targetLabel = <Link href={targetHref} to={targetHref}><span>{target.label}</span></Link>;
-      }
-      let title = <div className="related-nodes-paths-label">
-        <div className="source"><label>Source</label>: {sourceLabel}</div>
-        <div className="target"><label>Target</label>: {targetLabel}</div>
-      </div>
-      setDetailsCardEntityInfo(title);
-      setDetailsCardContent(segments);
+    }
+    else {
+      setNodeId(_id);
+      setLoadingNode(true);
     }
   }
 
@@ -740,7 +766,7 @@ const PersonNetwork = props => {
   if (!loading && searchData.length>0) {
     searchContainerNodes = <LazyList
       limit={30}
-      range={5}
+      range={15}
       items={searchData}
       containerClass="graph-search-container-nodes"
       renderItem={renderSearchItemHTML}

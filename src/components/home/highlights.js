@@ -42,8 +42,9 @@ const HighLights = props => {
   },[items.length]);
 
   useEffect(()=> {
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
     const load = async() => {
-      setLoading(false);
       let params = {
         page: 1,
         limit: 8,
@@ -52,18 +53,25 @@ const HighLights = props => {
         method: 'get',
         url: APIPath+'ui-highlights',
         crossDomain: true,
-        params: params
+        params: params,
+        cancelToken: source.token
       })
       .then(function (response) {
         return response.data.data;
       })
       .catch(function (error) {
       });
-      setItems(responseData);
+      if (typeof responseData!=="undefined") {
+        setItems(responseData);
+        setLoading(false);
+      }
     }
     if (loading) {
       load();
     }
+    return () => {
+      source.cancel("api request cancelled");
+    };
   },[loading]);
 
   useEffect(()=>{

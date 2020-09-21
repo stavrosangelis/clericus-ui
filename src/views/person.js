@@ -49,6 +49,9 @@ class Person extends Component {
     this.showThumbnail = this.showThumbnail.bind(this);
     this.renderPersonDetails = this.renderPersonDetails.bind(this);
     this.toggleViewer = this.toggleViewer.bind(this);
+
+    const cancelToken = axios.CancelToken;
+    this.cancelSource = cancelToken.source();
   }
 
   async load() {
@@ -67,28 +70,31 @@ class Person extends Component {
       method: 'get',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource.token
     })
 	  .then(function (response) {
       return response.data;
 	  })
 	  .catch(function (error) {
 	  });
-    if (person.status) {
-      this.setState({
-        loading: false,
-        item: person.data,
-        images: getPersonThumbnailURL(person.data)
-      });
-    }
-    else {
-      this.setState({
-        loading: false,
-        error: {
-          visible: true,
-          text: person.msg
-        }
-      });
+    if (typeof person!=="undefined") {
+      if (person.status) {
+        this.setState({
+          loading: false,
+          item: person.data,
+          images: getPersonThumbnailURL(person.data)
+        });
+      }
+      else {
+        this.setState({
+          loading: false,
+          error: {
+            visible: true,
+            text: person.msg
+          }
+        });
+      }
     }
   }
 
@@ -347,6 +353,10 @@ class Person extends Component {
 
   componentDidMount() {
     this.load();
+  }
+
+  componentWillUnmount() {
+    this.cancelSource.cancel('api request cancelled');
   }
 
   render() {

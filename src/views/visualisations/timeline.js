@@ -41,6 +41,8 @@ const Timeline = props =>{
   const [zoom,setZoom] = useState(zoomValues[(zoomIndex-1)]);
   const [helpVisible, setHelpVisible] = useState(false);
   const [scrollIndex, setScrollIndex] = useState(0);
+  const [loadingEvent, setLoadingEvent] = useState(false);
+  const [viewEventId, setViewEventId] = useState(null);
 
   const initialData = (data) => {
     let initialVal = {
@@ -384,28 +386,34 @@ const Timeline = props =>{
   }
 
   useEffect(()=> {
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+
     const load = async() => {
       let responseData = await axios({
         method: 'get',
         url: APIPath+'timeline',
         crossDomain: true,
+        cancelToken: source.token
       })
       .then(function (response) {
         return response.data;
       })
       .catch(function (error) {
       });
-      let respData = responseData.data;
-      setItems(respData);
-      let newData = initialData(respData);
-      setItemsHTML(newData);
-      setLoading(false);
+      if (typeof responseData!=="undefined") {
+        let respData = responseData.data;
+        setItems(respData);
+        let newData = initialData(respData);
+        setItemsHTML(newData);
+        setLoading(false);
+      }
     }
     if (loading) {
       load();
     }
     return () => {
-      return false;
+      source.cancel("api request cancelled");
     }
   },[loading]);
 
@@ -429,41 +437,62 @@ const Timeline = props =>{
     })
   })
 
+  useEffect(()=>{
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+
+    const loadEvent = async() => {
+      let responseData = await axios({
+        method: 'get',
+        url: APIPath+'ui-event',
+        crossDomain: true,
+        params: {_id:viewEventId},
+        cancelToken: source.token
+      })
+      .then(function (response) {
+        return response.data;
+      })
+      .catch(function (error) {
+      });
+      if (typeof responseData!=="undefined") {
+        setSelectedEvent(responseData.data);
+        setSelectedEventVisible(true);
+        let visible = {events:true,organisations:true,people:true,resources:true};
+        if (responseData.data.events.length>0) {
+          visible.events = true;
+        }
+        if (responseData.data.organisations.length>0) {
+          visible.organisations = true;
+        }
+        if (responseData.data.people.length>0) {
+          visible.people = true;
+        }
+        if (responseData.data.resources.length>0) {
+          visible.resources = true;
+        }
+        if (responseData.data.classpieces.length>0) {
+          visible.classpieces = true;
+        }
+        setRelatedVisible(visible);
+        setLoadingEvent(false);
+      }
+    }
+
+    if (viewEventId!==null && loadingEvent) {
+      loadEvent(viewEventId);
+    }
+    return () => {
+      source.cancel("api request cancelled");
+    };
+  },[viewEventId, loadingEvent]);
+
   const toggleSearchContainerVisible = () => {
     setSearchContainerVisible(!searchContainerVisible);
   }
 
-  const loadEvent = async(_id) => {
-    let responseData = await axios({
-      method: 'get',
-      url: APIPath+'ui-event',
-      crossDomain: true,
-      params: {_id:_id}
-    })
-    .then(function (response) {
-      return response.data;
-    })
-    .catch(function (error) {
-    });
-    setSelectedEvent(responseData.data);
-    toggleSelectedEvent(true);
-    let visible = {events:true,organisations:true,people:true,resources:true};
-    if (responseData.data.events.length>0) {
-      visible.events = true;
-    }
-    if (responseData.data.organisations.length>0) {
-      visible.organisations = true;
-    }
-    if (responseData.data.people.length>0) {
-      visible.people = true;
-    }
-    if (responseData.data.resources.length>0) {
-      visible.resources = true;
-    }
-    if (responseData.data.classpieces.length>0) {
-      visible.classpieces = true;
-    }
-    setRelatedVisible(visible);
+  const loadEvent = (_id) => {
+    setViewEventId(_id);
+    setLoadingEvent(true);
   }
 
   const showEvents = (e, item) => {
@@ -785,8 +814,8 @@ const Timeline = props =>{
         <i className="fa fa-times" />
       </div>
       <LazyList
-        limit={20}
-        range={5}
+        limit={30}
+        range={15}
         items={eventsHTML}
         renderItem={renderEventHTML}
         containerClass={`events-list-container ${eventsListVisible}`}

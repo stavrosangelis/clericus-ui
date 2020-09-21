@@ -69,7 +69,13 @@ const LazyList = props => {
       let scrollPos = domElem.offsetTop;
       wrapper.scrollTop = scrollPos;
     }
-  },[startIndex, props.scrollIndex, range])
+  },[props.scrollIndex, range]);
+
+  const onScroll = () => {
+    if (props.onScroll!==null) {
+      return props.onScroll();
+    }
+  }
 
   const reDrawList = () => {
     let wrapper = container.current;
@@ -82,7 +88,7 @@ const LazyList = props => {
       }
     }
     if (wrapper.scrollTop===0) {
-      if (startIndex>=range) {
+      if (startIndex>range) {
         newStartIndex = startIndex-range;
         update = true;
       }
@@ -116,7 +122,11 @@ const LazyList = props => {
         continue;
       }
       let index = i+startIndex;
-      list.push(<li key={index} data-lazylist-index={index}>{props.renderItem(item)}</li>);
+      let order = "";
+      if (props.ordered) {
+        order = `${i+startIndex+1}. `;
+      }
+      list.push(<li key={index} data-lazylist-index={index}>{order}{props.renderItem(item)}</li>);
     }
   }
 
@@ -128,7 +138,10 @@ const LazyList = props => {
   if (props.listClass!=="") {
     listClassName += ` ${props.listClass}`;
   }
-  return <div className={className} ref={container} onScroll={()=>reDrawList()}>
+  return <div className={className} ref={container} onScroll={()=>{
+    reDrawList();
+    onScroll();
+  }}>
     <ul className={listClassName}>{list}</ul>
   </div>;
 }
@@ -140,6 +153,8 @@ LazyList.defaultProps = {
   containerClass: "",
   listClass: "",
   scrollIndex: null,
+  onScroll: null,
+  ordered: false
 }
 
 LazyList.propTypes = {
@@ -149,7 +164,9 @@ LazyList.propTypes = {
   containerClass: PropTypes.string,
   listClass: PropTypes.string,
   renderItem: PropTypes.func.isRequired,
+  onScroll: PropTypes.func,
   scrollIndex: PropTypes.number,
+  ordered: PropTypes.bool,
 }
 
 export default LazyList;

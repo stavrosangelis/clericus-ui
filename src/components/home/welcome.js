@@ -11,24 +11,33 @@ const About = props => {
   const [isActive, setIsActive] = useState(true);
 
   useEffect(()=> {
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+
     const load = async() => {
-      setLoading(false);
       let responseData = await axios({
         method: 'get',
         url: APIPath+'content-category',
         crossDomain: true,
-        params: {permalink: 'welcome-filte-vale'}
+        params: {permalink: 'welcome-filte-vale'},
+        cancelToken: source.token
       })
       .then(function (response) {
         return response.data.data;
       })
       .catch(function (error) {
       });
-      setArticles(responseData.data.articles);
+      if (typeof responseData!=="undefined") {
+        setArticles(responseData.data.articles);
+        setLoading(false);
+      }
     }
     if (loading) {
       load();
     }
+    return () => {
+      source.cancel("api request cancelled");
+    };
   },[loading]);
 
   useEffect(() => {

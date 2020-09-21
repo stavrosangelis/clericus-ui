@@ -57,6 +57,11 @@ class Temporals extends Component {
     this.renderItems = this.renderItems.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.updateTemporalsRelationship = this.updateTemporalsRelationship.bind(this);
+
+    // cancelTokens
+    const cancelToken1 = axios.CancelToken;
+    this.cancelSource1 = cancelToken1.source();
+
   }
 
   async load() {
@@ -77,7 +82,8 @@ class Temporals extends Component {
       method: 'get',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource1.token
     })
 	  .then(function (response) {
       return response.data.data;
@@ -85,24 +91,25 @@ class Temporals extends Component {
 	  .catch(function (error) {
       console.log(error)
 	  });
-
-    let temporals = responseData.data;
-    let currentPage = 1;
-    if (responseData.currentPage>0) {
-      currentPage = responseData.currentPage;
-    }
-    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
-      this.updatePage(responseData.totalPages);
-    }
-    else {
-      this.setState({
-        loading: false,
-        temporalsLoading: false,
-        page: responseData.currentPage,
-        totalPages: responseData.totalPages,
-        totalItems: responseData.totalItems,
-        items: temporals
-      });
+    if (typeof responseData!=="undefined") {
+      let temporals = responseData.data;
+      let currentPage = 1;
+      if (responseData.currentPage>0) {
+        currentPage = responseData.currentPage;
+      }
+      if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+        this.updatePage(responseData.totalPages);
+      }
+      else {
+        this.setState({
+          loading: false,
+          temporalsLoading: false,
+          page: responseData.currentPage,
+          totalPages: responseData.totalPages,
+          totalItems: responseData.totalItems,
+          items: temporals
+        });
+      }
     }
   }
 
@@ -247,6 +254,10 @@ class Temporals extends Component {
 
   componentDidMount() {
     this.load();
+  }
+
+  componentWillUnmount() {
+    this.cancelSource1.cancel('api request cancelled');
   }
 
   render() {

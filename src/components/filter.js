@@ -4,6 +4,7 @@ import {
   Card, CardBody
 } from 'reactstrap';
 import PropTypes from 'prop-types';
+import LazyList from './lazylist';
 
 const Filter = props => {
   const [loading, setLoading] = useState(true);
@@ -24,6 +25,7 @@ const Filter = props => {
         else {
           item.checked = false;
         }
+        item.i = i;
       }
       setFilterItems(props.items);
       if (typeof props.itemsType!=="undefined") {
@@ -148,6 +150,27 @@ const Filter = props => {
       props.updateType(val);
     }
   }
+
+  const renderFilterItem = (item) => {
+    let disabled = false;
+    let hidden = "";
+    if (props.relationshipSet.indexOf(item._id)===-1) {
+      disabled = true;
+      hidden = "hidden";
+    }
+    if (props.filtersType==="organisations" && filterType!=="" && filterType!==item.organisationType) {
+      disabled = true;
+      hidden = "hidden";
+    }
+    return <FormGroup key={item.i} className={hidden+" filter-item"}>
+      <Label onMouseOver={(e)=>over(e)} data-target={`${props.filtersType}-fi-${item.i}`}>
+        <div className="title" id={`${props.filtersType}-fi-${item.i}`}>{item.label}</div>
+        <Input type="checkbox" name={props.filtersType} onChange={()=>toggleFilter(item)} disabled={disabled} checked={item.checked} />{' '}
+        <span className="filter-span">{item.label}</span>
+      </Label>
+    </FormGroup>
+  }
+  /*console.log(filterItems)
   let filterItemsHTML = filterItems.map((item,i)=>{
     let disabled = false;
     let hidden = "";
@@ -166,7 +189,8 @@ const Filter = props => {
         <span className="filter-span">{item.label}</span>
       </Label>
     </FormGroup>
-  });
+  });*/
+
   let filtersTypesHTML = [];
   if (filtersTypes.length>0) {
     let defaultOption = [<option value="" key="default">-- All --</option>];
@@ -190,9 +214,14 @@ const Filter = props => {
             <small className="pull-right clear-filters" onClick={()=>{clearFilters()}}>clear <i className="fa fa-times-circle"/></small>
           </h4>
           {filtersTypesHTML}
-          <div className="filter-body" onScroll={()=>cancelOver()}>
-            {filterItemsHTML}
-          </div>
+          <LazyList
+            limit={50}
+            range={25}
+            items={filterItems}
+            containerClass="filter-body"
+            renderItem={renderFilterItem}
+            onScroll={cancelOver}
+            />
         </CardBody>
       </Card>
     </div>

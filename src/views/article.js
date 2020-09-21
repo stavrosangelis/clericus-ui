@@ -21,6 +21,9 @@ const Article = props => {
   const prevGenericStats = useRef(null);
 
   useEffect(()=> {
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+
     let permalink = props.match.params.permalink;
     if (prevPermalink.current!==permalink) {
       prevPermalink.current = permalink;
@@ -32,14 +35,15 @@ const Article = props => {
         method: 'get',
         url: APIPath+'content-article',
         crossDomain: true,
-        params: {permalink: permalink}
+        params: {permalink: permalink},
+        cancelToken: source.token
       })
       .then(function (response) {
         return response.data;
       })
       .catch(function (error) {
       });
-      if (responseData.status) {
+      if (typeof responseData!=="undefined" && responseData.status) {
         let newArticle = responseData.data;
         setArticle(newArticle);
         setArticleContent(newArticle.content);
@@ -49,8 +53,10 @@ const Article = props => {
       load();
     }
     return () => {
-      return false;
-    }
+      if(!loading) {
+        source.cancel("api request cancelled");
+      }
+    };
   },[loading,props.match.params.permalink]);
 
   useEffect(()=>{

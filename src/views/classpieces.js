@@ -71,6 +71,16 @@ class Classpieces extends Component {
     this.handleChange = this.handleChange.bind(this);
     this.updateClasspiecesRelationship = this.updateClasspiecesRelationship.bind(this);
     this.toggleHelp = this.toggleHelp.bind(this);
+
+    // cancelTokens
+    const cancelToken1 = axios.CancelToken;
+    this.cancelSource1 = cancelToken1.source();
+
+    const cancelToken2 = axios.CancelToken;
+    this.cancelSource2 = cancelToken2.source();
+
+    const cancelToken3 = axios.CancelToken;
+    this.cancelSource3 = cancelToken3.source();
   }
 
   async load() {
@@ -93,7 +103,8 @@ class Classpieces extends Component {
       method: 'get',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource1.token
     })
 	  .then(function (response) {
       return response.data.data;
@@ -101,24 +112,26 @@ class Classpieces extends Component {
 	  .catch(function (error) {
       console.log(error);
 	  });
-    let classpieces = responseData.data;
-    let currentPage = 1;
-    if (responseData.currentPage>0) {
-      currentPage = responseData.currentPage;
-    }
-    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
-      this.updatePage(responseData.totalPages);
-    }
-    else {
-      this.setState({
-        loading: false,
-        classpiecesLoading: false,
-        page: responseData.currentPage,
-        totalPages: responseData.totalPages,
-        totalItems: responseData.totalItems,
-        items: classpieces
-      });
-      this.updateClasspiecesRelationship();
+    if (typeof responseData!=="undefined") {
+      let classpieces = responseData.data;
+      let currentPage = 1;
+      if (responseData.currentPage>0) {
+        currentPage = responseData.currentPage;
+      }
+      if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+        this.updatePage(responseData.totalPages);
+      }
+      else {
+        this.setState({
+          loading: false,
+          classpiecesLoading: false,
+          page: responseData.currentPage,
+          totalPages: responseData.totalPages,
+          totalItems: responseData.totalItems,
+          items: classpieces
+        });
+        this.updateClasspiecesRelationship();
+      }
     }
   }
 
@@ -145,32 +158,35 @@ class Classpieces extends Component {
       method: 'get',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource2.token
     })
 	  .then(function (response) {
       return response.data.data;
 	  })
 	  .catch(function (error) {
 	  });
-    let classpieces = responseData.data;
-    let currentPage = 1;
-    if (responseData.currentPage>0) {
-      currentPage = responseData.currentPage;
-    }
-    if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
-      this.updatePage(responseData.totalPages);
-    }
-    else {
-      this.setState({
-        loading: false,
-        classpiecesLoading: false,
-        page: responseData.currentPage,
-        totalPages: responseData.totalPages,
-        totalItems: responseData.totalItems,
-        items: classpieces
-      });
+    if (typeof responseData!=="undefined") {
+      let classpieces = responseData.data;
+      let currentPage = 1;
+      if (responseData.currentPage>0) {
+        currentPage = responseData.currentPage;
+      }
+      if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+        this.updatePage(responseData.totalPages);
+      }
+      else {
+        this.setState({
+          loading: false,
+          classpiecesLoading: false,
+          page: responseData.currentPage,
+          totalPages: responseData.totalPages,
+          totalItems: responseData.totalItems,
+          items: classpieces
+        });
 
-      this.updateClasspiecesRelationship();
+        this.updateClasspiecesRelationship();
+      }
     }
   }
 
@@ -204,18 +220,22 @@ class Classpieces extends Component {
       method: 'get',
       url: url,
       crossDomain: true,
-      params: params
+      params: params,
+      cancelToken: this.cancelSource3.token
     })
 	  .then(function (response) {
-      return response.data.data;
+      return response.data;
 	  })
 	  .catch(function (error) {
 	  });
-    let payload = {
-      events: responseData.events.map(item=>item),
-      organisations: responseData.organisations.map(item=>item),
+    if(typeof responseData!=="undefined" && responseData.status) {
+      let payload = {
+        events: responseData.data.events.map(item=>item),
+        organisations: responseData.data.organisations.map(item=>item),
+      }
+      this.props.setRelationshipParams("classpieces",payload);
     }
-    this.props.setRelationshipParams("classpieces",payload);
+
   }
 
   updatePage(e) {
@@ -337,6 +357,12 @@ class Classpieces extends Component {
     this.load();
   }
 
+  componentWillUnmount() {
+    this.cancelSource1.cancel('api request cancelled');
+    this.cancelSource2.cancel('api request cancelled');
+    this.cancelSource3.cancel('api request cancelled');
+  }
+
   render() {
     let heading = "Classpieces";
     let breadcrumbsItems = [
@@ -445,6 +471,7 @@ class Classpieces extends Component {
         </div>
       </div>
     }
+
     return (
       <div className="container">
         <Breadcrumbs items={breadcrumbsItems} />
