@@ -82,7 +82,7 @@ const LazyList = props => {
     let newStartIndex = startIndex;
     let update = false;
     if (wrapper.scrollHeight === (wrapper.scrollTop + wrapper.clientHeight)) {
-      if ((startIndex+range)<=(itemsLength-limit)) {
+      if ((startIndex+range)<=(itemsLength-limit+range)) {
         newStartIndex = startIndex+range;
         update = true;
       }
