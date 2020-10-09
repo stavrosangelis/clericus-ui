@@ -2173,6 +2173,11 @@ section {
   height: 500px;
   margin-right: -20px;
   overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.timeline-container > .lazylist::-webkit-scrollbar {
+  display: none;
 }
 .timeline-container > div > ul > li > .timeline-point {
   display: inline-block;

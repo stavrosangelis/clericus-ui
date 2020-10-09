@@ -539,6 +539,9 @@ const PersonNetwork = props => {
   const searchNode = (e) =>{
     let target = e.target;
     let value = target.type === 'checkbox' ? target.checked : target.value;
+    if (data===null) {
+      return false;
+    }
     setSearchInput(value);
     let visibleNodes = data.nodes.filter(n=>{
       if (searchInputType!=="") {
@@ -612,8 +615,11 @@ const PersonNetwork = props => {
         let n = nodes[i];
         n.selected=false;
       }
+      selectedNode = node;
       node.selected=true;
-      container.moveCenter(node.x, node.y)
+      container.moveCenter(node.x, node.y);
+      toggleDetailsCard(true);
+      loadNodeDetails(node.id);
     }
   }
 
