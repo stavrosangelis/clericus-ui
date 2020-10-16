@@ -445,7 +445,7 @@ const Timeline = props =>{
         })
         .catch(function (error) {
         });
-        if (typeof evtData!=="undefined") {
+        if (typeof eventsData!=="undefined") {
           let evtData = eventsData.data;
           setItems(evtData);
           let newData = initialData(evtData);
@@ -724,6 +724,7 @@ const Timeline = props =>{
     breadcrumbsParent = {label: "Resources", icon: "pe-7s-photo", active: false, path: "/resources"};
   }
   breadcrumbsItems.push(breadcrumbsParent);
+
   if (!loading && item!==null) {
     let label = item.label;
     if (pageType==="classpiece") {
@@ -768,6 +769,7 @@ const Timeline = props =>{
         </div>
       </div>
     </div>
+    
   if (!loading && itemsHTML.length>0) {
     let ecstyle = {
       left: eventsContainerLeft,

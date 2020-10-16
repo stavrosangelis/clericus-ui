@@ -427,7 +427,7 @@ const Viewer = (props) => {
     let value = target.type === 'checkbox' ? target.checked : target.value;
     setSearchInput(value);
     let visibleNodes = peopleData.filter(n=>{
-      if (n.ref.label.toLowerCase().includes(value.toLowerCase()) || n.ref.person.label.toLowerCase().includes(value.toLowerCase())) {
+      if (n.ref.label.toLowerCase().includes(value.toLowerCase()) || (typeof n.ref.person!=="undefined" && n.ref.person.label.toLowerCase().includes(value.toLowerCase()))) {
         return true;
       }
       return false;
