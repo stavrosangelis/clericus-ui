@@ -29,11 +29,16 @@ const Articles = props => {
     }
     const load = async() => {
       setLoading(false);
+      let params = {permalink: permalink};
+      if (permalink==="news" || permalink==="archive") {
+        params.orderField = "createdAt"
+        params.orderDesc = "true"
+      }
       let responseData = await axios({
         method: 'get',
         url: APIPath+'content-category',
         crossDomain: true,
-        params: {permalink: permalink},
+        params: params,
         cancelToken: source.token
       })
       .then(function (response) {

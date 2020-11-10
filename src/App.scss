@@ -2732,3 +2732,31 @@ section {
   padding: 0;
   list-style-type: none;
 }
+.affiliation-block {
+  display: inline-block;
+  font-size: 13px;
+  padding-right: 4px;
+}
+.person-list-details {
+  display: inline-block;
+  vertical-align: middle;
+}
+.graph-context-menu {
+  position: fixed;
+  z-index:99;
+  border: 2px solid #386a8c;
+  background-color: #FFF;
+  font-size: 13px;
+  min-width: 120px;
+}
+.graph-context-menu > div {
+  padding: 3px 10px;
+  border-bottom: 1px solid #5293bf;
+  cursor: default;
+}
+.graph-context-menu > div:hover {
+  background-color: #eee;
+}
+.graph-context-menu > div:last-child {
+  border-bottom: 0 none;
+}

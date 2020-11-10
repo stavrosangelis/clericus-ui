@@ -13,10 +13,13 @@ const Filter = props => {
   const [filtersTypes, setFiltersTypes] = useState([]);
   const [filterType, setFilterType] = useState("");
   const prevFiltersSetRef = useRef(null);
+  const [scrollIndex, setScrollIndex] = useState(0);
   const prevId = useRef(null);
+  const prevRelationshipSet = useRef([]);
 
   useEffect(()=>{
     const load = () => {
+      let newFilterItems = [];
       for (let i=0;i<props.items.length; i++) {
         let item = props.items[i];
         if (props.filtersSet.indexOf(item._id)>-1) {
@@ -26,8 +29,15 @@ const Filter = props => {
           item.checked = false;
         }
         item.i = i;
+        if (props.relationshipSet.length>0 && props.relationshipSet.indexOf(item._id)===-1) {
+          continue;
+        }
+        if (props.filtersType==="organisations" && filterType!=="" && filterType!==item.organisationType) {
+          continue;
+        }
+        newFilterItems.push(item)
       }
-      setFilterItems(props.items);
+      setFilterItems(newFilterItems);
       if (typeof props.itemsType!=="undefined") {
         setFiltersTypes(props.itemsType);
       }
@@ -36,7 +46,14 @@ const Filter = props => {
     if (!props.loading && loading) {
       load();
     }
-  },[loading, props.loading, props.items, props.filtersType, props.filtersSet, props.itemsType]);
+  },[loading, props.loading, props.items, props.filtersType, props.filtersSet, props.itemsType, props.relationshipSet, filterType]);
+
+  useEffect(()=>{
+    if (props.relationshipSet.length>0 && props.relationshipSet.length!==prevRelationshipSet.current.length && !loading) {
+      prevRelationshipSet.current = props.relationshipSet;
+      setLoading(true);
+    }
+  },[props.relationshipSet, loading]);
 
   let filtersType = props.filtersType;
   let filtersSet = props.filtersSet;
@@ -119,9 +136,7 @@ const Filter = props => {
       updateFilters(filtersType,[]);
     }
     if ((props.filtersType==="organisationType" || props.filtersType==="eventType") && filtersTypes.length>0 && filterType!=="") {
-      setFilters([]);
       setFilterType("");
-      updateFilters(filtersType,[]);
     }
   }
 
@@ -146,26 +161,22 @@ const Filter = props => {
   const updateType = (e) => {
     let val = e.target.value;
     setFilterType(val);
+    setScrollIndex(1);
     if (typeof props.updateType!=="undefined") {
       props.updateType(val);
     }
+    if (!loading) {
+      setLoading(true);
+    }
+
+    setTimeout(()=>{setScrollIndex(0);},750);
   }
 
   const renderFilterItem = (item) => {
-    let disabled = false;
-    let hidden = "";
-    if (props.relationshipSet.indexOf(item._id)===-1) {
-      disabled = true;
-      hidden = "hidden";
-    }
-    if (props.filtersType==="organisations" && filterType!=="" && filterType!==item.organisationType) {
-      disabled = true;
-      hidden = "hidden";
-    }
-    return <FormGroup key={item.i} className={hidden+" filter-item"}>
+    return <FormGroup key={item.i} className={"filter-item"}>
       <Label onMouseOver={(e)=>over(e)} data-target={`${props.filtersType}-fi-${item.i}`}>
         <div className="title" id={`${props.filtersType}-fi-${item.i}`}>{item.label}</div>
-        <Input type="checkbox" name={props.filtersType} onChange={()=>toggleFilter(item)} disabled={disabled} checked={item.checked} />{' '}
+        <Input type="checkbox" name={props.filtersType} onChange={()=>toggleFilter(item)} checked={item.checked} />{' '}
         <span className="filter-span">{item.label}</span>
       </Label>
     </FormGroup>
@@ -221,6 +232,7 @@ const Filter = props => {
             containerClass="filter-body"
             renderItem={renderFilterItem}
             onScroll={cancelOver}
+            scrollIndex={scrollIndex}
             />
         </CardBody>
       </Card>

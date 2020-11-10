@@ -48,6 +48,7 @@ const FilterTemporal = props => {
 
   useEffect(()=>{
     if (prevFiltersSetRef.current!==null && filtersSet.startDate==="") {
+      prevFiltersSetRef.current = filtersSet.startDate;
       setDateType("exact");
       setStartDate("");
       setEndDate("");
@@ -57,8 +58,7 @@ const FilterTemporal = props => {
         endDate: "",
       }
       updateFilters(filtersType,payload);
-    }
-    prevFiltersSetRef.current = filtersSet.startDate;
+    }    
   },[updateFilters,filtersSet,filtersType]);
 
   const clearFilters = () => {

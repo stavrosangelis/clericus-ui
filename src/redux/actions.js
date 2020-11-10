@@ -290,6 +290,7 @@ export function updateFilters(type,params) {
     payload = {
       [filtersName]: newValues
     };
+
     if (payload===null) {
       return false;
     }

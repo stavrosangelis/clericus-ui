@@ -65,6 +65,17 @@ const Block = props => {
       }
       let event = events[i];
       let label = [<i key="type">{event.term.label}</i>, <span key="label">{event.ref.label}</span>];
+      if (typeof event.organisations!=="undefined" && event.organisations.length>0) {
+        let organisationLabels = event.organisations.map((o,i) => {
+          let comma = "";
+          if (i>0) comma = ", ";
+          return <span key={i}>{comma}<i>{o.term.label}</i> {o.ref.label}</span>
+        });
+        if (organisationLabels.length>0) {
+          label.push(<div key="organisations">{organisationLabels}</div>);
+        }
+
+      }
       if (typeof event.temporal!=="undefined" && event.temporal.length>0) {
         let temporalLabels = event.temporal.map((t,i)=>{
           let temp = t.ref;
@@ -75,11 +86,21 @@ const Block = props => {
           if (typeof temp.endDate!=="undefined" && temp.endDate!=="" && temp.endDate!==temp.startDate) {
             tLabel += " - "+outputDate(temp.endDate);
           }
-          return `[${tLabel}]`;
+          return tLabel;
         });
         if (temporalLabels.length>0) {
           let temporalLabel = temporalLabels.join(" | ");
-          label.push(<span key="dates">{temporalLabel}</span>);
+          label.push(<div key="temp"><i className="fa fa-calendar-o" /> <span key="dates">{temporalLabel}</span></div>);
+        }
+      }
+      if (typeof event.spatial!=="undefined" && event.spatial.length>0) {
+        let spatialLabels = event.spatial.map((s,i)=>{
+          let spatial = s.ref;
+          return spatial.label;
+        });
+        if (spatialLabels.length>0) {
+          let spatialLabel = spatialLabels.join(" | ");
+          label.push(<div key="spatial"><i className="fa fa-map" /> {spatialLabel}</div>);
         }
       }
       let url = "/event/"+event.ref._id;

@@ -423,6 +423,12 @@ class People extends Component {
     if (this.state.items.length>0) {
       for (let i=0;i<this.state.items.length; i++) {
         let item = this.state.items[i];
+        let affiliations = item.affiliations.map((a,j)=>{
+          let aLink = `/organisation/${a.ref._id}`;
+          return <div className="affiliation-block" key={a.ref._id}>
+            [<Link to={aLink} href={aLink}>{a.ref.label.trim()}</Link>]
+          </div>
+        }) ?? [];
         let label = item.firstName;
         if (typeof item.middleName!=="undefined" && item.middleName!==null && item.middleName!=="") {
           label += " "+item.middleName;
@@ -442,9 +448,12 @@ class People extends Component {
           thumbnailImage = <img src={thumbnailURLs.thumbnails[0]} className="people-list-thumbnail img-fluid img-thumbnail" alt={label} />
         }
         let link = "/person/"+item._id;
-        let outputItem = <ListGroupItem key={i} onContextMenu={(e)=>{e.preventDefault();return false;}}>
+        let outputItem = <ListGroupItem key={item._id} onContextMenu={(e)=>{e.preventDefault();return false;}}>
           <Link to={link} href={link}>{thumbnailImage}</Link>
-          <Link to={link} href={link}>{label}</Link>
+          <div className="person-list-details">
+            <Link to={link} href={link}>{label}</Link>
+            <div className="affiliation-blocks">{affiliations}</div>
+          </div>
         </ListGroupItem>;
         output.push(outputItem);
       }
@@ -593,7 +602,7 @@ class People extends Component {
             <Suspense fallback={renderLoader()}>
               <Filters
                 name="people"
-                filterType = {filterType}
+                filterType={filterType}
                 filtersSet={this.props.peopleFilters}
                 relationshipSet={this.props.peopleRelationship}
                 updatedata={this.load}/>

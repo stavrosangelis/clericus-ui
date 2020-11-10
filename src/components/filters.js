@@ -53,15 +53,16 @@ class Filters extends React.Component {
       [name]: values,
     }
     props.updateFilters(props.name,payload);
-    if(dataRefresh === true) {
+
+    if(dataRefresh) {
       let context = this;
       setTimeout(function() {
         context.props.updatedata();
-      },10);
+      },20);
     }
   }
 
-  clearAllFilters(e) {
+  clearAllFilters() {
     this.props.clearFilters(this.props.name);
   }
 

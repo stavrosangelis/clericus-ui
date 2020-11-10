@@ -1,4 +1,4 @@
-import React, { useEffect, useState} from 'react';
+import React, { useEffect, useState, useCallback} from 'react';
 import axios from 'axios';
 import * as d3 from "d3";
 import {Link} from 'react-router-dom';
@@ -87,6 +87,9 @@ const drawNodes = async () => {
       let newNodes = nodesSplit[j];
       for (let i=0; i<newNodes.length; i++) {
         let d = newNodes[i];
+        if (i===0) {
+          d.expanded = true;
+        }
         d.visible = true;
         let radius = d.size || 30;
         let x = d.x;
@@ -94,19 +97,19 @@ const drawNodes = async () => {
         if (leftX<=x && rightX>=x && topY<=y && bottomY>=y) {
           d.gfx = new PIXI.Graphics();
           d.gfx.interactive = true;
-          d.gfx.on("click", ()=>publicFunctions.clickNode(d))
-          d.gfx.on("tap", ()=>publicFunctions.clickNode(d))
+          d.gfx.on("click", (e)=>publicFunctions.clickNode(e,d))
+          d.gfx.on("tap", (e)=>publicFunctions.clickNode(e,d))
           let lineWidth = 1;
           let strokeStyle = hexColor(d.strokeColor);
           d.visible = true;
           // circle
           if (typeof d.selected!=="undefined" && d.selected) {
-            lineWidth = 3;
+            lineWidth = 5;
             strokeStyle = "0x33729f";
             radius+=5;
           }
           else if (typeof d.associated!=="undefined" && d.associated) {
-            lineWidth = 3;
+            lineWidth = 5;
           }
           else {
             lineWidth = 1;
@@ -168,13 +171,13 @@ const drawLines = () => {
         let lWidth = 1;
         let strokeStyle = 0x666666;
         if (typeof d.associated!=="undefined" && d.associated) {
-          lWidth = 2;
+          lWidth = 5;
           strokeStyle = 0x33729f;
         }
         line.lineStyle(lWidth,strokeStyle);
         line.moveTo(sx, sy);
         line.lineTo(tx, ty);
-        lineContainer.addChild(line)
+        lineContainer.addChild(line);
       }
     }
   }
@@ -191,7 +194,6 @@ const PersonNetwork = props => {
   const [drawingIndicator, setDrawingIndicator] = useState([]);
   const [data, setData] = useState(null);
   const [searchData, setSearchData] = useState([]);
-  const [step, setStep] = useState(1);
   const [detailsCardVisible, setDetailsCardVisible] = useState(false);
   const [detailsCardEntityInfo, setDetailsCardEntityInfo] = useState([]);
   const [detailsCardContent, setDetailsCardContent] = useState([]);
@@ -201,6 +203,11 @@ const PersonNetwork = props => {
   const [helpVisible, setHelpVisible] = useState(false);
   const [loadingNode, setLoadingNode] = useState(false);
   const [nodeId, setNodeId] = useState(null);
+
+  const [contextMenu, setContextMenu] = useState({visible:false,x:0,y:0});
+  const [contextMenuExpanded, setContextMenuExpanded] = useState(false);
+  const [activeNode, setActiveNode] = useState(null);
+  const [activePaths, setActivePaths] = useState([]);
 
   const toggleDetailsCard = (value=null) => {
     let visible = !detailsCardVisible;
@@ -279,7 +286,7 @@ const PersonNetwork = props => {
       if (typeof _id==="undefined" || _id===null || _id==="") {
         return false;
       }
-      let workerParams = {_id:_id, step: step, APIPath:APIPath};
+      let workerParams = {_id:_id, step: 1, APIPath:APIPath};
       dataLoadingWorker.postMessage(workerParams);
       let newData = await new Promise ((resolve,reject)=>{
         dataLoadingWorker.addEventListener('message',(e) =>{
@@ -288,6 +295,7 @@ const PersonNetwork = props => {
       });
       let parsedData = jsonStringToObject(newData);
       parsedData = jsonStringToObject(parsedData.data);
+      console.log(parsedData)
       setData(parsedData);
       setSearchData(parsedData.nodes);
       setDrawing(true);
@@ -298,7 +306,7 @@ const PersonNetwork = props => {
     if (loading) {
       load();
     }
-  },[loading,props._id,step]);
+  },[loading,props._id]);
 
 
   useEffect(()=> {
@@ -312,7 +320,7 @@ const PersonNetwork = props => {
 
       transformEnd();
 
-      let simulationParams = {nodes:data.nodes, links: data.links, centerX:centerX,centerY:centerY};
+      let simulationParams = {nodes:data.nodes, links: data.links, centerX:centerX-50,centerY:centerY-50};
       forceSimulationWorker.postMessage(simulationParams);
       let simulation = await new Promise ((resolve,reject)=>{
         forceSimulationWorker.addEventListener('message',(e) =>{
@@ -446,7 +454,7 @@ const PersonNetwork = props => {
         method: 'get',
         url: APIPath+'item-network-related-paths',
         crossDomain: true,
-        params: {sourceId:props._id,targetId:_id,step:step},
+        params: {sourceId:props._id,targetId:_id},
         cancelToken: source.token
       })
       .then(function (response) {
@@ -458,6 +466,7 @@ const PersonNetwork = props => {
         let source = responseData[0].source;
         let target = responseData[0].target;
         let segments = [];
+        setActivePaths(responseData);
         for (let i=0;i<responseData.length; i++) {
           let responseDataItem = responseData[i];
           let segmentsHTML = parseSegments(responseDataItem.segments, i);
@@ -495,7 +504,7 @@ const PersonNetwork = props => {
     return () => {
       source.cancel("api request cancelled");
     };
-  },[nodeId, loadingNode, step, props._id]);
+  },[nodeId, loadingNode, props._id]);
 
   const loadNodeDetails = (_id) => {
     if (_id===props._id) {
@@ -511,33 +520,108 @@ const PersonNetwork = props => {
     }
   }
 
-  publicFunctions.clickNode = (d)=> {
+  publicFunctions.clickNode = (e,d)=> {
+    let x = e.data.originalEvent.clientX-5;
+    let y = e.data.originalEvent.clientY-5;
+    setContextMenu({visible:true,x:x,y:y});
+    d.selected=true;
+    setContextMenuExpanded(d.expanded);
+    setActiveNode(d);
+  }
+
+  const viewNodeDetails = () => {
     let prevNode = nodes.find(n=>n.selected);
     if (typeof prevNode!=="undefined") {
       delete prevNode.selected;
     }
-    d.selected=true;
-    selectedNode = nodes.find(n=>n.id===d.id);
+    selectedNode = nodes.find(n=>n.id===activeNode.id);
     // load node details ;
-    loadNodeDetails(d.id);
+    loadNodeDetails(activeNode.id);
     toggleDetailsCard(true);
-    selectedNodes();
+    setContextMenu({visible:false,x:0,y:0});
+  }
+
+  const expandNode = async() => {
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+    let responseData = await axios({
+      method: 'get',
+      url: APIPath+'item-network',
+      crossDomain: true,
+      params: {_id:activeNode.id,step:1},
+      cancelToken: source.token
+    })
+    .then(function (response) {
+      return response.data.data;
+    })
+    .catch(function (error) {
+    });
+    let parsedData = jsonStringToObject(responseData);
+    activeNode.expanded = true;
+
+    for (let i=0;i<parsedData.nodes.length; i++) {
+      let sn = parsedData.nodes[i];
+      let findSN = nodes.find(n=>n.id===sn.id);
+      if (typeof findSN==="undefined") {
+        nodes.push(sn);
+      }
+    }
+    for (let j=0;j<parsedData.links.length; j++) {
+      let sl = parsedData.links[j];
+      let findSL = nodes.find(l=>l.id===sl.id);
+      if (typeof findSL==="undefined") {
+        links.push(sl);
+      }
+    }
+    // simulating positions
+    setDrawingIndicator("simulating...");
+
+    const simulation = d3.forceSimulation(nodes)
+      .force("link", d3.forceLink(links)
+          .id(d => d.id)
+          .strength(d=>1)
+          .distance(d=>100)
+        )
+      .force("charge", d3.forceManyBody().strength((d, i)=>{ return i===0 ? -10000 : -500; }))
+      .force("center", d3.forceCenter((nodes[0].x), (nodes[0].y)))
+      .force('collide', d3.forceCollide(80))
+      //.charge(function(d, i) { return i==0 ? -10000 : -500; })
+      .stop();
+
+
+    let max = (Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())))/2;
+    for (let i = 0; i < max; i++) {
+      simulation.tick();
+    }
+    simulation.stop();
+
+    // simulating positions
+    setDrawingIndicator("drawing...");
+    redraw();
+
+    container.moveCenter(activeNode.x, activeNode.y)
+    setDrawingIndicator("drawing complete.");
+    setTimeout(()=>{setDrawingIndicator("");},1000);
+    setContextMenu({visible:false,x:0,y:0});
+
+    setSearchData(nodes);
   }
 
   const clearAssociated = () => {
-    for (let n=0;n<associatedNodes.length; n++) {
-      let item = associatedNodes[n];
+    let newAccosiatedNodes = nodes.filter(n=>associatedNodes.indexOf(n.id)>-1);
+    for (let n=0;n<newAccosiatedNodes.length; n++) {
+      let item = newAccosiatedNodes[n];
       if (typeof item!=="undefined") {
         item.associated = false;
         delete item.associated;
       }
     }
-    for (let l=0;l<associatedLinks.length; l++) {
-      let item = associatedLinks[l];
-      let link = links.find(i=>i.refId===item);
-      if (typeof link!=="undefined") {
-        link.associated = false;
-        delete link.associated;
+    let newAccosiatedLinks = links.filter(l=>associatedLinks.indexOf(l.id)>-1);
+    for (let l=0;l<newAccosiatedLinks.length; l++) {
+      let item = newAccosiatedLinks[l];
+      if (typeof item!=="undefined") {
+        item.associated = false;
+        delete item.associated;
       }
     }
     associatedNodes = [];
@@ -548,49 +632,49 @@ const PersonNetwork = props => {
     redraw();
   };
 
-  const selectedNodes = ()=> {
+  const selectedNodes = useCallback(() => {
     clearAssociated();
-    // get associated links
-    let incomingLinks = links.filter(l=>l.target.id===selectedNode.id);
-    let outgoingLinks = links.filter(l=>l.source.id===selectedNode.id);
-    incomingLinks = incomingLinks.map(l=>l.refId);
-    outgoingLinks = outgoingLinks.map(l=>l.refId);
-    let newAssociatedLinks = incomingLinks.concat(outgoingLinks.filter(i => incomingLinks.indexOf(i)===-1));
-    let mergedAssociatedLinks = newAssociatedLinks.concat(props.relatedLinks.filter(i => newAssociatedLinks.indexOf(i)===-1));
-    if (mergedAssociatedLinks.length>0) {
-      mergedAssociatedLinks = Array.from(new Set(mergedAssociatedLinks));
+    let segments = [];
+    for (let a=0;a<activePaths.length;a++) {
+      let ap = activePaths[a];
+      for (let j=0;j<ap.segments.length; j++) {
+        segments.push(ap.segments[j])
+      }
     }
-
-    // associate new links
-    let associatedNodeIds = [];
-    mergedAssociatedLinks.forEach(l=>{
-      let link = links.find(i=>i.refId===l);
-      link.associated=true;
-      let sourceId = link.source.id, targetId = link.target.id;
-      if (associatedNodeIds.indexOf(sourceId)===-1) {
-        associatedNodeIds.push(sourceId);
+    // associated links
+    let newAssociatedLinks = [];
+    let newAssociatedNodes = [];
+    for (let i=0;i<segments.length; i++) {
+      let seg = segments[i];
+      if (newAssociatedLinks.indexOf(seg.relationship._id)===-1) {
+        newAssociatedLinks.push(seg.relationship._id)
       }
-      if (associatedNodeIds.indexOf(targetId)===-1) {
-        associatedNodeIds.push(targetId);
+      if (newAssociatedNodes.indexOf(seg.source._id)===-1) {
+        newAssociatedNodes.push(seg.source._id);
       }
+      if (newAssociatedNodes.indexOf(seg.target._id)===-1) {
+        newAssociatedNodes.push(seg.target._id);
+      }
+    }
+    let identifyLinks = links.filter(l=>newAssociatedLinks.indexOf(l.id)>-1);
+    let identifyNodes = nodes.filter(n=>newAssociatedNodes.indexOf(n.id)>-1);
+    identifyLinks.forEach(l=>{
+      l.associated=true;
     });
-    let mergedNodesIds = [...associatedNodeIds,...props.relatedNodes];
-    // get associated nodes
-    let newAssociatedNodes = nodes.filter(n=>mergedNodesIds.indexOf(n.id)>-1);
-
-    // associate new nodes
-    newAssociatedNodes.forEach(n=>{
+    identifyNodes.forEach(n=>{
       n.associated=true;
     });
-    associatedNodes = newAssociatedNodes;
-    associatedLinks = mergedAssociatedLinks;
-    redraw();
-  };
 
-  const updateStep = (value) => {
-    setStep(value);
-    setLoading(true);
-  }
+    associatedLinks = newAssociatedLinks;
+    associatedNodes = newAssociatedNodes;
+    redraw();
+  },[activePaths]);
+
+  useEffect(()=>{
+    if (activePaths.length>0) {
+      selectedNodes();
+    }
+  },[activePaths,selectedNodes]);
 
   const searchNode = (e) =>{
     let target = e.target;
@@ -721,21 +805,6 @@ const PersonNetwork = props => {
       <i className="fa fa-minus" />
     </div>
   </div>
-  let step1Active = "", step2Active = "", step3Active = "", step4Active = "", step5Active = "", step6Active = "";
-  if (step===1) step1Active = " active color1";
-  if (step===2) step2Active = " active color2";
-  if (step===3) step3Active = " active color3";
-  if (step===4) step4Active = " active color4";
-  if (step===5) step5Active = " active color5";
-  if (step===6) step6Active = " active color6";
-  const stepsPanel = <div className="zoom-panel">
-    <div className={"zoom-action"+step1Active} onClick={()=>updateStep(1)}>1</div>
-    <div className={"zoom-action"+step2Active} onClick={()=>updateStep(2)}>2</div>
-    <div className={"zoom-action"+step3Active} onClick={()=>updateStep(3)}>3</div>
-    <div className={"zoom-action"+step4Active} onClick={()=>updateStep(4)}>4</div>
-    <div className={"zoom-action"+step5Active} onClick={()=>updateStep(5)}>5</div>
-    <div className={"zoom-action"+step6Active} onClick={()=>updateStep(6)}>6</div>
-  </div>
 
   let detailsCardVisibleClass = " hidden";
   if (detailsCardVisible) {
@@ -802,9 +871,27 @@ const PersonNetwork = props => {
       <li><span style={{borderColor: '#0982a0',backgroundColor: '#00cbff'}}></span> Resource</li>
     </ul>
   </div>
-
+  //contextMenu
+  let contextMenuDisplay = "none";
+  if (contextMenu.visible) {
+    contextMenuDisplay = "block";
+  }
+  let contextMenuStyle = {
+    display: contextMenuDisplay,
+    left: contextMenu.x,
+    top: contextMenu.y
+  }
+  let cmExpanded = <div onClick={()=>expandNode()}>Expand</div> ;
+  if (contextMenuExpanded) {
+    cmExpanded = []
+  }
+  const contextMenuHTML = <div className="graph-context-menu" style={contextMenuStyle} onMouseLeave={()=>{setContextMenu({visible:false,x:0,y:0})}}>
+    <div onClick={()=>viewNodeDetails()}>View details</div>
+    {cmExpanded}
+  </div>
   return (
     <div style={{position:"relative", display: "block"}}>
+      {contextMenuHTML}
       <div className="graph-drawing">{drawingIndicator}</div>
       <div id="pixi-network" onDoubleClick={()=>doubleClickZoom()}></div>
       <div className="graph-actions">
@@ -812,7 +899,6 @@ const PersonNetwork = props => {
         {zoomPanel}
         {searchIcon}
         {helpIcon}
-        {stepsPanel}
       </div>
       {detailsCard}
       {searchContainer}

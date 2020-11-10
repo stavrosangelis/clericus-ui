@@ -9,7 +9,7 @@ onmessage = async(e)=>{
   nodes[0].x = props.centerX;
   nodes[0].y = props.centerY;
   let strength = -500;
-  let start = new Date();
+  //let start = new Date();
 
   const simulation = d3.forceSimulation(nodes)
     .force("link",
@@ -21,7 +21,7 @@ onmessage = async(e)=>{
     .force("charge", d32.forceManyBodyReuse().strength(strength))
     .force("center", d3.forceCenter(e.data.centerX, e.data.centerY))
     .force('collide', d3.forceCollide(60))
-    .alphaDecay(0.2)
+    //.alphaDecay(0.2)
     .stop();
 
   let max = (Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())))/2;
@@ -31,9 +31,8 @@ onmessage = async(e)=>{
   delete nodes['update']
   simulation.stop();
 
-  let complete = new Date();
+  //let complete = new Date();
 
-  let timePassed = complete.getTime()-start.getTime();
-  console.log(timePassed);
+  //let timePassed = complete.getTime()-start.getTime();
   postMessage({ data: {nodes: nodes, links:links}, finished: true });
 };

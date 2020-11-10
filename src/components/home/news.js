@@ -18,7 +18,9 @@ const News = props => {
       let params = {
         categoryName: 'News',
         page: 1,
-        limit: 6
+        limit: 6,
+        orderField: 'createdAt',
+        orderDesc: 'true'
       }
       let responseData = await axios({
         method: 'get',

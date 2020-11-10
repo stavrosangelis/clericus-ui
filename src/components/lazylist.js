@@ -138,10 +138,18 @@ const LazyList = props => {
   if (props.listClass!=="") {
     listClassName += ` ${props.listClass}`;
   }
-  return <div className={className} ref={container} onScroll={()=>{
-    reDrawList();
-    onScroll();
-  }}>
+  return <div
+    className={className}
+    ref={container}
+    onScroll={()=>{
+      reDrawList();
+      onScroll();
+    }}
+    onWheel={()=>{
+      reDrawList();
+      onScroll();
+    }}
+  >
     <ul className={listClassName}>{list}</ul>
   </div>;
 }
