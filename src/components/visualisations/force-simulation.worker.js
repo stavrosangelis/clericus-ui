@@ -20,19 +20,21 @@ onmessage = async(e)=>{
       )
     .force("charge", d32.forceManyBodyReuse().strength(strength))
     .force("center", d3.forceCenter(e.data.centerX, e.data.centerY))
-    .force('collide', d3.forceCollide(60))
+    .force('collide', d3.forceCollide(80))
     //.alphaDecay(0.2)
     .stop();
 
   let max = (Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())))/2;
+  if (max>80) max=80;
   for (let i = 0; i < max; i++) {
     simulation.tick();
   }
-  delete nodes['update']
+  delete nodes['update'];
   simulation.stop();
 
   //let complete = new Date();
 
   //let timePassed = complete.getTime()-start.getTime();
+  //console.log(`completed after ${timePassed}`);
   postMessage({ data: {nodes: nodes, links:links}, finished: true });
 };

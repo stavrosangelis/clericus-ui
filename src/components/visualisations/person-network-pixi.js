@@ -2,11 +2,12 @@ import React, { useEffect, useState, useCallback} from 'react';
 import axios from 'axios';
 import * as d3 from "d3";
 import {Link} from 'react-router-dom';
-import { Spinner, FormGroup, Input } from 'reactstrap';
+import { Collapse, FormGroup, Input, Spinner } from 'reactstrap';
 import * as PIXI from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 import dataWorker from "./person-data.worker.js";
 import simulationWorker from "./force-simulation.worker.js";
+import itemSimulationWorker from "./item-simulation.worker.js";
 import {webglSupport,jsonStringToObject} from "../../helpers";
 import HelpArticle from '../../components/help-article';
 import LazyList from '../../components/lazylist';
@@ -168,7 +169,7 @@ const drawLines = () => {
       let ty = d.target.y;
       if (leftX<=sx && rightX>=sx && topY<=sy && bottomY>=sy) {
         let line = new PIXI.Graphics();
-        let lWidth = 1;
+        let lWidth = 0.2;
         let strokeStyle = 0x666666;
         if (typeof d.associated!=="undefined" && d.associated) {
           lWidth = 5;
@@ -186,15 +187,17 @@ const drawLines = () => {
 const dataLoadingWorker = new dataWorker();
 
 const forceSimulationWorker = new simulationWorker();
+const itemForceSimulationWorker = new itemSimulationWorker();
 
 const PersonNetwork = props => {
   const [initiated, setInitiated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [drawing, setDrawing] = useState(false);
-  const [drawingIndicator, setDrawingIndicator] = useState([]);
+  const [drawingIndicator, setDrawingIndicator] = useState(null);
   const [data, setData] = useState(null);
   const [searchData, setSearchData] = useState([]);
   const [detailsCardVisible, setDetailsCardVisible] = useState(false);
+  const [detailsCardOpen, setDetailsCardOpen] = useState(true);
   const [detailsCardEntityInfo, setDetailsCardEntityInfo] = useState([]);
   const [detailsCardContent, setDetailsCardContent] = useState([]);
   const [searchContainerVisible, setSearchContainerVisible] = useState(false);
@@ -215,11 +218,18 @@ const PersonNetwork = props => {
     if (!visible) {
       clearAssociated();
     }
+    else {
+      setDetailsCardOpen(true);
+    }
     setDetailsCardVisible(visible);
   }
 
   const toggleSearchContainerVisible = () => {
     setSearchContainerVisible(!searchContainerVisible);
+  }
+
+  const toggleDetailsCardCollapse = () => {
+    setDetailsCardOpen(!detailsCardOpen);
   }
 
   useEffect(()=> {
@@ -281,7 +291,7 @@ const PersonNetwork = props => {
 
   useEffect(()=> {
     const load = async() => {
-      setDrawingIndicator("loading data...");
+      setDrawingIndicator(<div>loading data<span className="dot">.</span><span className="dot">.</span><span className="dot">.</span></div>);
       let _id = props._id;
       if (typeof _id==="undefined" || _id===null || _id==="") {
         return false;
@@ -295,7 +305,6 @@ const PersonNetwork = props => {
       });
       let parsedData = jsonStringToObject(newData);
       parsedData = jsonStringToObject(parsedData.data);
-      console.log(parsedData)
       setData(parsedData);
       setSearchData(parsedData.nodes);
       setDrawing(true);
@@ -312,7 +321,7 @@ const PersonNetwork = props => {
   useEffect(()=> {
     const drawGraph = async() => {
       setDrawing(false);
-      setDrawingIndicator("simulating...");
+      setDrawingIndicator(<div>simulating<span className="dot">.</span><span className="dot">.</span><span className="dot">.</span></div>);
       let centerX = width/2;
       let centerY = height/2;
       transform.x = centerX;
@@ -328,7 +337,7 @@ const PersonNetwork = props => {
         }, false);
       });
       let simulationData = jsonStringToObject(simulation.data);
-      setDrawingIndicator("drawing...");
+      setDrawingIndicator(<div>drawing<span className="dot">.</span><span className="dot">.</span><span className="dot">.</span></div>);
       nodes = simulationData.nodes;
       links = simulationData.links;
 
@@ -373,8 +382,8 @@ const PersonNetwork = props => {
         container.moveCenter(newX, newY);
         zoomedEnd();
       });
-      setDrawingIndicator("drawing complete.");
-      setTimeout(()=>{setDrawingIndicator("");},1000);
+      setDrawingIndicator(<div>drawing complete<span className="dot">.</span><span className="dot">.</span><span className="dot">.</span></div>);
+      setTimeout(()=>{setDrawingIndicator(null);},1000);
 
       // recenter viewport and draw
       container.moveCenter(nodes[0].x, nodes[0].y)
@@ -542,69 +551,91 @@ const PersonNetwork = props => {
   }
 
   const expandNode = async() => {
-    const cancelToken = axios.CancelToken;
-    const source = cancelToken.source();
-    let responseData = await axios({
-      method: 'get',
-      url: APIPath+'item-network',
-      crossDomain: true,
-      params: {_id:activeNode.id,step:1},
-      cancelToken: source.token
-    })
-    .then(function (response) {
-      return response.data.data;
-    })
-    .catch(function (error) {
+    setDrawingIndicator(<div>loading data<span className="dot">.</span><span className="dot">.</span><span className="dot">.</span></div>);
+    let workerParams = {_id:activeNode.id, step: 1, APIPath:APIPath};
+    dataLoadingWorker.postMessage(workerParams);
+    let responseData = await new Promise ((resolve,reject)=>{
+      dataLoadingWorker.addEventListener('message',(e) =>{
+        resolve(e.data);
+      }, false);
     });
     let parsedData = jsonStringToObject(responseData);
+    parsedData = jsonStringToObject(parsedData.data);
     activeNode.expanded = true;
 
+    let newNodes = [];
+    for (let i=0;i<nodes.length; i++) {
+      let n = nodes[i];
+      newNodes.push({
+        color: n.color,
+        expanded: n.expanded,
+        id: n.id,
+        index: n.index,
+        itemId: n.itemId,
+        label: n.label,
+        size: n.size,
+        strokeColor: n.strokeColor,
+        type: n.type,
+        visible: n.visible,
+        vx: n.vx,
+        vy: n.vy,
+        x: n.x,
+        y: n.y
+      });
+    }
     for (let i=0;i<parsedData.nodes.length; i++) {
       let sn = parsedData.nodes[i];
       let findSN = nodes.find(n=>n.id===sn.id);
       if (typeof findSN==="undefined") {
-        nodes.push(sn);
+        newNodes.push(sn);
       }
     }
+    let newLinks = [];
+    for (let i=0;i<links.length;i++) {
+      let l = links[i];
+      newLinks.push({
+        id: l.id,
+        index: l.index,
+        label: l.label,
+        refId: l.refId,
+        source: l.source.id,
+        target: l.target.id,
+      });
+    }
+
     for (let j=0;j<parsedData.links.length; j++) {
       let sl = parsedData.links[j];
       let findSL = nodes.find(l=>l.id===sl.id);
       if (typeof findSL==="undefined") {
-        links.push(sl);
+        newLinks.push(sl);
       }
     }
     // simulating positions
-    setDrawingIndicator("simulating...");
+    setDrawingIndicator(<div>simulating<span className="dot">.</span><span className="dot">.</span><span className="dot">.</span></div>);
 
-    const simulation = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(links)
-          .id(d => d.id)
-          .strength(d=>1)
-          .distance(d=>100)
-        )
-      .force("charge", d3.forceManyBody().strength((d, i)=>{ return i===0 ? -10000 : -500; }))
-      .force("center", d3.forceCenter((nodes[0].x), (nodes[0].y)))
-      .force('collide', d3.forceCollide(80))
-      //.charge(function(d, i) { return i==0 ? -10000 : -500; })
-      .stop();
-
-
-    let max = (Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())))/2;
-    for (let i = 0; i < max; i++) {
-      simulation.tick();
-    }
-    simulation.stop();
-
+    let postData = JSON.stringify({nodes:newNodes, links: newLinks, centerX:nodes[0].x-50,centerY:nodes[0].y-50});
+    let simulationParams = {data: postData, APIPath:APIPath};
+    itemForceSimulationWorker.postMessage(simulationParams);
+    let simulation = await new Promise ((resolve,reject)=>{
+      itemForceSimulationWorker.addEventListener('message',(e) =>{
+        resolve(e.data);
+      }, false);
+    });
+    simulation = jsonStringToObject(simulation);
+    let simulationData = jsonStringToObject(simulation.data);
     // simulating positions
-    setDrawingIndicator("drawing...");
+    setDrawingIndicator(<div>drawing<span className="dot">.</span><span className="dot">.</span><span className="dot">.</span></div>);
+    nodes = simulationData.nodes;
+    links = simulationData.links;
     redraw();
 
-    container.moveCenter(activeNode.x, activeNode.y)
-    setDrawingIndicator("drawing complete.");
-    setTimeout(()=>{setDrawingIndicator("");},1000);
+    container.moveCenter(activeNode.x-30, activeNode.y-30);
+    setDrawingIndicator(<div>drawing complete<span className="dot">.</span><span className="dot">.</span><span className="dot">.</span></div>);
+    setTimeout(()=>{setDrawingIndicator(null);},1000);
     setContextMenu({visible:false,x:0,y:0});
 
     setSearchData(nodes);
+
   }
 
   const clearAssociated = () => {
@@ -810,22 +841,31 @@ const PersonNetwork = props => {
   if (detailsCardVisible) {
     detailsCardVisibleClass = "";
   }
+  let gdcclass = "";
+  if (!detailsCardOpen) {
+    gdcclass = "closed";
+  }
   let detailsCard =  <div className={"card graph-details-card"+detailsCardVisibleClass}>
       <div className="graph-details-card-close" onClick={()=>toggleDetailsCard()}>
         <i className="fa fa-times" />
       </div>
-      <div className="card-title"><h4>Node details</h4></div>
-      <div className="card-body">
-        <div className="entity-info">
-          {detailsCardEntityInfo}
-        </div>
-        <div className="card-content">
-          {detailsCardContent}
-        </div>
-        <div className="card-footer">
-          <button type="button" className="btn btn-xs btn-outline btn-secondary" onClick={()=>toggleDetailsCard()}>Close</button>
-        </div>
+      <div className="graph-details-collapse" onClick={()=>toggleDetailsCardCollapse()}>
+        <i className={`fa fa-angle-down ${gdcclass}`} />
       </div>
+      <div className="card-title"><h4>Node details</h4></div>
+      <Collapse isOpen={detailsCardOpen}>
+        <div className="card-body">
+          <div className="entity-info">
+            {detailsCardEntityInfo}
+          </div>
+          <div className="card-content">
+            {detailsCardContent}
+          </div>
+          <div className="card-footer">
+            <button type="button" className="btn btn-xs btn-outline btn-secondary" onClick={()=>toggleDetailsCard()}>Close</button>
+          </div>
+        </div>
+      </Collapse>
     </div>
   let searchContainerVisibleClass = "";
   if (searchContainerVisible) {
@@ -846,7 +886,7 @@ const PersonNetwork = props => {
       <i className="fa fa-times" />
     </div>
     <FormGroup className="graph-search-input">
-      <Input type="text" name="search_node" placeholder="Search node..." value={searchInput} onChange={(e)=>searchNode(e)}/>
+      <Input type="text" name="search_node" placeholder="Search node" value={searchInput} onChange={(e)=>searchNode(e)}/>
       <i className="fa fa-times-circle" onClick={()=>clearSearchNode()}/>
     </FormGroup>
     <FormGroup className="graph-search-input-type">
@@ -889,10 +929,14 @@ const PersonNetwork = props => {
     <div onClick={()=>viewNodeDetails()}>View details</div>
     {cmExpanded}
   </div>
+  let graphDrawingStatus = [];
+  if (drawingIndicator!==null) {
+    graphDrawingStatus = <div className="graph-drawing">{drawingIndicator}</div>;
+  }
   return (
     <div style={{position:"relative", display: "block"}}>
       {contextMenuHTML}
-      <div className="graph-drawing">{drawingIndicator}</div>
+      {graphDrawingStatus}
       <div id="pixi-network" onDoubleClick={()=>doubleClickZoom()}></div>
       <div className="graph-actions">
         {panPanel}
