@@ -22,7 +22,7 @@ const Filter = props => {
       let newFilterItems = [];
       for (let i=0;i<props.items.length; i++) {
         let item = props.items[i];
-        if (props.filtersSet.indexOf(item._id)>-1) {
+        if (Array.isArray(props.filtersSet) && props.filtersSet.indexOf(item._id)>-1) {
           item.checked = true;
         }
         else {

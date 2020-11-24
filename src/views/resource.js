@@ -134,6 +134,11 @@ export default class Resource extends Component {
       </Suspense>
     }
 
+    let originalLocation = [];
+    if (typeof item.originalLocation!=="undefined" && item.originalLocation!==null && item.originalLocation!=="") {
+      originalLocation = <div className="original-location" key="original-location">Original location: <a href={item.originalLocation} rel="noopener noreferrer" target="_blank">URL</a></div>
+    }
+
     // classpieces
     let classpiecesRow = [];
     let classpiecesHidden = "";
@@ -196,6 +201,7 @@ export default class Resource extends Component {
     </Suspense>
 
     detailsOutput.push(descriptionRow);
+    detailsOutput.push(originalLocation);
     detailsOutput.push(eventsRow);
     detailsOutput.push(peopleRow);
     detailsOutput.push(classpiecesRow);
@@ -249,13 +255,19 @@ export default class Resource extends Component {
       thumbnailImage = [<a key="link" target="_blank" href={fullsizePath} className="pdf-thumbnail" rel="noopener noreferrer"><i className="fa fa-file-pdf-o"/></a>, <a key="link-label" target="_blank" href={fullsizePath} className="pdf-thumbnail" rel="noopener noreferrer"><label>Preview file</label> </a>];
     }
 
+    let leftColClass = "col-sm-6 col-md-7";
+    let rightColClass = "col-sm-6 col-md-5";
+    if (thumbnailURL===null) {
+      leftColClass = "extra-side-padding";
+      rightColClass = "";
+    }
     let output = <div>
       <h3>{label}</h3>
       <div className="row">
-        <div className="col-xs-12 col-sm-6 col-md-7">
+        <div className={`col-xs-12 ${leftColClass}`}>
           {resourceDetails}
         </div>
-        <div className="col-xs-12 col-sm-6 col-md-5">
+        <div className={`col-xs-12 ${rightColClass}`}>
           {thumbnailImage}
         </div>
       </div>

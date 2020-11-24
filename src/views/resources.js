@@ -17,12 +17,16 @@ import {
   setPaginationParams
 } from "../redux/actions";
 
+const Filters = lazy(() => import('../components/filters'));
 const SearchForm = lazy(() => import('../components/search-form'));
 const PageActions = lazy(() => import('../components/page-actions'));
 
 const mapStateToProps = state => {
+  let resourcesType = state.resourcesType.filter(r=>r.labelId!=="Classpiece");
   return {
-    resourcesPagination: state.resourcesPagination
+    resourcesType: resourcesType,
+    resourcesPagination: state.resourcesPagination,
+    resourcesFilters: state.resourcesFilters
    };
 };
 
@@ -31,7 +35,6 @@ function mapDispatchToProps(dispatch) {
     setPaginationParams: (type,params) => dispatch(setPaginationParams(type,params))
   }
 }
-
 
 class Resources extends Component {
   constructor(props) {
@@ -76,9 +79,11 @@ class Resources extends Component {
     this.setState({
       resourcesLoading: true
     })
+    let filters = this.props.resourcesFilters;
     let params = {
       page: this.state.page,
-      limit: this.state.limit
+      limit: this.state.limit,
+      resourcesTypes: filters.resourcesTypes
     };
     if (this.state.simpleSearchTerm!=="") {
       params.label = this.state.simpleSearchTerm;
@@ -364,9 +369,20 @@ class Resources extends Component {
         </Suspense>
       </Collapse>
 
+      //console.log(this.props)
+      let filterType = ["resourcesTypes"];
       content = <div>
         <div className="row">
-          <div className="col-12">
+          <div className="col-xs-12 col-sm-4">
+            <Suspense fallback={renderLoader()}>
+              <Filters
+                name="resources"
+                filterType={filterType}
+                filtersSet={this.props.resourcesFilters}
+                updatedata={this.load}/>
+            </Suspense>
+          </div>
+          <div className="col-xs-12 col-sm-8">
             <h2>{heading}
               <Tooltip placement="top" target="search-tooltip">
                 Search

@@ -106,6 +106,7 @@ class People extends Component {
       temporals: filters.temporals,
       orderField: this.state.orderField,
       orderDesc: this.state.orderDesc,
+      personType: "Clergy"
     };
     if (this.state.simpleSearchTerm!=="") {
       params.label = this.state.simpleSearchTerm;
@@ -173,6 +174,7 @@ class People extends Component {
       temporals: filters.temporals,
       orderField: this.state.orderField,
       orderDesc: this.state.orderDesc,
+      personType: "Clergy"
     };
     let url = process.env.REACT_APP_APIPATH+'ui-people';
     let responseData = await axios({
@@ -229,6 +231,7 @@ class People extends Component {
       temporals: filters.temporals,
       orderField: this.state.orderField,
       orderDesc: this.state.orderDesc,
+      personType: "Clergy"
     };
     if (this.state.advancedSearchInputs.length>0) {
       let advancedParams = this.state.advancedSearchInputs.filter(i=>i.input!=="").map(item=>item);
@@ -311,6 +314,7 @@ class People extends Component {
       events: filters.events,
       organisations: filters.organisations,
       temporals: filters.temporals,
+      personType: "Clergy"
     };
     if (this.state.simpleSearchTerm!=="") {
       params.label = this.state.simpleSearchTerm;

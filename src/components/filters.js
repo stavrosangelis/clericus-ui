@@ -71,6 +71,7 @@ class Filters extends React.Component {
     let classpieces = [];
     let events = [];
     let organisations = [];
+    let resources = [];
     let people = [];
     let temporals = [];
     let spatials = [];
@@ -135,6 +136,22 @@ class Filters extends React.Component {
           />
         </Suspense>
       }
+      if(filterType === "resourcesTypes") {
+        let resourcesType = props.resourcesType.filter(r=>r.labelId!=="Classpiece");
+        resources = <Suspense fallback={renderLoader()} key="resourcesTypes">
+          <Filter
+            loading={props.loadingResourcesType}
+            relationshipSet={[]}
+            filtersSet={props.filtersSet}
+            filtersType="resourcesTypes"
+            //itemsType={props.resourcesType}
+            items={resourcesType}
+            label="Resources type"
+            updateFilters={this.updateFilters}
+            updateType={props.updateType}
+          />
+        </Suspense>
+      }
       if (filterType === "temporals") {
         temporals = <Suspense fallback={renderLoader()} key="temporals">
           <FilterTemporal
@@ -171,6 +188,7 @@ class Filters extends React.Component {
         {classpieces}
         {events}
         {organisations}
+        {resources}
         {people}
         {temporals}
         {spatials}

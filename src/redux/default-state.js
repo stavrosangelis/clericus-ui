@@ -66,6 +66,10 @@ export const defaultState = {
     simpleSearchTerm: "",
   },
 
+  resourcesFilters: {
+    resourcesTypes: []
+  },
+
   organisationsPagination: {
     limit:25,
     page:1,

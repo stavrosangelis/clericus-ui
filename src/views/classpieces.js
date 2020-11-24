@@ -26,7 +26,6 @@ const PageActions = lazy(() => import('../components/page-actions'));
 
 const mapStateToProps = state => {
   return {
-    resourceSystemTypes: state.resourceSystemTypes,
     classpiecesPagination: state.classpiecesPagination,
     classpiecesFilters: state.classpiecesFilters,
     classpiecesRelationship: state.classpiecesRelationship,
@@ -431,7 +430,7 @@ class Classpieces extends Component {
             />
         </Suspense>
       </Collapse>
-
+      
       let filterType = ["events", "temporals"];
       content = <div>
         <div className="row">
