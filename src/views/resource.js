@@ -252,7 +252,9 @@ export default class Resource extends Component {
     }
     else if (item.resourceType==="document") {
       let fullsizePath = getResourceFullsizeURL(item);
-      thumbnailImage = [<a key="link" target="_blank" href={fullsizePath} className="pdf-thumbnail" rel="noopener noreferrer"><i className="fa fa-file-pdf-o"/></a>, <a key="link-label" target="_blank" href={fullsizePath} className="pdf-thumbnail" rel="noopener noreferrer"><label>Preview file</label> </a>];
+      if(fullsizePath!==null) {
+        thumbnailImage = [<a key="link" target="_blank" href={fullsizePath} className="pdf-thumbnail" rel="noopener noreferrer"><i className="fa fa-file-pdf-o"/></a>, <a key="link-label" target="_blank" href={fullsizePath} className="pdf-thumbnail" rel="noopener noreferrer"><label>Preview file</label> </a>];
+      }      
     }
 
     let leftColClass = "col-sm-6 col-md-7";
