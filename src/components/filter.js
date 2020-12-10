@@ -19,9 +19,51 @@ const Filter = props => {
 
   useEffect(()=>{
     const load = () => {
+      const flattenItems = (items, parentId=null) => {
+        let newItems = [];
+        for (let i in items) {
+          let item = items[i];
+          if (parentId!==null) {
+            item.parentId = parentId;
+          }
+          let itemCopy = Object.assign({},item);
+          if (typeof item.children!=="undefined") {
+            delete itemCopy.children;
+          }
+          newItems.push(itemCopy);
+          let parentIds = [];
+          if (parentId===null) {
+            parentIds.push(item._id);
+          }
+          else {
+            parentIds = [...parentId, item._id];
+          }
+          if (item.children?.length>0) {
+            newItems = [...newItems, ...flattenItems(item.children, parentIds)]
+          }
+        }
+        return newItems;
+      }
+
+      let flatItems = flattenItems(props.items);
+      let parentIds = [];
+      let selectedItems = flatItems.filter(i=>props.filtersSet.indexOf(i._id)>-1);
+      if (typeof selectedItems!=="undefined") {
+        for (let skey in selectedItems) {
+          let selectedItem = selectedItems[skey];
+          if (typeof selectedItem.parentId!=="undefined") {
+            for (let pkey in selectedItem.parentId) {
+              let pId = selectedItem.parentId[pkey];
+              if (parentIds.indexOf(pId)===-1) {
+                parentIds.push(pId);
+              }
+            }
+          }
+        }
+      }
       let newFilterItems = [];
-      for (let i=0;i<props.items.length; i++) {
-        let item = props.items[i];
+      for (let i=0;i<flatItems.length; i++) {
+        let item = flatItems[i];
         if (Array.isArray(props.filtersSet) && props.filtersSet.indexOf(item._id)>-1) {
           item.checked = true;
         }
@@ -29,14 +71,16 @@ const Filter = props => {
           item.checked = false;
         }
         item.i = i;
-        if (props.relationshipSet.length>0 && props.relationshipSet.indexOf(item._id)===-1) {
+        if (props.relationshipSet.length>0 && props.relationshipSet.indexOf(item._id)===-1 && parentIds.indexOf(item._id)===-1) {
           continue;
         }
-        if (props.filtersType==="organisations" && filterType!=="" && filterType!==item.organisationType) {
+        if (props.filtersType==="organisations" && filterType!=="" && filterType!==item.organisationType && parentIds.indexOf(item._id)===-1) {
           continue;
         }
         newFilterItems.push(item)
       }
+
+
       setFilterItems(newFilterItems);
       if (typeof props.itemsType!=="undefined") {
         setFiltersTypes(props.itemsType);
@@ -150,12 +194,39 @@ const Filter = props => {
       let index = newFilters.indexOf(item._id);
       newFilters.splice(index, 1);
     }
+    let children = filterItemChildren(item);
+    if (typeof children!=="undefined" && children.length>0) {
+      if (item.checked) {
+        newFilters = [...newFilters, ...children];
+      }
+      else {
+        for (let ckey in children) {
+          let cid = children[ckey];
+          let newIndex = newFilters.indexOf(cid);
+          newFilters.splice(newIndex,1);
+        }
+      }
+    }
     setFilters(newFilters);
-    props.updateFilters(props.filtersType,filters);
+    props.updateFilters(props.filtersType,newFilters);
 
-    // update render
-    let itemIndex = filterItems.indexOf(item);
-    filterItems[itemIndex].checked = item.checked;
+  }
+
+
+  const filterItemChildren = (item) => {
+    let newItems = filterItems.filter(i=>(typeof i.parentId!=="undefined" && i.parentId!==null));
+    let childrenIds = [];
+    if (typeof newItems!=="undefined") {
+      let children = newItems.filter(i=>i.parentId.indexOf(item._id)>-1);
+      if (typeof children!=="undefined") {
+        for (let key in children) {
+          let c = children[key];
+          c.checked = item.checked;
+          childrenIds.push(c._id);
+        }
+      }
+    }
+    return childrenIds;
   }
 
   const updateType = (e) => {
@@ -173,13 +244,27 @@ const Filter = props => {
   }
 
   const renderFilterItem = (item) => {
-    return <FormGroup key={item.i} className={"filter-item"}>
-      <Label onMouseOver={(e)=>over(e)} data-target={`${props.filtersType}-fi-${item.i}`}>
-        <div className="title" id={`${props.filtersType}-fi-${item.i}`}>{item.label}</div>
-        <Input type="checkbox" name={props.filtersType} onChange={()=>toggleFilter(item)} checked={item.checked} />{' '}
-        <span className="filter-span">{item.label}</span>
+    let sepIcon = [];
+    let sepClass = "";
+    let spanWidthStyle = {width:"calc(100% - 5px)"};
+    let parentId = item.parentId || null;
+    if (parentId!==null) {
+      let spanWidth = 15;
+      for (let i=0;i<item.parentId.length; i++) {
+        sepIcon.push(<div className="filter-separator" key={i}></div>);
+      }
+      spanWidth = spanWidth+(15*item.parentId.length);
+      spanWidthStyle = {width:`calc(100% - ${spanWidth}px)`};
+      sepClass = `sep-${item.parentId.length}`;
+    }
+    let output = <FormGroup key={item._id} className={`filter-item ${sepClass}`}>
+      <Label onMouseOver={(e)=>over(e)} data-target={`${props.filtersType}-fi-${item._id}`}>
+        <div className="title" id={`${props.filtersType}-fi-${item._id}`}>{item.label}</div>
+        <div className="filter-separator-container">{sepIcon}</div> <Input type="checkbox" name={props.filtersType} onChange={()=>toggleFilter(item, parentId)} checked={item.checked} />{' '}
+        <span className="filter-span" style={spanWidthStyle}>{item.label}</span>
       </Label>
-    </FormGroup>
+    </FormGroup>;
+    return output;
   }
   /*console.log(filterItems)
   let filterItemsHTML = filterItems.map((item,i)=>{

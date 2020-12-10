@@ -442,7 +442,8 @@ h1, h2, h3, h4, h5 {
 }
 .filter-body {
   max-height: 300px;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   width: 100%;
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -1927,6 +1928,23 @@ section {
 }
 .filter-item:hover .title {
   display: block;
+  margin-left: 3px;
+  background-color: #fff;
+}
+.filter-item.sep:hover .title, .filter-item.sep-1:hover .title{
+  margin-left: 15px;
+}
+.filter-item.sep-2:hover .title {
+  margin-left: 20px;
+}
+.filter-item.sep-3:hover .title {
+  margin-left: 25px;
+}
+.filter-item.sep-4:hover .title {
+  margin-left: 30px;
+}
+.filter-item.sep-5:hover .title {
+  margin-left: 35px;
 }
 .filter-type-dropdown {
   margin-bottom: 10px;
@@ -1938,7 +1956,7 @@ section {
 .filter-body .filter-span-type{
   padding-left: 10px;
 }
-.filter-span{
+.filter-span {
   vertical-align: top;
   line-height: normal;
   color: #333;
@@ -1950,6 +1968,24 @@ section {
   left: 20px;
   position: relative;
 }
+.filter-separator-container {
+  display: inline-block;
+}
+.filter-separator {
+  display: inline-block;
+}
+.filter-separator:first-child {
+  margin-left: 7px;
+}
+.filter-separator:before {
+  display: inline-block;
+  width: 5px;
+  line-height: 12px;
+  content: "-";
+  text-align: center;
+  vertical-align: top;
+}
+
 /* datepicker */
 .ui-datepicker {
   width: 100%;
