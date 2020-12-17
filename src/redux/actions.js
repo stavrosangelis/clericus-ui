@@ -279,6 +279,28 @@ export function loadResourcesType() {
   }
 }
 
+export function loadPeopleSources() {
+  return (dispatch,getState) => {
+    axios({
+      method: 'get',
+      url: process.env.REACT_APP_APIPATH+'ui-people-sources',
+      crossDomain: true,
+    })
+	  .then(function (response) {
+      let payload = {
+        loadingPeopleSources: false,
+        peopleSources: response.data.data,
+      }
+      dispatch({
+        type: "GENERIC_UPDATE",
+        payload: payload
+      });
+	  })
+	  .catch(function (error) {
+	  });
+  }
+}
+
 export function updateFilters(type,params) {
   return (dispatch,getState) => {
     let payload = null;
@@ -290,7 +312,6 @@ export function updateFilters(type,params) {
     payload = {
       [filtersName]: newValues
     };
-
     if (payload===null) {
       return false;
     }

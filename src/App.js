@@ -31,6 +31,7 @@ import {
   //loadSpatials,
   loadResourcesType,
   loadGenericStats,
+  loadPeopleSources,
 } from "./redux/actions";
 
 function mapDispatchToProps(dispatch) {
@@ -40,6 +41,7 @@ function mapDispatchToProps(dispatch) {
     loadEventsType: () => dispatch(loadEventsType()),
     loadResourcesType: () => dispatch(loadResourcesType()),
     loadGenericStats: () => dispatch(loadGenericStats()),
+    loadPeopleSources: () => dispatch(loadPeopleSources()),
   }
 }
 
@@ -52,6 +54,7 @@ class App extends Component{
     this.props.loadEventsType();
     this.props.loadResourcesType();
     this.props.loadGenericStats();
+    this.props.loadPeopleSources();
   }
 
   render() {

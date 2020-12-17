@@ -30,6 +30,7 @@ export const defaultState = {
   peopleFilters: {
     events: [],
     organisations:  [],
+    sources: [],
     temporals: {
       startDate: "",
       endDate: "",
@@ -67,7 +68,14 @@ export const defaultState = {
   },
 
   resourcesFilters: {
-    resourcesTypes: []
+    resourcesTypes: [],
+    events: [],
+    organisations:  [],
+    temporals: {
+      startDate: "",
+      endDate: "",
+      dateType: "exact",
+    },
   },
 
   organisationsPagination: {
@@ -136,38 +144,22 @@ export const defaultState = {
     simpleSearchTerm: "",
   },
 
-
   loadingClasspiecesRelationship: true,
-
 
   loadingPeopleRelationship: true,
 
-
   loadingEventsRelationship: true,
 
-
-
   loadingOrganisationsRelationship: true,
-
 
   loadingResourcesRelationship: true,
 
   loadingTemporalsRelationship: true,
 
   spatialsFilters: {
-    //classpieces: [],
-    //events: [],
-    //organisations: [],
-    //people: [],
-    //temporals: [],
     spatials: [],
   },
   spatialsRelationship: {
-    //classpieces: [],
-    //events: [],
-    //organisations: [],
-    //people: [],
-    //temporals: [],
     spatials: [],
   },
   loadingSpatialsRelationship: true,
@@ -197,5 +189,8 @@ export const defaultState = {
   spatials: [],
 
   loadingTemporals: true,
-  temporals: []
+  temporals: [],
+
+  loadingPeopleSources: true,
+  peopleSources: []
 }

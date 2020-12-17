@@ -47,20 +47,23 @@ const Filter = props => {
 
       let flatItems = flattenItems(props.items);
       let parentIds = [];
-      let selectedItems = flatItems.filter(i=>props.filtersSet.indexOf(i._id)>-1);
-      if (typeof selectedItems!=="undefined") {
-        for (let skey in selectedItems) {
-          let selectedItem = selectedItems[skey];
-          if (typeof selectedItem.parentId!=="undefined") {
-            for (let pkey in selectedItem.parentId) {
-              let pId = selectedItem.parentId[pkey];
-              if (parentIds.indexOf(pId)===-1) {
-                parentIds.push(pId);
+      if (Array.isArray(props.filtersSet)) {
+        let selectedItems = flatItems.filter(i=>props.filtersSet?.indexOf(i._id)>-1);
+        if (typeof selectedItems!=="undefined") {
+          for (let skey in selectedItems) {
+            let selectedItem = selectedItems[skey];
+            if (typeof selectedItem.parentId!=="undefined") {
+              for (let pkey in selectedItem.parentId) {
+                let pId = selectedItem.parentId[pkey];
+                if (parentIds.indexOf(pId)===-1) {
+                  parentIds.push(pId);
+                }
               }
             }
           }
         }
       }
+
       let newFilterItems = [];
       for (let i=0;i<flatItems.length; i++) {
         let item = flatItems[i];

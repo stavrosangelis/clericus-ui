@@ -24,6 +24,9 @@ const mapStateToProps = state => {
     loadingResourcesType: state.loadingResourcesType,
     resourcesType: state.resourcesType,
 
+    loadingPeopleSources: state.loadingPeopleSources,
+    peopleSources: state.peopleSources,
+
     loadingPeopleRelationship: state.loadingPeopleRelationship,
     loadingClasspiecesRelationship: state.loadingClasspiecesRelationship,
     loadingEventsRelationship: state.loadingEventsRelationship,
@@ -152,6 +155,19 @@ class Filters extends React.Component {
           />
         </Suspense>
       }
+      if(filterType === "sources") {
+        organisations = <Suspense fallback={renderLoader()} key="sources">
+          <Filter
+            loading={props.loadingPeopleSources}
+            relationshipSet={[]}
+            filtersSet={props.filtersSet.sources}
+            filtersType="sources"
+            items={props.peopleSources}
+            label="Sources"
+            updateFilters={this.updateFilters}
+          />
+        </Suspense>
+      }
       if (filterType === "temporals") {
         temporals = <Suspense fallback={renderLoader()} key="temporals">
           <FilterTemporal
@@ -165,7 +181,7 @@ class Filters extends React.Component {
           />
         </Suspense>
       }
-      /*else if(props.filterType[i].name === "spatials") {
+      /*if(props.filterType[i].name === "spatials") {
         //if ((!props.loadingSpatials)) {
           spatials = <FilterSpatial
             key={this.props.name+"_spatials"}

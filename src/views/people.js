@@ -103,6 +103,7 @@ class People extends Component {
       limit: this.state.limit,
       events: filters.events,
       organisations: filters.organisations,
+      sources: filters.sources,
       temporals: filters.temporals,
       orderField: this.state.orderField,
       orderDesc: this.state.orderDesc,
@@ -171,6 +172,7 @@ class People extends Component {
       limit: this.state.limit,
       events: filters.events,
       organisations: filters.organisations,
+      sources: filters.sources,
       temporals: filters.temporals,
       orderField: this.state.orderField,
       orderDesc: this.state.orderDesc,
@@ -228,6 +230,7 @@ class People extends Component {
       limit: this.state.limit,
       events: filters.events,
       organisations: filters.organisations,
+      sources: filters.sources,
       temporals: filters.temporals,
       orderField: this.state.orderField,
       orderDesc: this.state.orderDesc,
@@ -599,7 +602,7 @@ class People extends Component {
         </Suspense>
       </Collapse>
 
-      let filterType = ["events", "organisations", "temporals"];
+      let filterType = ["events", "organisations", "temporals", "sources"];
       content = <div>
         <div className="row">
           <div className="col-xs-12 col-sm-4">
