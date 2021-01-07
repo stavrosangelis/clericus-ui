@@ -9,6 +9,7 @@ import {Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
 import {getPersonThumbnailURL, updateDocumentTitle, jsonStringToObject,renderLoader} from '../helpers';
 import defaultThumbnail from '../assets/images/spcc.jpg';
+import icpThumbnail from '../assets/images/icp-logo.jpg';
 
 const Viewer = lazy(() => import('../components/image-viewer-resource.js'));
 const DescriptionBlock = lazy(() => import('../components/item-blocks/description'));
@@ -290,7 +291,7 @@ class Person extends Component {
     //1.1 thumbnailImage
     let label = item.firstName;
     let imgViewer = [];
-    let thumbnailImage = <img src={defaultThumbnail} className="people-thumbnail img-fluid img-thumbnail person-thumbnailImage" alt={label} onContextMenu={(e)=>{e.preventDefault();return false;}}/>;
+    let thumbnailImage = [];
     let thumbnailURLs = this.state.images;
     if (typeof thumbnailURLs.thumbnails!=="undefined" && thumbnailURLs.thumbnails.length>0) {
       thumbnailImage = this.renderThumbnails(thumbnailURLs, label);
@@ -312,7 +313,15 @@ class Person extends Component {
         />
       </Suspense>
     }
-
+    else {
+      let isinICP = item.resources.find(i=>i.ref.label.includes("Liam Chambers and Sarah Frank")) || null;
+      if (isinICP) {
+        thumbnailImage = <img src={icpThumbnail} className="people-thumbnail img-fluid img-thumbnail person-thumbnailImage" alt={label} onContextMenu={(e)=>{e.preventDefault();return false;}}/>;
+      }
+      else {
+        thumbnailImage = <img src={defaultThumbnail} className="people-thumbnail img-fluid img-thumbnail person-thumbnailImage" alt={label} onContextMenu={(e)=>{e.preventDefault();return false;}}/>;
+      }
+    }
     //1.2 label
     if (typeof item.middleName!=="undefined" && item.middleName!==null && item.middleName!=="") {
       label += " "+item.middleName;

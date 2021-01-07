@@ -6,6 +6,8 @@ import { Collapse, FormGroup, Input, Spinner } from 'reactstrap';
 import * as PIXI from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 import dataWorker from "./person-data.worker.js";
+import simulationWorker from "./force-simulation.worker.js";
+import itemSimulationWorker from "./item-simulation.worker.js";
 import {webglSupport,jsonStringToObject} from "../../helpers";
 import HelpArticle from '../../components/help-article';
 import LazyList from '../../components/lazylist';
@@ -81,7 +83,6 @@ const drawNodes = async () => {
     let rightX = bbox.x+bbox.width;
     let topY = bbox.y;
     let bottomY = bbox.y+bbox.height;
-    let nodesNum = nodes.length;
     let nodesSplit = splitArray(nodes, 500);
     for (let j=0;j<nodesSplit.length;j++) {
       let newNodes = nodesSplit[j];
@@ -94,7 +95,7 @@ const drawNodes = async () => {
         let radius = d.size || 30;
         let x = d.x;
         let y = d.y;
-        if (nodesNum<=500) {
+        if (leftX<=x && rightX>=x && topY<=y && bottomY>=y) {
           d.gfx = new PIXI.Graphics();
           d.gfx.interactive = true;
           d.gfx.on("click", (e)=>publicFunctions.clickNode(e,d))
@@ -115,12 +116,12 @@ const drawNodes = async () => {
             lineWidth = 1;
           }
           d.gfx.beginFill(hexColor(d.color));
-          if (container.scaled>0.2 || (typeof d.selected!=="undefined" && d.selected)) {
+          if (container.scaled>0.3) {
             d.gfx.lineStyle(lineWidth,strokeStyle);
           }
           d.gfx.drawCircle(x, y, radius);
           nodesContainer.addChild(d.gfx);
-          if (d.label!=="" && container.scaled>0.2) {
+          if (d.label!=="" && container.scaled>0.3) {
             let label = d.label.trim().replace(/  +/g," ");
             let spaces = label.split(" ");
             let newSpaces = [];
@@ -142,57 +143,6 @@ const drawNodes = async () => {
             textContainer.addChild(text);
           }
         }
-        else {
-          if (leftX<=x && rightX>=x && topY<=y && bottomY>=y) {
-            d.gfx = new PIXI.Graphics();
-            d.gfx.interactive = true;
-            d.gfx.on("click", (e)=>publicFunctions.clickNode(e,d))
-            d.gfx.on("tap", (e)=>publicFunctions.clickNode(e,d))
-            let lineWidth = 1;
-            let strokeStyle = hexColor(d.strokeColor);
-            d.visible = true;
-            // circle
-            if (typeof d.selected!=="undefined" && d.selected) {
-              lineWidth = 5;
-              strokeStyle = "0x33729f";
-              radius+=5;
-            }
-            else if (typeof d.associated!=="undefined" && d.associated) {
-              lineWidth = 5;
-            }
-            else {
-              lineWidth = 1;
-            }
-            d.gfx.beginFill(hexColor(d.color));
-            if (container.scaled>0.2 || (typeof d.selected!=="undefined" && d.selected)) {
-              d.gfx.lineStyle(lineWidth,strokeStyle);
-            }
-            d.gfx.drawCircle(x, y, radius);
-            nodesContainer.addChild(d.gfx);
-            if (d.label!=="" && container.scaled>0.2) {
-              let label = d.label.trim().replace(/  +/g," ");
-              let spaces = label.split(" ");
-              let newSpaces = [];
-              for (let i=0;i<spaces.length;i++) {
-                let space = spaces[i];
-                let nextIndex = i+1;
-                if (nextIndex<(spaces.length-1) && space.length<6 && spaces[nextIndex].length<6) {
-                  space += " "+spaces[nextIndex];
-                  spaces.splice(nextIndex, 1);
-                }
-                newSpaces.push(space);
-              }
-              let minusY = newSpaces.length/2;
-
-              let text = new PIXI.BitmapText(label,{fontName: "Arial", fontSize: 11, align : 'center'});
-              text.maxWidth = (radius*2)+(lineWidth*2);
-              text.x = x-radius+(lineWidth*2);
-              text.y = y-(10*minusY);
-              textContainer.addChild(text);
-            }
-          }
-        }
-
       }
     }
   });
@@ -208,7 +158,6 @@ const drawLines = () => {
   let rightX = bbox.x+bbox.width;
   let topY = bbox.y;
   let bottomY = bbox.y+bbox.height;
-  let linksNum = links.length;
   let linksSplit = splitArray(links, 500);
   for (let j=0;j<linksSplit.length; j++) {
     let newLinks = linksSplit[j];
@@ -218,7 +167,7 @@ const drawLines = () => {
       let sy = d.source.y;
       let tx = d.target.x;
       let ty = d.target.y;
-      if (linksNum<=500) {
+      if (leftX<=sx && rightX>=sx && topY<=sy && bottomY>=sy) {
         let line = new PIXI.Graphics();
         let lWidth = 0.2;
         let strokeStyle = 0x666666;
@@ -231,27 +180,14 @@ const drawLines = () => {
         line.lineTo(tx, ty);
         lineContainer.addChild(line);
       }
-      else {
-        if (leftX<=sx && rightX>=sx && topY<=sy && bottomY>=sy) {
-          let line = new PIXI.Graphics();
-          let lWidth = 0.2;
-          let strokeStyle = 0x666666;
-          if (typeof d.associated!=="undefined" && d.associated) {
-            lWidth = 5;
-            strokeStyle = 0x33729f;
-          }
-          line.lineStyle(lWidth,strokeStyle);
-          line.moveTo(sx, sy);
-          line.lineTo(tx, ty);
-          lineContainer.addChild(line);
-        }
-      }
-
     }
   }
 }
 
 const dataLoadingWorker = new dataWorker();
+
+const forceSimulationWorker = new simulationWorker();
+const itemForceSimulationWorker = new itemSimulationWorker();
 
 const PersonNetwork = props => {
   const [initiated, setInitiated] = useState(false);
@@ -393,17 +329,17 @@ const PersonNetwork = props => {
 
       transformEnd();
 
-      /*let simulationParams = {nodes:data.nodes, links: data.links, centerX:centerX-50,centerY:centerY-50};
+      let simulationParams = {nodes:data.nodes, links: data.links, centerX:centerX-50,centerY:centerY-50};
       forceSimulationWorker.postMessage(simulationParams);
       let simulation = await new Promise ((resolve,reject)=>{
         forceSimulationWorker.addEventListener('message',(e) =>{
           resolve(e.data);
         }, false);
       });
-      let simulationData = jsonStringToObject(simulation.data);*/
+      let simulationData = jsonStringToObject(simulation.data);
       setDrawingIndicator(<div>drawing<span className="dot">.</span><span className="dot">.</span><span className="dot">.</span></div>);
-      nodes = data.nodes;
-      links = data.links;
+      nodes = simulationData.nodes;
+      links = simulationData.links;
 
       d3.select("#graph-zoom-in")
       .on("click", function() {
@@ -625,13 +561,27 @@ const PersonNetwork = props => {
     });
     let parsedData = jsonStringToObject(responseData);
     parsedData = jsonStringToObject(parsedData.data);
-    console.log(parsedData)
     activeNode.expanded = true;
 
     let newNodes = [];
     for (let i=0;i<nodes.length; i++) {
       let n = nodes[i];
-      newNodes.push(n);
+      newNodes.push({
+        color: n.color,
+        expanded: n.expanded,
+        id: n.id,
+        index: n.index,
+        itemId: n.itemId,
+        label: n.label,
+        size: n.size,
+        strokeColor: n.strokeColor,
+        type: n.type,
+        visible: n.visible,
+        vx: n.vx,
+        vy: n.vy,
+        x: n.x,
+        y: n.y
+      });
     }
     for (let i=0;i<parsedData.nodes.length; i++) {
       let sn = parsedData.nodes[i];
@@ -643,7 +593,14 @@ const PersonNetwork = props => {
     let newLinks = [];
     for (let i=0;i<links.length;i++) {
       let l = links[i];
-      newLinks.push(l);
+      newLinks.push({
+        id: l.id,
+        index: l.index,
+        label: l.label,
+        refId: l.refId,
+        source: l.source.id,
+        target: l.target.id,
+      });
     }
 
     for (let j=0;j<parsedData.links.length; j++) {
@@ -653,11 +610,23 @@ const PersonNetwork = props => {
         newLinks.push(sl);
       }
     }
-    console.log({nodes:newNodes, links: newLinks})
+    // simulating positions
+    setDrawingIndicator(<div>simulating<span className="dot">.</span><span className="dot">.</span><span className="dot">.</span></div>);
 
+    let postData = JSON.stringify({nodes:newNodes, links: newLinks, centerX:nodes[0].x-50,centerY:nodes[0].y-50});
+    let simulationParams = {data: postData, APIPath:APIPath};
+    itemForceSimulationWorker.postMessage(simulationParams);
+    let simulation = await new Promise ((resolve,reject)=>{
+      itemForceSimulationWorker.addEventListener('message',(e) =>{
+        resolve(e.data);
+      }, false);
+    });
+    simulation = jsonStringToObject(simulation);
+    let simulationData = jsonStringToObject(simulation.data);
+    // simulating positions
     setDrawingIndicator(<div>drawing<span className="dot">.</span><span className="dot">.</span><span className="dot">.</span></div>);
-    nodes = newNodes;
-    links = newLinks;
+    nodes = simulationData.nodes;
+    links = simulationData.links;
     redraw();
 
     container.moveCenter(activeNode.x-30, activeNode.y-30);

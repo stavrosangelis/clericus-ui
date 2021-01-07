@@ -11,6 +11,7 @@ import { Link} from 'react-router-dom';
 import {Breadcrumbs} from '../components/breadcrumbs';
 import {getPersonThumbnailURL,updateDocumentTitle,renderLoader} from '../helpers';
 import defaultThumbnail from '../assets/images/spcc.jpg';
+import icpThumbnail from '../assets/images/icp-logo.jpg';
 import HelpArticle from '../components/help-article';
 
 import {connect} from "react-redux";
@@ -449,10 +450,19 @@ class People extends Component {
           label = `${labelHP} ${label}`;
         }
 
-        let thumbnailImage = <img src={defaultThumbnail} className="people-list-thumbnail img-fluid img-thumbnail" alt={label} />;
+        let thumbnailImage = [];
         let thumbnailURLs = getPersonThumbnailURL(item);
         if (typeof thumbnailURLs.thumbnails!=="undefined" && thumbnailURLs.thumbnails.length>0) {
           thumbnailImage = <img src={thumbnailURLs.thumbnails[0]} className="people-list-thumbnail img-fluid img-thumbnail" alt={label} />
+        }
+        else {
+          let isinICP = item.resources.find(i=>i.ref.label.includes("Liam Chambers and Sarah Frank")) || null;
+          if (isinICP) {
+            thumbnailImage = <img src={icpThumbnail} className="people-list-thumbnail img-fluid img-thumbnail" alt={label} />;
+          }
+          else {
+            thumbnailImage = <img src={defaultThumbnail} className="people-list-thumbnail img-fluid img-thumbnail" alt={label} />;
+          }
         }
         let link = "/person/"+item._id;
         let outputItem = <ListGroupItem key={item._id} onContextMenu={(e)=>{e.preventDefault();return false;}}>

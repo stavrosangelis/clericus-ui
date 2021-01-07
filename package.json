@@ -1,6 +1,6 @@
 {
   "name": "clericus-ui",
-  "version": "1.8.19",
+  "version": "1.8.24",
   "private": true,
   "dependencies": {
     "axios": "^0.20.4",
