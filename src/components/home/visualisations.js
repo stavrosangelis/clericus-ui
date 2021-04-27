@@ -1,10 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardBody } from 'reactstrap';
-
-const heatmap = require('../../assets/images/heatmap.jpg');
-const networkGraph = require('../../assets/images/network-graph.jpg');
-const eventsTimeline = require('../../assets/images/events-timeline.jpg');
+import heatmap from '../../assets/images/heatmap.jpg';
+import networkGraph from '../../assets/images/network-graph.jpg';
+import eventsTimeline from '../../assets/images/events-timeline.jpg';
 
 const Visualisations = () => (
   <div>
