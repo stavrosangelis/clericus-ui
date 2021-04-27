@@ -6,7 +6,7 @@ import Classpiece from '../views/classpiece';
 import ClasspieceGraph from '../views/visualisations/classpiece-graph';
 import ContactForm from '../views/contact-form';
 import GenericSearch from '../views/generic-search';
-import NotFound from '../views/404.js';
+import NotFound from '../views/404';
 import People from '../views/people';
 import Person from '../views/person';
 import PersonGraph from '../views/visualisations/person-graph';
@@ -32,161 +32,161 @@ import GraphNetwork from '../views/visualisations/graph-network';
 import Timeline from '../views/visualisations/timeline';
 import ItemTimeline from '../views/visualisations/item-timeline';
 
-var routes = [
+const routes = [
   {
-    path: "/",
+    path: '/',
     component: Home,
-    name: "Home",
+    name: 'Home',
   },
   {
-    path: "/article/:permalink",
+    path: '/article/:permalink',
     component: Article,
-    name: "article",
+    name: 'article',
   },
   {
-    path: "/article-category/:permalink",
+    path: '/article-category/:permalink',
     component: Articles,
-    name: "article-category",
+    name: 'article-category',
   },
   {
-    path: "/classpieces",
+    path: '/classpieces',
     component: Classpieces,
-    name: "classpieces",
+    name: 'classpieces',
   },
   {
-    path: "/classpiece/:_id",
+    path: '/classpiece/:_id',
     component: Classpiece,
-    name: "classpiece",
+    name: 'classpiece',
   },
   {
-    path: "/classpiece-graph/:_id",
+    path: '/classpiece-graph/:_id',
     component: ClasspieceGraph,
-    name: "classpiece graph",
+    name: 'classpiece graph',
   },
   {
-    path: "/contact/",
+    path: '/contact/',
     component: ContactForm,
-    name: "contact",
+    name: 'contact',
   },
   {
-    path: "/search/:term",
+    path: '/search/:term',
     component: GenericSearch,
-    name: "generic search",
+    name: 'generic search',
   },
   {
-    path: "/people",
+    path: '/people',
     component: People,
-    name: "people",
+    name: 'people',
   },
   {
-    path: "/person/:_id",
+    path: '/person/:_id',
     component: Person,
-    name: "Person",
+    name: 'Person',
   },
   {
-    path: "/person-graph/:_id",
+    path: '/person-graph/:_id',
     component: PersonGraph,
-    name: "Person graph",
+    name: 'Person graph',
   },
   {
-    path: "/events",
+    path: '/events',
     component: Events,
-    name: "Events",
+    name: 'Events',
   },
   {
-    path: "/event/:_id",
+    path: '/event/:_id',
     component: Event,
-    name: "Event",
+    name: 'Event',
   },
   {
-    path: "/event-graph/:_id",
+    path: '/event-graph/:_id',
     component: EventGraph,
-    name: "Event Graph",
+    name: 'Event Graph',
   },
   {
-    path: "/organisations",
+    path: '/organisations',
     component: Organisations,
-    name: "Organisations",
+    name: 'Organisations',
   },
   {
-    path: "/organisation/:_id",
+    path: '/organisation/:_id',
     component: Organisation,
-    name: "Organisation",
+    name: 'Organisation',
   },
   {
-    path: "/organisation-graph/:_id",
+    path: '/organisation-graph/:_id',
     component: OrganisationGraph,
-    name: "Organisation Graph",
+    name: 'Organisation Graph',
   },
   {
-    path: "/temporals",
+    path: '/temporals',
     component: Temporals,
-    name: "Temporals",
+    name: 'Temporals',
   },
   {
-    path: "/temporal/:_id",
+    path: '/temporal/:_id',
     component: Temporal,
-    name: "Temporal",
+    name: 'Temporal',
   },
   {
-    path: "/temporal-graph/:_id",
+    path: '/temporal-graph/:_id',
     component: TemporalGraph,
-    name: "Temporal Graph",
+    name: 'Temporal Graph',
   },
   {
-    path: "/spatials",
+    path: '/spatials',
     component: Spatials,
-    name: "Spatials",
+    name: 'Spatials',
   },
   {
-    path: "/spatial/:_id",
+    path: '/spatial/:_id',
     component: Spatial,
-    name: "Spatial",
+    name: 'Spatial',
   },
   {
-    path: "/spatial-graph/:_id",
+    path: '/spatial-graph/:_id',
     component: SpatialGraph,
-    name: "Spatial Graph",
+    name: 'Spatial Graph',
   },
   {
-    path: "/resources",
+    path: '/resources',
     component: Resources,
-    name: "Resources",
+    name: 'Resources',
   },
   {
-    path: "/resource/:_id",
+    path: '/resource/:_id',
     component: Resource,
-    name: "Resource",
+    name: 'Resource',
   },
   {
-    path: "/resource-graph/:_id",
+    path: '/resource-graph/:_id',
     component: ResourceGraph,
-    name: "Resource Graph",
+    name: 'Resource Graph',
   },
   {
-    path: "/heatmap/",
+    path: '/heatmap/',
     component: Heatmap,
-    name: "Heatmap",
+    name: 'Heatmap',
   },
   {
-    path: "/network-graph/",
+    path: '/network-graph/',
     component: GraphNetwork,
-    name: "Graph network",
+    name: 'Graph network',
   },
   {
-    path: "/timeline/",
+    path: '/timeline/',
     component: Timeline,
-    name: "Events timeline",
+    name: 'Events timeline',
   },
   {
-    path: "/item-timeline/:type/:_id",
+    path: '/item-timeline/:type/:_id',
     component: ItemTimeline,
-    name: "Item timeline",
+    name: 'Item timeline',
   },
   {
-    path: "/404",
+    path: '/404',
     component: NotFound,
-    name: "Not Found",
+    name: 'Not Found',
   },
 ];
 export default routes;

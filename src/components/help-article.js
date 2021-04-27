@@ -1,57 +1,70 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import PropTypes from 'prop-types';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
-const HelpArticle = props => {
+const HelpArticle = (props) => {
+  // state
   const [loading, setLoading] = useState(true);
   const [article, setArticle] = useState(null);
 
-  useEffect(()=> {
+  // props
+  const { permalink, visible, toggle } = props;
+
+  useEffect(() => {
     const cancelToken = axios.CancelToken;
     const source = cancelToken.source();
 
-    const load = async() => {
-      let responseData = await axios({
+    const load = async () => {
+      const responseData = await axios({
         method: 'get',
-        url: APIPath+'content-article',
+        url: `${APIPath}content-article`,
         crossDomain: true,
-        params: {permalink: props.permalink},
-        cancelToken: source.token
+        params: { permalink },
+        cancelToken: source.token,
       })
-      .then(function (response) {
-        return response.data;
-      })
-      .catch(function (error) {
-      });
-      if (typeof responseData!=="undefined") {
+        .then((response) => response.data)
+        .catch((error) => console.log(error));
+      if (typeof responseData !== 'undefined') {
         setArticle(responseData.data);
-          setLoading(false);
+        setLoading(false);
       }
-    }
+    };
     if (loading) {
       load();
     }
     return () => {
-      source.cancel("api request cancelled");
+      source.cancel('api request cancelled');
     };
-  },[loading,props.permalink]);
+  }, [loading, permalink]);
 
   let content = [];
-  if (!loading && article!==null) {
-    content = <Modal isOpen={props.visible} toggle={props.toggle} size="lg">
-      <ModalHeader toggle={props.toggle}>{article.label}</ModalHeader>
-      <ModalBody dangerouslySetInnerHTML={{__html: article.content}}></ModalBody>
-      <ModalFooter>
-        <Button color="secondary" onClick={props.toggle}>Close</Button>
-      </ModalFooter>
-    </Modal>
+  if (!loading && article !== null) {
+    content = (
+      <Modal isOpen={visible} toggle={toggle} size="lg">
+        <ModalHeader toggle={toggle}>{article.label}</ModalHeader>
+        <ModalBody dangerouslySetInnerHTML={{ __html: article.content }} />
+        <ModalFooter>
+          <Button color="secondary" onClick={toggle}>
+            Close
+          </Button>
+        </ModalFooter>
+      </Modal>
+    );
   }
 
-  return(
-    <div style={{padding: "0 15px"}}>{content}</div>
-  );
-}
-
+  return <div style={{ padding: '0 15px' }}>{content}</div>;
+};
+HelpArticle.defaultProps = {
+  permalink: '',
+  visible: false,
+  toggle: () => {},
+};
+HelpArticle.propTypes = {
+  permalink: PropTypes.string,
+  visible: PropTypes.bool,
+  toggle: PropTypes.func,
+};
 export default HelpArticle;

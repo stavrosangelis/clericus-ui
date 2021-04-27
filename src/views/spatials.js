@@ -2,46 +2,50 @@ import React, { Component, lazy, Suspense } from 'react';
 import axios from 'axios';
 import {
   Spinner,
-  ListGroup, ListGroupItem,
+  ListGroup,
+  ListGroupItem,
   Collapse,
-  Card, CardBody,
-  Tooltip
+  Card,
+  CardBody,
+  Tooltip,
 } from 'reactstrap';
-import { Link} from 'react-router-dom';
-import { Map, Marker, Popup, TileLayer } from 'react-leaflet'
+import { Link } from 'react-router-dom';
+import { Map, Marker, Popup, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
-import {Breadcrumbs} from '../components/breadcrumbs';
-import {updateDocumentTitle,renderLoader} from '../helpers';
+import { connect } from 'react-redux';
+import { compose } from 'redux';
+import PropTypes from 'prop-types';
 
-import {connect} from "react-redux";
-import {
-  setPaginationParams,
-  setRelationshipParams
-} from "../redux/actions";
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
+import iconUrl from 'leaflet/dist/images/marker-icon.png';
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+import Breadcrumbs from '../components/breadcrumbs';
+import { updateDocumentTitle, renderLoader } from '../helpers';
+
+import { setPaginationParams, setRelationshipParams } from '../redux/actions';
 
 const PageActions = lazy(() => import('../components/page-actions'));
 const SearchForm = lazy(() => import('../components/search-form'));
 
-const mapStateToProps = state => {
-  return {
-    spatialsPagination: state.spatialsPagination,
-    spatialsFilters: state.spatialsFilters,
-    spatialsRelationship: state.spatialsRelationship,
-   };
-};
+const mapStateToProps = (state) => ({
+  spatialsPagination: state.spatialsPagination,
+  spatialsFilters: state.spatialsFilters,
+  spatialsRelationship: state.spatialsRelationship,
+});
 
 function mapDispatchToProps(dispatch) {
   return {
-    setPaginationParams: (type,params) => dispatch(setPaginationParams(type,params)),
-    setRelationshipParams: (type,params) => dispatch(setRelationshipParams(type,params))
-  }
+    setPaginationParams: (type, params) =>
+      dispatch(setPaginationParams(type, params)),
+    setRelationshipParams: (type, params) =>
+      dispatch(setRelationshipParams(type, params)),
+  };
 }
-
 
 class Spatials extends Component {
   constructor(props) {
     super(props);
-    let spatialsPagination = this.props.spatialsPagination;
+    const { spatialsPagination } = this.props;
 
     this.state = {
       loading: true,
@@ -55,7 +59,7 @@ class Spatials extends Component {
       searchVisible: false,
       simpleSearchTerm: '',
       mapVisible: false,
-    }
+    };
 
     this.load = this.load.bind(this);
     this.simpleSearch = this.simpleSearch.bind(this);
@@ -68,7 +72,9 @@ class Spatials extends Component {
     this.handleChange = this.handleChange.bind(this);
     this.toggleSearch = this.toggleSearch.bind(this);
     this.toggleMap = this.toggleMap.bind(this);
-    this.updateSpatialsRelationship = this.updateSpatialsRelationship.bind(this);
+    this.updateSpatialsRelationship = this.updateSpatialsRelationship.bind(
+      this
+    );
     this.renderMap = this.renderMap.bind(this);
 
     // cancelTokens
@@ -79,56 +85,79 @@ class Spatials extends Component {
     this.cancelSource2 = cancelToken2.source();
   }
 
-  async load() {
+  componentDidMount() {
+    this.load();
+  }
+
+  componentWillUnmount() {
+    this.cancelSource1.cancel('api request cancelled');
+    this.cancelSource2.cancel('api request cancelled');
+  }
+
+  handleChange(e) {
+    const { target } = e;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const { name } = target;
     this.setState({
-      spatialsLoading: true
+      [name]: value,
     });
-    let params = {
-      page: this.state.page,
-      limit: this.state.limit
+  }
+
+  async load() {
+    const { page, limit, simpleSearchTerm } = this.state;
+    this.setState({
+      spatialsLoading: true,
+    });
+    const params = {
+      page,
+      limit,
     };
-    if (this.state.simpleSearchTerm!=="") {
-      params.label = this.state.simpleSearchTerm;
+    if (simpleSearchTerm !== '') {
+      params.label = simpleSearchTerm;
     }
-    let url = process.env.REACT_APP_APIPATH+'spatials';
-    let responseData = await axios({
+    const url = `${process.env.REACT_APP_APIPATH}spatials`;
+    const responseData = await axios({
       method: 'get',
-      url: url,
+      url,
       crossDomain: true,
-      params: params,
-      cancelToken: this.cancelSource1.token
+      params,
+      cancelToken: this.cancelSource1.token,
     })
-	  .then(function (response) {
-      return response.data.data;
-	  })
-	  .catch(function (error) {
-      console.log(error);
-	  });
-    if (typeof responseData!=="undefined") {
-      let spatials = responseData.data;
+      .then((response) => response.data.data)
+      .catch((error) => {
+        console.log(error);
+      });
+    if (typeof responseData !== 'undefined') {
+      const spatials = responseData.data;
       let currentPage = 1;
-      if (responseData.currentPage>0) {
+      if (responseData.currentPage > 0) {
         currentPage = responseData.currentPage;
       }
-      if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+      if (
+        currentPage !== 1 &&
+        currentPage > responseData.totalPages &&
+        responseData.totalPages > 0
+      ) {
         this.updatePage(responseData.totalPages);
-      }
-      else {
+      } else {
         this.setState({
           loading: false,
           spatialsLoading: false,
           page: responseData.currentPage,
           totalPages: responseData.totalPages,
           totalItems: responseData.totalItems,
-          items: spatials
+          items: spatials,
         });
       }
     }
   }
 
-  updateSpatialsRelationship(spatials=null) {
-    let payload = this.props.spatialsRelationship;
-    this.props.setRelationshipParams("spatials",payload);
+  updateSpatialsRelationship() {
+    const {
+      spatialsRelationship: payload,
+      setRelationshipParams: setRelationshipParamsFn,
+    } = this.props;
+    setRelationshipParamsFn('spatials', payload);
     /*
     if(spatials===null){
       return false;
@@ -171,318 +200,424 @@ class Spatials extends Component {
     */
   }
 
-
   async simpleSearch(e) {
     e.preventDefault();
-    if (this.state.simpleSearchTerm.length<2) {
+    const { page, limit, simpleSearchTerm } = this.state;
+    if (simpleSearchTerm.length < 2) {
       return false;
     }
     this.setState({
-      spatialsLoading: true
-    })
-    let params = {
-      label: this.state.simpleSearchTerm,
-      page: this.state.page,
-      limit: this.state.limit
+      spatialsLoading: true,
+    });
+    const params = {
+      label: simpleSearchTerm,
+      page,
+      limit,
     };
-    let url = process.env.REACT_APP_APIPATH+'spatials';
-    let responseData = await axios({
+    const url = `${process.env.REACT_APP_APIPATH}spatials`;
+    const responseData = await axios({
       method: 'get',
-      url: url,
+      url,
       crossDomain: true,
-      params: params,
-      cancelToken: this.cancelSource1.token
+      params,
+      cancelToken: this.cancelSource1.token,
     })
-	  .then(function (response) {
-      return response.data.data;
-	  })
-	  .catch(function (error) {
-      console.log(error);
-	  });
-    if (typeof responseData!=="undefined") {
-      let spatials = responseData.data;
+      .then((response) => response.data.data)
+      .catch((error) => {
+        console.log(error);
+      });
+    if (typeof responseData !== 'undefined') {
+      const spatials = responseData.data;
       let currentPage = 1;
-      if (responseData.currentPage>0) {
+      if (responseData.currentPage > 0) {
         currentPage = responseData.currentPage;
       }
-      if (currentPage!==1 && currentPage>responseData.totalPages && responseData.totalPages>0) {
+      if (
+        currentPage !== 1 &&
+        currentPage > responseData.totalPages &&
+        responseData.totalPages > 0
+      ) {
         this.updatePage(responseData.totalPages);
-      }
-      else {
+      } else {
         this.setState({
           loading: false,
           spatialsLoading: false,
           page: responseData.currentPage,
           totalPages: responseData.totalPages,
           totalItems: responseData.totalItems,
-          items: spatials
+          items: spatials,
         });
       }
     }
+    return false;
   }
 
   clearSearch() {
-    this.updateStorePagination({simpleSearchTerm:"", page: 1});
-    this.setState({
-      simpleSearchTerm: '',
-      page: 1,
-    }, ()=>{
-      this.load();
-    });
+    this.updateStorePagination({ simpleSearchTerm: '', page: 1 });
+    this.setState(
+      {
+        simpleSearchTerm: '',
+        page: 1,
+      },
+      () => {
+        this.load();
+      }
+    );
   }
 
   toggleSearch() {
+    const { searchVisible } = this.state;
     this.setState({
-      searchVisible: !this.state.searchVisible
-    })
+      searchVisible: !searchVisible,
+    });
   }
 
   updatePage(e) {
-    if (e>0 && e!==this.state.page) {
-      this.updateStorePagination({page:e});
-      this.setState({
-        page: e,
-        gotoPage: e,
-      }, () => {
-        this.load();
-      });
+    const { page } = this.state;
+    if (e > 0 && e !== page) {
+      this.updateStorePagination({ page: e });
+      this.setState(
+        {
+          page: e,
+          gotoPage: e,
+        },
+        () => {
+          this.load();
+        }
+      );
     }
   }
 
   gotoPage(e) {
     e.preventDefault();
-    let gotoPage = this.state.gotoPage;
-    let page = this.state.page;
-    if (gotoPage>0 && gotoPage!==page) {
-      this.updateStorePagination({page:e});
-      this.setState({
-        page: gotoPage
-      }, () => {
-        this.load();
-      });
+    const { gotoPage } = this.state;
+    const { page } = this.state;
+    if (gotoPage > 0 && gotoPage !== page) {
+      this.updateStorePagination({ page: e });
+      this.setState(
+        {
+          page: gotoPage,
+        },
+        () => {
+          this.load();
+        }
+      );
     }
   }
 
   updateLimit(limit) {
-    this.setState({
-      limit: limit
-    }, () => {
-      this.load();
-    });
-    this.updateStorePagination({limit:limit});
+    this.setState(
+      {
+        limit,
+      },
+      () => {
+        this.load();
+      }
+    );
+    this.updateStorePagination({ limit });
   }
 
-  updateStorePagination({limit=null, page=null, simpleSearchTerm=null}) {
-    let payload = {};
-    if (limit!==null) {
+  updateStorePagination({
+    limit = null,
+    page = null,
+    simpleSearchTerm = null,
+  }) {
+    const { setPaginationParams: setPaginationParamsFn } = this.props;
+    const payload = {};
+    if (limit !== null) {
       payload.limit = limit;
     }
-    if (page!==null) {
+    if (page !== null) {
       payload.page = page;
     }
-    if (simpleSearchTerm!==null) {
+    if (simpleSearchTerm !== null) {
       payload.simpleSearchTerm = simpleSearchTerm;
     }
-    this.props.setPaginationParams("spatials", payload);
+    setPaginationParamsFn('spatials', payload);
+  }
+
+  toggleMap() {
+    const { mapVisible } = this.state;
+    this.setState({
+      mapVisible: !mapVisible,
+    });
   }
 
   renderMap() {
-    let zoom = 9;
+    const { mapVisible, items } = this.state;
+    const zoom = 9;
     delete L.Icon.Default.prototype._getIconUrl;
 
     L.Icon.Default.mergeOptions({
-        iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-        iconUrl: require('leaflet/dist/images/marker-icon.png'),
-        shadowUrl: require('leaflet/dist/images/marker-shadow.png')
+      iconRetinaUrl,
+      iconUrl,
+      shadowUrl,
     });
 
-    let link_href = "/spatial/";
-    let visibleClass = "";
-    if (this.state.mapVisible) {
-      visibleClass = " active";
+    const linkHref = '/spatial/';
+    let visibleClass = '';
+    if (mapVisible) {
+      visibleClass = ' active';
     }
-    let output = <div className={"spatial-map-container spatials-list-map"+visibleClass}>
-        <Map center={[53.381290, -6.591850]} zoom={zoom} maxZoom={18}>
+    const output = (
+      <div className={`spatial-map-container spatials-list-map${visibleClass}`}>
+        <Map center={[53.38129, -6.59185]} zoom={zoom} maxZoom={18}>
           <TileLayer
             attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          {this.state.items.map((element, index) =>
-            <Marker
-              key={index}
-              position={[element.latitude, element.longitude]}
+          {items.map((element, index) => {
+            const key = `a${index}`;
+            return (
+              <Marker
+                key={key}
+                position={[element.latitude, element.longitude]}
               >
-              <Popup>
-                <Link to={link_href+element._id} href={link_href+element._id}>{element.label}</Link>
-              </Popup>
-            </Marker>
-          )}
+                <Popup>
+                  <Link
+                    to={linkHref + element._id}
+                    href={linkHref + element._id}
+                  >
+                    {element.label}
+                  </Link>
+                </Popup>
+              </Marker>
+            );
+          })}
         </Map>
       </div>
+    );
     return output;
   }
 
-  toggleMap() {
-    this.setState({
-      mapVisible: !this.state.mapVisible
-    })
-  }
-
   renderItems() {
+    const { items } = this.state;
     let outputObj = [];
-    let output = [];
-    if (this.state.items.length>0) {
-      for (let i=0;i<this.state.items.length; i++) {
-        let item = this.state.items[i];
-        let label = item.label;
+    const output = [];
+    if (items.length > 0) {
+      for (let i = 0; i < items.length; i += 1) {
+        const item = items[i];
+        const { label } = item;
 
         let thumbnailImage = [];
-        let thumbnailURL = null;//getEventThumbnailURL(item);
-        if (thumbnailURL!==null) {
-          thumbnailImage = <img src={thumbnailURL} className="events-list-thumbnail img-fluid img-thumbnail" alt={label} />
+        const thumbnailURL = null; // getEventThumbnailURL(item);
+        if (thumbnailURL !== null) {
+          thumbnailImage = (
+            <img
+              src={thumbnailURL}
+              className="events-list-thumbnail img-fluid img-thumbnail"
+              alt={label}
+            />
+          );
         }
-        let link = "/spatial/"+item._id;
-        let outputItem = <ListGroupItem key={i}>
-          <Link to={link} href={link}>{thumbnailImage}</Link>
-          <Link to={link} href={link}>{label}</Link>
-        </ListGroupItem>;
+        const link = `/spatial/${item._id}`;
+        const outputItem = (
+          <ListGroupItem key={i}>
+            <Link to={link} href={link}>
+              {thumbnailImage}
+            </Link>
+            <Link to={link} href={link}>
+              {label}
+            </Link>
+          </ListGroupItem>
+        );
         output.push(outputItem);
       }
-      outputObj = <div className="events-list"><ListGroup>{output}</ListGroup></div>
-    }
-    else {
-      let item = <div key='no-results' className="col-12">
-        <Card style={{marginBottom: '15px'}}>
-          <CardBody>
-            <h5>No results found</h5>
-            <p>There are no locations matching your query</p>
-          </CardBody>
-        </Card>
-      </div>
+      outputObj = (
+        <div className="events-list">
+          <ListGroup>{output}</ListGroup>
+        </div>
+      );
+    } else {
+      const item = (
+        <div key="no-results" className="col-12">
+          <Card style={{ marginBottom: '15px' }}>
+            <CardBody>
+              <h5>No results found</h5>
+              <p>There are no locations matching your query</p>
+            </CardBody>
+          </Card>
+        </div>
+      );
       outputObj.push(item);
     }
     return outputObj;
   }
 
-  handleChange(e) {
-    let target = e.target;
-    let value = target.type === 'checkbox' ? target.checked : target.value;
-    let name = target.name;
-    this.setState({
-      [name]: value
-    });
-  }
-
-  componentDidMount() {
-    this.load();
-  }
-
-  componentWillUnmount() {
-    this.cancelSource1.cancel('api request cancelled');
-    this.cancelSource2.cancel('api request cancelled');
-  }
-
   render() {
-    let heading = "Locations";
-    let breadcrumbsItems = [
-      {label: heading, icon: "pe-7s-users", active: true, path: ""}
+    const {
+      loading,
+      limit,
+      page,
+      gotoPage,
+      totalPages,
+      spatialsLoading,
+      searchVisible,
+      simpleSearchTerm,
+      totalItems,
+    } = this.state;
+    const heading = 'Locations';
+    const breadcrumbsItems = [
+      { label: heading, icon: 'pe-7s-users', active: true, path: '' },
     ];
     updateDocumentTitle(heading);
-    let content = <div>
-      <div className="row">
-        <div className="col-12">
-          <h2>{heading}</h2>
-        </div>
-      </div>
-      <div className="row">
-        <div className="col-12">
-          <div style={{padding: '40pt',textAlign: 'center'}}>
-            <Spinner type="grow" color="info" /> <i>loading...</i>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    if (!this.state.loading) {
-      let pageActions = <Suspense fallback={renderLoader()}>
-        <PageActions
-          limit={this.state.limit}
-          sort={false}
-          current_page={this.state.page}
-          gotoPageValue={this.state.gotoPage}
-          total_pages={this.state.totalPages}
-          updatePage={this.updatePage}
-          gotoPage={this.gotoPage}
-          handleChange={this.handleChange}
-          updateLimit={this.updateLimit}
-          pageType="spatials"
-        />
-      </Suspense>
-      let spatials = <div className="row">
-        <div className="col-12">
-          <div style={{padding: '40pt',textAlign: 'center'}}>
-            <Spinner type="grow" color="info" /> <i>loading...</i>
-          </div>
-        </div>
-      </div>
-      if (!this.state.spatialsLoading) {
-        spatials = this.renderItems();
-      }
-      let searchElements = [
-        {element: "label", label: "Label", inputType: "text", inputData: null},
-      ]
-
-      let searchBox = <Collapse isOpen={this.state.searchVisible}>
-        <Suspense fallback={renderLoader()}>
-          <SearchForm
-            name="spatials"
-            searchElements={searchElements}
-            simpleSearchTerm={this.state.simpleSearchTerm}
-            simpleSearch={this.simpleSearch}
-            clearSearch={this.clearSearch}
-            handleChange={this.handleChange}
-            adadvancedSearchEnable={false}
-            />
-        </Suspense>
-      </Collapse>
-
-      //map
-      let map = this.renderMap();
-
-      content = <div>
+    let content = (
+      <div>
         <div className="row">
           <div className="col-12">
-            <h2>{heading}
-              <Tooltip placement="top" target="search-tooltip">
-                Search
-              </Tooltip>
-              <div className="tool-box">
-                <div className="tool-box-text">Total: {this.state.totalItems}</div>
-                <div className="action-trigger" onClick={()=>this.toggleSearch()} id="search-tooltip">
-                  <i className="fa fa-search" />
-                </div>
-                <div className="action-trigger" onClick={()=>this.toggleMap()} id="search-tooltip">
-                  <i className="fa fa-map" />
-                </div>
-              </div>
-            </h2>
-            {searchBox}
-            {map}
-            {pageActions}
-            {spatials}
-            {pageActions}
+            <h2>{heading}</h2>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-12">
+            <div style={{ padding: '40pt', textAlign: 'center' }}>
+              <Spinner type="grow" color="info" /> <i>loading...</i>
+            </div>
           </div>
         </div>
       </div>
+    );
+
+    if (!loading) {
+      const pageActions = (
+        <Suspense fallback={renderLoader()}>
+          <PageActions
+            limit={limit}
+            sort={false}
+            current_page={page}
+            gotoPageValue={gotoPage}
+            total_pages={totalPages}
+            updatePage={this.updatePage}
+            gotoPage={this.gotoPage}
+            handleChange={this.handleChange}
+            updateLimit={this.updateLimit}
+            pageType="spatials"
+          />
+        </Suspense>
+      );
+      let spatials = (
+        <div className="row">
+          <div className="col-12">
+            <div style={{ padding: '40pt', textAlign: 'center' }}>
+              <Spinner type="grow" color="info" /> <i>loading...</i>
+            </div>
+          </div>
+        </div>
+      );
+      if (!spatialsLoading) {
+        spatials = this.renderItems();
+      }
+      const searchElements = [
+        {
+          element: 'label',
+          label: 'Label',
+          inputType: 'text',
+          inputData: null,
+        },
+      ];
+
+      const searchBox = (
+        <Collapse isOpen={searchVisible}>
+          <Suspense fallback={renderLoader()}>
+            <SearchForm
+              name="spatials"
+              searchElements={searchElements}
+              simpleSearchTerm={simpleSearchTerm}
+              simpleSearch={this.simpleSearch}
+              clearSearch={this.clearSearch}
+              handleChange={this.handleChange}
+              adadvancedSearchEnable={false}
+            />
+          </Suspense>
+        </Collapse>
+      );
+
+      // map
+      const map = this.renderMap();
+
+      content = (
+        <div>
+          <div className="row">
+            <div className="col-12">
+              <h2>
+                {heading}
+                <Tooltip placement="top" target="search-tooltip">
+                  Search
+                </Tooltip>
+                <div className="tool-box">
+                  <div className="tool-box-text">Total: {totalItems}</div>
+                  <div
+                    className="action-trigger"
+                    onClick={() => this.toggleSearch()}
+                    id="search-tooltip"
+                    onKeyDown={() => false}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="toggle search"
+                  >
+                    <i className="fa fa-search" />
+                  </div>
+                  <div
+                    className="action-trigger"
+                    onClick={() => this.toggleMap()}
+                    id="search-tooltip"
+                    onKeyDown={() => false}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="toggle map"
+                  >
+                    <i className="fa fa-map" />
+                  </div>
+                </div>
+              </h2>
+              {searchBox}
+              {map}
+              {pageActions}
+              {spatials}
+              {pageActions}
+            </div>
+          </div>
+        </div>
+      );
     }
     return (
       <div className="container">
         <Breadcrumbs items={breadcrumbsItems} />
         {content}
       </div>
-    )
-
+    );
   }
 }
 
-export default Spatials = connect(mapStateToProps, mapDispatchToProps)(Spatials);
+Spatials.defaultProps = {
+  spatialsPagination: {
+    limit: 25,
+    page: 1,
+    simpleSearchTerm: '',
+  },
+  spatialsFilters: {
+    spatials: [],
+  },
+  setRelationshipParams: () => {},
+  setPaginationParams: () => {},
+  spatialsRelationship: {
+    spatials: [],
+  },
+};
+Spatials.propTypes = {
+  spatialsPagination: PropTypes.shape({
+    limit: PropTypes.number,
+    page: PropTypes.number,
+    simpleSearchTerm: PropTypes.string,
+  }),
+  spatialsFilters: PropTypes.shape({
+    spatials: PropTypes.array,
+  }),
+  setRelationshipParams: PropTypes.func,
+  setPaginationParams: PropTypes.func,
+  spatialsRelationship: PropTypes.shape({
+    spatials: PropTypes.array,
+  }),
+};
+
+export default compose(connect(mapStateToProps, mapDispatchToProps))(Spatials);

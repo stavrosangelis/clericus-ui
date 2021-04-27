@@ -1,4 +1,4 @@
-export const defaultState = {
+const defaultState = {
   genericStats: {
     people: 0,
     resources: 0,
@@ -8,15 +8,15 @@ export const defaultState = {
     events: 0,
     spatial: 0,
     temporal: 0,
-    classpieces: 0
+    classpieces: 0,
   },
 
   peoplePagination: {
-    limit:25,
-    page:1,
-    orderField: "lastName",
+    limit: 25,
+    page: 1,
+    orderField: 'lastName',
     orderDesc: false,
-    simpleSearchTerm: "",
+    simpleSearchTerm: '',
     advancedSearchInputs: [],
   },
   peopleRelationship: {
@@ -29,19 +29,18 @@ export const defaultState = {
   },
   peopleFilters: {
     events: [],
-    organisations:  [],
     sources: [],
     temporals: {
-      startDate: "",
-      endDate: "",
-      dateType: "exact",
+      startDate: '',
+      endDate: '',
+      dateType: 'exact',
     },
   },
 
   classpiecesPagination: {
-    limit:50,
-    page:1,
-    simpleSearchTerm: "",
+    limit: 50,
+    page: 1,
+    simpleSearchTerm: '',
   },
   classpiecesRelationship: {
     classpieces: [],
@@ -52,36 +51,33 @@ export const defaultState = {
     spatials: [],
   },
   classpiecesFilters: {
-    events: [],
-    organisations:  [],
     temporals: {
-      startDate: "",
-      endDate: "",
-      dateType: "exact",
+      startDate: '',
+      endDate: '',
+      dateType: 'exact',
     },
   },
 
   resourcesPagination: {
-    limit:25,
-    page:1,
-    simpleSearchTerm: "",
+    limit: 25,
+    page: 1,
+    simpleSearchTerm: '',
   },
 
   resourcesFilters: {
     resourcesTypes: [],
     events: [],
-    organisations:  [],
     temporals: {
-      startDate: "",
-      endDate: "",
-      dateType: "exact",
+      startDate: '',
+      endDate: '',
+      dateType: 'exact',
     },
   },
 
   organisationsPagination: {
-    limit:25,
-    page:1,
-    simpleSearchTerm: "",
+    limit: 25,
+    page: 1,
+    simpleSearchTerm: '',
   },
   organisationsRelationship: {
     classpieces: [],
@@ -92,20 +88,20 @@ export const defaultState = {
     spatials: [],
   },
   organisationsFilters: {
-    organisationType: "",
+    organisationType: '',
   },
 
   eventsPagination: {
-    limit:25,
-    page:1,
-    simpleSearchTerm: ""
+    limit: 25,
+    page: 1,
+    simpleSearchTerm: '',
   },
   eventsFilters: {
-    eventType: "",
+    eventType: '',
     temporals: {
-      startDate: "",
-      endDate: "",
-      dateType: "exact",
+      startDate: '',
+      endDate: '',
+      dateType: 'exact',
     },
   },
   eventsRelationship: {
@@ -118,9 +114,9 @@ export const defaultState = {
   },
 
   temporalsPagination: {
-    limit:25,
-    page:1,
-    simpleSearchTerm: "",
+    limit: 25,
+    page: 1,
+    simpleSearchTerm: '',
   },
   temporalsRelationship: {
     classpieces: [],
@@ -132,16 +128,16 @@ export const defaultState = {
   },
   temporalsFilters: {
     temporals: {
-      startDate: "",
-      endDate: "",
-      dateType: "exact",
+      startDate: '',
+      endDate: '',
+      dateType: 'exact',
     },
   },
 
   spatialsPagination: {
-    limit:25,
-    page:1,
-    simpleSearchTerm: "",
+    limit: 25,
+    page: 1,
+    simpleSearchTerm: '',
   },
 
   loadingClasspiecesRelationship: true,
@@ -192,5 +188,6 @@ export const defaultState = {
   temporals: [],
 
   loadingPeopleSources: true,
-  peopleSources: []
-}
+  peopleSources: [],
+};
+export default defaultState;

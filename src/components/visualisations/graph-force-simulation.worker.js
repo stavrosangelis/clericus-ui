@@ -1,33 +1,36 @@
-import * as d3 from "d3";
-import * as d32 from "d3-force-reuse";
+import * as d3 from 'd3';
 
-onmessage = async(e)=>{
+onmessage = async (e) => {
   if (!e.data.nodes) return;
-  let props = e.data;
-  let nodes = props.nodes;
-  let links = props.links;
+  const props = e.data;
+  const { nodes } = props;
+  const { links } = props;
   nodes[0].x = props.centerX;
   nodes[0].y = props.centerY;
-  let strength = -500;
-  const simulation = d3.forceSimulation(nodes)
-    .force("link",
-    d3.forceLink(links)
-        .id(d => d.id)
-        .strength(d=>1)
-        .distance(d=>300)
-      )
-    //.force("charge", d32.forceManyBodyReuse().strength(strength))
-    .force("center", d3.forceCenter(e.data.centerX, e.data.centerY))
+  const simulation = d3
+    .forceSimulation(nodes)
+    .force(
+      'link',
+      d3
+        .forceLink(links)
+        .id((d) => d.id)
+        .strength(() => 1)
+        .distance(() => 300)
+    )
+    // .force("charge", d32.forceManyBodyReuse().strength(strength))
+    .force('center', d3.forceCenter(e.data.centerX, e.data.centerY))
     .force('collide', d3.forceCollide(80))
     .alphaDecay(0.8)
     .stop();
 
-  let max = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay()));
-  for (let i = 0; i < max; i++) {
+  const max = Math.ceil(
+    Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())
+  );
+  for (let i = 0; i < max; i += 1) {
     simulation.tick();
   }
-  delete nodes['update']
+  delete nodes.update;
   simulation.stop();
-  const data = JSON.stringify({nodes: nodes, links:links});
-  postMessage({ data: data, finished: true });
+  const data = JSON.stringify({ nodes, links });
+  postMessage({ data, finished: true });
 };

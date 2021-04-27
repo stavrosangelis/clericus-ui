@@ -1,22 +1,33 @@
 import React, { Component, lazy, Suspense } from 'react';
 import axios from 'axios';
-import {
-  Spinner,
-  Card, CardBody,
-} from 'reactstrap';
+import { Label, Spinner, Card, CardBody } from 'reactstrap';
+import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 
-import {Link} from 'react-router-dom';
-import {Breadcrumbs} from '../components/breadcrumbs';
-import {getPersonThumbnailURL, updateDocumentTitle, jsonStringToObject,renderLoader} from '../helpers';
+import Breadcrumbs from '../components/breadcrumbs';
+import {
+  getPersonThumbnailURL,
+  updateDocumentTitle,
+  jsonStringToObject,
+  renderLoader,
+} from '../helpers';
 import defaultThumbnail from '../assets/images/spcc.jpg';
 import icpThumbnail from '../assets/images/icp-logo.jpg';
 
 const Viewer = lazy(() => import('../components/image-viewer-resource.js'));
-const DescriptionBlock = lazy(() => import('../components/item-blocks/description'));
-const ResourcesBlock = lazy(() => import('../components/item-blocks/resources'));
-const ClasspiecesBlock = lazy(() => import('../components/item-blocks/classpieces'));
+const DescriptionBlock = lazy(() =>
+  import('../components/item-blocks/description')
+);
+const ResourcesBlock = lazy(() =>
+  import('../components/item-blocks/resources')
+);
+const ClasspiecesBlock = lazy(() =>
+  import('../components/item-blocks/classpieces')
+);
 const EventsBlock = lazy(() => import('../components/item-blocks/events'));
-const OrganisationsBlock = lazy(() => import('../components/item-blocks/organisations'));
+const OrganisationsBlock = lazy(() =>
+  import('../components/item-blocks/organisations')
+);
 const PeopleBlock = lazy(() => import('../components/item-blocks/people'));
 
 class Person extends Component {
@@ -39,9 +50,9 @@ class Person extends Component {
       images: [],
       error: {
         visible: false,
-        text: []
-      }
-    }
+        text: [],
+      },
+    };
 
     this.load = this.load.bind(this);
     this.toggleTable = this.toggleTable.bind(this);
@@ -55,187 +66,297 @@ class Person extends Component {
     this.cancelSource = cancelToken.source();
   }
 
+  componentDidMount() {
+    this.load();
+  }
+
+  componentWillUnmount() {
+    this.cancelSource.cancel('api request cancelled');
+  }
+
   async load() {
-    let _id = this.props.match.params._id;
-    if (typeof _id==="undefined" || _id===null || _id==="") {
+    const { match } = this.props;
+    const { _id } = match.params;
+    if (typeof _id === 'undefined' || _id === null || _id === '') {
       return false;
     }
     this.setState({
-      loading: true
-    })
-    let params = {
-      _id: _id,
+      loading: true,
+    });
+    const params = {
+      _id,
     };
-    let url = process.env.REACT_APP_APIPATH+'ui-person';
-    let person = await axios({
+    const url = `${process.env.REACT_APP_APIPATH}ui-person`;
+    const person = await axios({
       method: 'get',
-      url: url,
+      url,
       crossDomain: true,
-      params: params,
-      cancelToken: this.cancelSource.token
+      params,
+      cancelToken: this.cancelSource.token,
     })
-	  .then(function (response) {
-      return response.data;
-	  })
-	  .catch(function (error) {
-	  });
-    if (typeof person!=="undefined") {
+      .then((response) => response.data)
+      .catch((error) => console.log(error));
+    if (typeof person !== 'undefined') {
       if (person.status) {
         this.setState({
           loading: false,
           item: person.data,
-          images: getPersonThumbnailURL(person.data)
+          images: getPersonThumbnailURL(person.data),
         });
-      }
-      else {
+      } else {
         this.setState({
           loading: false,
           error: {
             visible: true,
-            text: person.msg
-          }
+            text: person.msg,
+          },
         });
       }
     }
+    return false;
   }
 
-  toggleTable(e, dataType=null) {
-    let payload = {
-      [dataType+"Visible"]:!this.state[dataType+"Visible"]
-    }
+  toggleTable(e, dataType = null) {
+    const { [`${dataType}Visible`]: value } = this.state;
+    const payload = {
+      [`${dataType}Visible`]: !value,
+    };
     this.setState(payload);
   }
 
-  renderPersonDetails(stateData=null) {
-    let item = stateData.item;
+  toggleViewer() {
+    const { viewerVisible } = this.state;
+    this.setState({
+      viewerVisible: !viewerVisible,
+    });
+  }
 
-    //1. PersonDetails
-    let meta = [];
+  showThumbnail(index) {
+    this.setState({
+      thumbnailVisible: index,
+    });
+  }
+
+  renderPersonDetails(stateData = null) {
+    const { item } = stateData;
+    const {
+      appellationsVisible,
+      descriptionVisible,
+      classpiecesVisible,
+      resourcesVisible,
+      eventsVisible,
+      organisationsVisible,
+    } = this.state;
+    // 1. PersonDetails
+    const meta = [];
     let appellationsRow = [];
-    let appellationsHidden = "";
-    let appellationsVisibleClass = "";
-    if(!this.state.appellationsVisible){
-      appellationsHidden = " closed";
-      appellationsVisibleClass = "hidden";
+    let appellationsHidden = '';
+    let appellationsVisibleClass = '';
+    if (!appellationsVisible) {
+      appellationsHidden = ' closed';
+      appellationsVisibleClass = 'hidden';
     }
-    if (typeof item.alternateAppelations!=="undefined" && item.alternateAppelations!==null && item.alternateAppelations!=="" && item.alternateAppelations.length>0) {
-      let appellations = item.alternateAppelations.map((a,i)=>{
-        let obj = jsonStringToObject(a);
-        let label = "";
-        let lang = "";
-        let note = "";
-        if (obj.appelation!=="") {
-          label = obj.appelation
-        }
-        else {
+    if (
+      typeof item.alternateAppelations !== 'undefined' &&
+      item.alternateAppelations !== null &&
+      item.alternateAppelations !== '' &&
+      item.alternateAppelations.length > 0
+    ) {
+      const appellations = item.alternateAppelations.map((a, i) => {
+        const obj = jsonStringToObject(a);
+        let label = '';
+        let lang = '';
+        let note = '';
+        if (obj.appelation !== '') {
+          label = obj.appelation;
+        } else {
           label = obj.firstName;
-          if (obj.middleName!=="") {
-            if (label!=="") {
-              label += " ";
+          if (obj.middleName !== '') {
+            if (label !== '') {
+              label += ' ';
             }
             label += obj.middleName;
           }
-          if (obj.lastName!=="") {
-            if (label!=="") {
-              label += " ";
+          if (obj.lastName !== '') {
+            if (label !== '') {
+              label += ' ';
             }
             label += obj.lastName;
           }
         }
-        if (typeof obj.language!=="undefined" && typeof obj.language.label!=="undefined" && obj.language.label!=="") {
+        if (
+          typeof obj.language !== 'undefined' &&
+          typeof obj.language.label !== 'undefined' &&
+          obj.language.label !== ''
+        ) {
           lang = ` [${obj.language.label}]`;
         }
-        if (typeof obj.note!=="undefined" && obj.note!=="") {
-          note = <i>{" "+obj.note}</i>;
+        if (typeof obj.note !== 'undefined' && obj.note !== '') {
+          note = <i>{` ${obj.note}`}</i>;
         }
-        let output = <div key={i}>{label}{lang}{note}</div>;
-        return output;
-      })
-      appellationsRow = <div key="appellationsRow">
-        <h5>Alternate appellations
-          <div className="btn btn-default btn-xs pull-right toggle-info-btn" onClick={(e)=>{this.toggleTable(e,"appellations")}}>
-            <i className={"fa fa-angle-down"+appellationsHidden}/>
+        const key = `a${i}`;
+        const output = (
+          <div key={key}>
+            {label}
+            {lang}
+            {note}
           </div>
-        </h5>
-        <div className={appellationsVisibleClass}>{appellations}</div>
-      </div>;
+        );
+        return output;
+      });
+      appellationsRow = (
+        <div key="appellationsRow">
+          <h5>
+            Alternate appellations
+            <div
+              className="btn btn-default btn-xs pull-right toggle-info-btn"
+              onClick={(e) => {
+                this.toggleTable(e, 'appellations');
+              }}
+              onKeyDown={() => false}
+              role="button"
+              tabIndex={0}
+              aria-label="toggle appellations table"
+            >
+              <i className={`fa fa-angle-down${appellationsHidden}`} />
+            </div>
+          </h5>
+          <div className={appellationsVisibleClass}>{appellations}</div>
+        </div>
+      );
     }
 
     // description
     let descriptionRow = [];
-    let descriptionHidden = "";
-    let descriptionVisibleClass = "";
-    if(!this.state.descriptionVisible){
-      descriptionHidden = " closed";
-      descriptionVisibleClass = "hidden";
+    let descriptionHidden = '';
+    let descriptionVisibleClass = '';
+    if (!descriptionVisible) {
+      descriptionHidden = ' closed';
+      descriptionVisibleClass = 'hidden';
     }
-    if (typeof item.description!=="undefined" && item.description!==null && item.description!=="") {
-      descriptionRow = <Suspense fallback={renderLoader()} key="description">
-        <DescriptionBlock toggleTable={this.toggleTable} hidden={descriptionHidden} visible={descriptionVisibleClass} description={item.description}/>
-      </Suspense>
+    if (
+      typeof item.description !== 'undefined' &&
+      item.description !== null &&
+      item.description !== ''
+    ) {
+      descriptionRow = (
+        <Suspense fallback={renderLoader()} key="description">
+          <DescriptionBlock
+            toggleTable={this.toggleTable}
+            hidden={descriptionHidden}
+            visible={descriptionVisibleClass}
+            description={item.description}
+          />
+        </Suspense>
+      );
     }
 
     // classpieces
     let classpiecesRow = [];
-    let classpiecesHidden = "";
-    let classpiecesVisibleClass = "";
-    if(!this.state.classpiecesVisible){
-      classpiecesHidden = " closed";
-      classpiecesVisibleClass = "hidden";
+    let classpiecesHidden = '';
+    let classpiecesVisibleClass = '';
+    if (!classpiecesVisible) {
+      classpiecesHidden = ' closed';
+      classpiecesVisibleClass = 'hidden';
     }
-    if (typeof item.classpieces!=="undefined" && item.classpieces!==null && item.classpieces!=="") {
-      classpiecesRow = <Suspense fallback={renderLoader()} key="classpieces">
-        <ClasspiecesBlock toggleTable={this.toggleTable} hidden={classpiecesHidden} visible={classpiecesVisibleClass} items={item.classpieces} />
-      </Suspense>
+    if (
+      typeof item.classpieces !== 'undefined' &&
+      item.classpieces !== null &&
+      item.classpieces !== ''
+    ) {
+      classpiecesRow = (
+        <Suspense fallback={renderLoader()} key="classpieces">
+          <ClasspiecesBlock
+            toggleTable={this.toggleTable}
+            hidden={classpiecesHidden}
+            visible={classpiecesVisibleClass}
+            items={item.classpieces}
+          />
+        </Suspense>
+      );
     }
 
     // resources
     let resourcesRow = [];
-    let resourcesHidden = "";
-    let resourcesVisibleClass = "";
-    if(!this.state.resourcesVisible){
-      resourcesHidden = " closed";
-      resourcesVisibleClass = "hidden";
+    let resourcesHidden = '';
+    let resourcesVisibleClass = '';
+    if (!resourcesVisible) {
+      resourcesHidden = ' closed';
+      resourcesVisibleClass = 'hidden';
     }
-    if (typeof item.resources!=="undefined" && item.resources!==null && item.resources!=="") {
-      resourcesRow = <Suspense fallback={renderLoader()} key="resources">
-        <ResourcesBlock toggleTable={this.toggleTable} hidden={resourcesHidden} visible={resourcesVisibleClass} resources={item.resources} />
-      </Suspense>
+    if (
+      typeof item.resources !== 'undefined' &&
+      item.resources !== null &&
+      item.resources !== ''
+    ) {
+      resourcesRow = (
+        <Suspense fallback={renderLoader()} key="resources">
+          <ResourcesBlock
+            toggleTable={this.toggleTable}
+            hidden={resourcesHidden}
+            visible={resourcesVisibleClass}
+            resources={item.resources}
+          />
+        </Suspense>
+      );
     }
 
     // events
     let eventsRow = [];
-    let eventsHidden = "";
-    let eventsVisibleClass = "";
-    if(!this.state.eventsVisible){
-      eventsHidden = " closed";
-      eventsVisibleClass = "hidden";
+    let eventsHidden = '';
+    let eventsVisibleClass = '';
+    if (!eventsVisible) {
+      eventsHidden = ' closed';
+      eventsVisibleClass = 'hidden';
     }
-    if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
-      eventsRow = <Suspense fallback={renderLoader()} key="events">
-        <EventsBlock toggleTable={this.toggleTable} hidden={eventsHidden} visible={eventsVisibleClass} events={item.events} />
-      </Suspense>
+    if (
+      typeof item.events !== 'undefined' &&
+      item.events !== null &&
+      item.events !== ''
+    ) {
+      eventsRow = (
+        <Suspense fallback={renderLoader()} key="events">
+          <EventsBlock
+            toggleTable={this.toggleTable}
+            hidden={eventsHidden}
+            visible={eventsVisibleClass}
+            events={item.events}
+          />
+        </Suspense>
+      );
     }
 
     // organisations
     let organisationsRow = [];
-    let organisationsHidden = "";
-    let organisationsVisibleClass = "";
-    if(!this.state.organisationsVisible){
-      organisationsHidden = " closed";
-      organisationsVisibleClass = "hidden";
+    let organisationsHidden = '';
+    let organisationsVisibleClass = '';
+    if (!organisationsVisible) {
+      organisationsHidden = ' closed';
+      organisationsVisibleClass = 'hidden';
     }
-    if (typeof item.organisations!=="undefined" && item.organisations!==null && item.organisations!=="") {
-      organisationsRow = <Suspense fallback={renderLoader()} key="organisations">
-        <OrganisationsBlock toggleTable={this.toggleTable} hidden={organisationsHidden} visible={organisationsVisibleClass} organisations={item.organisations} />
-      </Suspense>
+    if (
+      typeof item.organisations !== 'undefined' &&
+      item.organisations !== null &&
+      item.organisations !== ''
+    ) {
+      organisationsRow = (
+        <Suspense fallback={renderLoader()} key="organisations">
+          <OrganisationsBlock
+            toggleTable={this.toggleTable}
+            hidden={organisationsHidden}
+            visible={organisationsVisibleClass}
+            organisations={item.organisations}
+          />
+        </Suspense>
+      );
     }
-
 
     // people
-    let peopleRow = <Suspense fallback={renderLoader()} key="people">
-      <PeopleBlock name="person" peopleItem={item.people} />
-    </Suspense>
+    const peopleRow = (
+      <Suspense fallback={renderLoader()} key="people">
+        <PeopleBlock name="person" peopleItem={item.people} />
+      </Suspense>
+    );
 
     meta.push(appellationsRow);
     meta.push(descriptionRow);
@@ -249,195 +370,300 @@ class Person extends Component {
   }
 
   renderThumbnails(thumbnailURLs, label) {
-    let images = thumbnailURLs.thumbnails.map((t,i)=>{
-      let visible = " hidden";
-      if (i===this.state.thumbnailVisible) {
-        visible = "";
+    const { thumbnailVisible } = this.state;
+    const images = thumbnailURLs.thumbnails.map((t, i) => {
+      let visible = ' hidden';
+      if (i === thumbnailVisible) {
+        visible = '';
       }
-      return <img key={i} src={t} className={"people-thumbnail img-fluid img-thumbnail person-thumbnailImage"+visible} alt={label} onClick={()=>this.toggleViewer()}/>
+      const key = `a${i}`;
+      return (
+        <div
+          key={key}
+          onClick={() => this.toggleViewer()}
+          onKeyDown={() => false}
+          role="button"
+          tabIndex={0}
+          aria-label="toggle image viewer"
+        >
+          <img
+            src={t}
+            className={`people-thumbnail img-fluid img-thumbnail person-thumbnailImage${visible}`}
+            alt={label}
+          />
+        </div>
+      );
     });
     let navigation = [];
-    let prevIndex = this.state.thumbnailVisible-1;
-    let nextIndex = this.state.thumbnailVisible+1;
-    if (prevIndex<0) {
-      prevIndex = thumbnailURLs.thumbnails.length-1;
+    let prevIndex = thumbnailVisible - 1;
+    let nextIndex = thumbnailVisible + 1;
+    if (prevIndex < 0) {
+      prevIndex = thumbnailURLs.thumbnails.length - 1;
     }
-    if (nextIndex>=thumbnailURLs.thumbnails.length) {
+    if (nextIndex >= thumbnailURLs.thumbnails.length) {
       nextIndex = 0;
     }
-    if (thumbnailURLs.thumbnails.length>1) {
-      navigation = <div className="item-thumbnails-nav">
-        <div className="left" onClick={()=>this.showThumbnail(prevIndex)}>
-          <i className="fa fa-chevron-left"/>
+    if (thumbnailURLs.thumbnails.length > 1) {
+      navigation = (
+        <div className="item-thumbnails-nav">
+          <div
+            className="left"
+            onClick={() => this.showThumbnail(prevIndex)}
+            onKeyDown={() => false}
+            role="button"
+            tabIndex={0}
+            aria-label="show next"
+          >
+            <i className="fa fa-chevron-left" />
+          </div>
+          <div
+            className="right"
+            onClick={() => this.showThumbnail(nextIndex)}
+            onKeyDown={() => false}
+            role="button"
+            tabIndex={0}
+            aria-label="show previous"
+          >
+            <i className="fa fa-chevron-right" />
+          </div>
         </div>
-        <div className="right" onClick={()=>this.showThumbnail(nextIndex)}>
-          <i className="fa fa-chevron-right"/>
-        </div>
-      </div>
+      );
     }
-    let block = <div className="item-thumbnails" onContextMenu={(e)=>{e.preventDefault();return false;}}>{images}{navigation}</div>
+    const block = (
+      <div
+        className="item-thumbnails"
+        onContextMenu={(e) => {
+          e.preventDefault();
+          return false;
+        }}
+      >
+        {images}
+        {navigation}
+      </div>
+    );
     return block;
   }
 
-  showThumbnail(index) {
-    this.setState({
-      thumbnailVisible: index
-    });
-  }
-
-  renderItem(stateData=null) {
-    let item = stateData.item;
-
-    //1.1 thumbnailImage
+  renderItem(stateData = null) {
+    const { item } = stateData;
+    const { images, thumbnailVisible, viewerVisible } = this.state;
+    // 1.1 thumbnailImage
     let label = item.firstName;
     let imgViewer = [];
     let thumbnailImage = [];
-    let thumbnailURLs = this.state.images;
-    if (typeof thumbnailURLs.thumbnails!=="undefined" && thumbnailURLs.thumbnails.length>0) {
+    const thumbnailURLs = images;
+    if (
+      typeof thumbnailURLs.thumbnails !== 'undefined' &&
+      thumbnailURLs.thumbnails.length > 0
+    ) {
       thumbnailImage = this.renderThumbnails(thumbnailURLs, label);
       let length = 0;
-      let path = "";
-      if (typeof this.state.images.fullsize!=="undefined") {
-        path = this.state.images.fullsize[this.state.thumbnailVisible];
-        length = this.state.images.fullsize.length;
+      let path = '';
+      if (typeof images.fullsize !== 'undefined') {
+        path = images.fullsize[thumbnailVisible];
+        length = images.fullsize.length;
       }
-      imgViewer = <Suspense fallback={renderLoader()}>
-        <Viewer
-          visible={this.state.viewerVisible}
-          label={label}
-          toggle={this.toggleViewer}
-          path={path}
-          length={length}
-          index={this.state.thumbnailVisible}
-          setIndex={this.showThumbnail}
-        />
-      </Suspense>
-    }
-    else {
-      let isinICP = item.resources.find(i=>i.ref.label.includes("Liam Chambers and Sarah Frank")) || null;
+      imgViewer = (
+        <Suspense fallback={renderLoader()}>
+          <Viewer
+            visible={viewerVisible}
+            label={label}
+            toggle={this.toggleViewer}
+            path={path}
+            length={length}
+            index={thumbnailVisible}
+            setIndex={this.showThumbnail}
+          />
+        </Suspense>
+      );
+    } else {
+      const isinICP =
+        item.resources.find((i) =>
+          i.ref.label.includes('Liam Chambers and Sarah Frank')
+        ) || null;
       if (isinICP) {
-        thumbnailImage = <img src={icpThumbnail} className="people-thumbnail img-fluid img-thumbnail person-thumbnailImage" alt={label} onContextMenu={(e)=>{e.preventDefault();return false;}}/>;
-      }
-      else {
-        thumbnailImage = <img src={defaultThumbnail} className="people-thumbnail img-fluid img-thumbnail person-thumbnailImage" alt={label} onContextMenu={(e)=>{e.preventDefault();return false;}}/>;
+        thumbnailImage = (
+          <img
+            src={icpThumbnail}
+            className="people-thumbnail img-fluid img-thumbnail person-thumbnailImage"
+            alt={label}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              return false;
+            }}
+          />
+        );
+      } else {
+        thumbnailImage = (
+          <img
+            src={defaultThumbnail}
+            className="people-thumbnail img-fluid img-thumbnail person-thumbnailImage"
+            alt={label}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              return false;
+            }}
+          />
+        );
       }
     }
-    //1.2 label
-    if (typeof item.middleName!=="undefined" && item.middleName!==null && item.middleName!=="") {
-      label += " "+item.middleName;
+    // 1.2 label
+    if (
+      typeof item.middleName !== 'undefined' &&
+      item.middleName !== null &&
+      item.middleName !== ''
+    ) {
+      label += ` ${item.middleName}`;
     }
-    label += " "+item.lastName;
-    if (item.honorificPrefix.length>0) {
-      let labelHP = item.honorificPrefix.filter(i=>i!=="").join(", ");
-      if (labelHP!=="") {
+    label += ` ${item.lastName}`;
+    if (item.honorificPrefix.length > 0) {
+      let labelHP = item.honorificPrefix.filter((i) => i !== '').join(', ');
+      if (labelHP !== '') {
         labelHP = `(${labelHP})`;
       }
       label = `${labelHP} ${label}`;
     }
 
-    //2.1 meta
-    let metaTable = this.renderPersonDetails(stateData);
-    let output = <div className="person-container">
-      <h3>{label}</h3>
-      <div className="row person-info-container">
-        <div className="col-xs-12 col-sm-6 col-md-5">
-          {thumbnailImage}
-        </div>
-        <div className="col-xs-12 col-sm-6 col-md-7">
-          <div className="person-details-container">
-            {metaTable}
+    // 2.1 meta
+    const metaTable = this.renderPersonDetails(stateData);
+    const output = (
+      <div className="person-container">
+        <h3>{label}</h3>
+        <div className="row person-info-container">
+          <div className="col-xs-12 col-sm-6 col-md-5">{thumbnailImage}</div>
+          <div className="col-xs-12 col-sm-6 col-md-7">
+            <div className="person-details-container">{metaTable}</div>
           </div>
         </div>
+        {imgViewer}
       </div>
-      {imgViewer}
-    </div>
+    );
     return output;
   }
 
-  toggleViewer() {
-    this.setState({
-      viewerVisible: !this.state.viewerVisible
-    });
-  }
-
-  componentDidMount() {
-    this.load();
-  }
-
-  componentWillUnmount() {
-    this.cancelSource.cancel('api request cancelled');
-  }
-
   render() {
-    let content = <div>
-      <div className="row">
-        <div className="col-12">
-          <div style={{padding: '40pt',textAlign: 'center'}}>
-            <Spinner type="grow" color="info" /> <i>loading...</i>
+    const { loading, item, error } = this.state;
+    const { match } = this.props;
+    let content = (
+      <div>
+        <div className="row">
+          <div className="col-12">
+            <div style={{ padding: '40pt', textAlign: 'center' }}>
+              <Spinner type="grow" color="info" /> <i>loading...</i>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    );
 
-    let label = "";
-    let breadcrumbsItems = [{label: "People", icon: "pe-7s-users", active: false, path: "/people"}];
-    if (!this.state.loading) {
-      if (this.state.item!==null) {
-        let personCard = this.renderItem(this.state);
+    let label = '';
+    const breadcrumbsItems = [
+      { label: 'People', icon: 'pe-7s-users', active: false, path: '/people' },
+    ];
+    if (!loading) {
+      if (item !== null) {
+        const personCard = this.renderItem(this.state);
         let timelineLink = [];
-        if (this.state.item.events.length>0) {
-          let timelinkURL = `/item-timeline/person/${this.props.match.params._id}`
-          timelineLink = <div className="col-xs-12 col-sm-4">
-            <Link href={timelinkURL} to={timelinkURL} className="person-component-link" title="Person graph timeline"><i className="pe-7s-hourglass" /></Link>
-            <Link href={timelinkURL} to={timelinkURL} className="person-component-link-label" title="Resource graph timeline"><label>Timeline</label></Link>
+        if (item.events.length > 0) {
+          const timelinkURL = `/item-timeline/person/${match.params._id}`;
+          timelineLink = (
+            <div className="col-xs-12 col-sm-4">
+              <Link
+                href={timelinkURL}
+                to={timelinkURL}
+                className="person-component-link"
+                title="Person graph timeline"
+              >
+                <i className="pe-7s-hourglass" />
+              </Link>
+              <Link
+                href={timelinkURL}
+                to={timelinkURL}
+                className="person-component-link-label"
+                title="Resource graph timeline"
+              >
+                <Label>Timeline</Label>
+              </Link>
+            </div>
+          );
+        }
+        const networkGraphLinkURL = `/person-graph/${match.params._id}`;
+        const networkGraphLink = (
+          <div className="col-xs-12 col-sm-4">
+            <Link
+              href={networkGraphLinkURL}
+              to={networkGraphLinkURL}
+              className="person-component-link"
+              title="Person graph network"
+            >
+              <i className="pe-7s-graph1" />
+            </Link>
+            <Link
+              href={networkGraphLinkURL}
+              to={networkGraphLinkURL}
+              className="person-component-link-label"
+              title="Resource graph network"
+            >
+              <Label>Network graph</Label>
+            </Link>
           </div>
-        }
-        let networkGraphLinkURL = `/person-graph/${this.props.match.params._id}`;
-        let networkGraphLink = <div className="col-xs-12 col-sm-4">
-          <Link href={networkGraphLinkURL} to={networkGraphLinkURL} className="person-component-link" title="Person graph network"><i className="pe-7s-graph1" /></Link>
-          <Link href={networkGraphLinkURL} to={networkGraphLinkURL} className="person-component-link-label" title="Resource graph network"><label>Network graph</label></Link>
-        </div>
-        content = <div>
-          <Card>
-            <CardBody>
-              <div className="row">
-                <div className="col-12">
-                  {personCard}
+        );
+        content = (
+          <div>
+            <Card>
+              <CardBody>
+                <div className="row">
+                  <div className="col-12">{personCard}</div>
                 </div>
-              </div>
-              <div className="row">
-                {timelineLink}
-                {networkGraphLink}
-              </div>
-            </CardBody>
-          </Card>
-        </div>
+                <div className="row">
+                  {timelineLink}
+                  {networkGraphLink}
+                </div>
+              </CardBody>
+            </Card>
+          </div>
+        );
 
-        label = this.state.item.firstName;
-        if (typeof this.state.item.middleName!=="undefined" && this.state.item.middleName!==null && this.state.item.middleName!=="") {
-          label += " "+this.state.item.middleName;
+        label = item.firstName;
+        if (
+          typeof item.middleName !== 'undefined' &&
+          item.middleName !== null &&
+          item.middleName !== ''
+        ) {
+          label += ` ${item.middleName}`;
         }
-        label += " "+this.state.item.lastName;
-        breadcrumbsItems.push({label: label, icon: "pe-7s-user", active: true, path: ""});
-        let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+        label += ` ${item.lastName}`;
+        breadcrumbsItems.push({
+          label,
+          icon: 'pe-7s-user',
+          active: true,
+          path: '',
+        });
+        const documentTitle = breadcrumbsItems.map((i) => i.label).join(' / ');
         updateDocumentTitle(documentTitle);
-      }
-      else if (this.state.error.visible){
-        breadcrumbsItems.push({label: this.state.error.text, icon: "fa fa-times", active: true, path: ""});
-        let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+      } else if (error.visible) {
+        breadcrumbsItems.push({
+          label: error.text,
+          icon: 'fa fa-times',
+          active: true,
+          path: '',
+        });
+        const documentTitle = breadcrumbsItems.map((i) => i.label).join(' / ');
         updateDocumentTitle(documentTitle);
-        content = <div>
-          <Card>
-            <CardBody>
-              <div className="row">
-                <div className="col-12">
-                  <h3>Error</h3>
-                  <p>{this.state.error.text}</p>
+        content = (
+          <div>
+            <Card>
+              <CardBody>
+                <div className="row">
+                  <div className="col-12">
+                    <h3>Error</h3>
+                    <p>{error.text}</p>
+                  </div>
                 </div>
-              </div>
-            </CardBody>
-          </Card>
-        </div>
+              </CardBody>
+            </Card>
+          </div>
+        );
       }
     }
     return (
@@ -445,9 +671,15 @@ class Person extends Component {
         <Breadcrumbs items={breadcrumbsItems} />
         {content}
       </div>
-    )
-
+    );
   }
 }
+
+Person.defaultProps = {
+  match: null,
+};
+Person.propTypes = {
+  match: PropTypes.object,
+};
 
 export default Person;

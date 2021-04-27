@@ -1,49 +1,63 @@
 import React from 'react';
+import { Label } from 'reactstrap';
 
-export const parseMetadata = (metadata) => {
-  if (metadata===null) {
+const parseMetadataItems = (metaItems) => {
+  let i = 0;
+  const items = [];
+  for (let metaKey = 0; metaKey < metaItems.length; metaKey += 1) {
+    const value = metaItems[metaKey];
+    let newRow = [];
+    if (typeof value !== 'object') {
+      newRow = (
+        <div key={i}>
+          <Label>{metaKey}</Label> : {metaItems[metaKey]}
+        </div>
+      );
+    } else {
+      const newRows = (
+        <div className="list-items">{parseMetadataItems(value)}</div>
+      );
+      newRow = (
+        <div key={i}>
+          <div className="metadata-title">{metaKey}</div>
+          {newRows}
+        </div>
+      );
+    }
+    items.push(newRow);
+    i += 1;
+  }
+  return items;
+};
+
+const parseMetadata = (metadata) => {
+  if (metadata === null) {
     return false;
   }
-  let metadataOutput = [];
+  const metadataOutput = [];
   let i = 0;
-  for (let key in metadata) {
-    let metaItems = metadata[key];
+  for (let key = 0; key < metadata.length; key += 1) {
+    const metaItems = metadata[key];
     let metadataOutputItems = [];
-    if (metaItems!==null && typeof metaItems.length==="undefined") {
+    if (metaItems !== null && typeof metaItems.length === 'undefined') {
       metadataOutputItems = parseMetadataItems(metaItems);
+    } else if (metaItems !== null) {
+      const newItems = parseMetadata(metaItems[0]);
+      metadataOutputItems.push(newItems);
     }
-    else {
-      if (metaItems!==null) {
-        let newItems = parseMetadata(metaItems[0]);
-        metadataOutputItems.push(newItems)
-      }
-    }
-    metadataOutputItems = <div className="list-items">{metadataOutputItems}</div>;
-    let metaRow = <div key={i}>
+    metadataOutputItems = (
+      <div className="list-items">{metadataOutputItems}</div>
+    );
+    const metaRow = (
+      <div key={i}>
         <div className="metadata-title">{key}</div>
         {metadataOutputItems}
       </div>
+    );
     metadataOutput.push(metaRow);
-    i++;
+    i += 1;
   }
   return metadataOutput;
-}
+};
 
-const parseMetadataItems = (metaItems) => {
-  let i=0;
-  let items = [];
-  for (let metaKey in metaItems) {
-    let value = metaItems[metaKey];
-    let newRow = [];
-    if (typeof value!=="object") {
-      newRow = <div key={i}><label>{metaKey}</label> : {metaItems[metaKey]}</div>
-    }
-    else {
-      let newRows = <div className="list-items">{parseMetadataItems(value)}</div>;
-      newRow = <div key={i}><div className="metadata-title">{metaKey}</div>{newRows}</div>
-    }
-    items.push(newRow);
-    i++
-  }
-  return items;
-}
+export default parseMetadata;

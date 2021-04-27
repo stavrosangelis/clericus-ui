@@ -1,116 +1,119 @@
-import React, { Component } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
+import PropTypes from 'prop-types';
 
-import {connect} from "react-redux";
-
-const mapStateToProps = state => {
-  return {
-    genericStatsLoading: state.genericStatsLoading,
-    genericStats: state.genericStats,
-   };
-};
-
-class SectionNumbers extends Component {
-  _isMounted = false;
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      peopleCount: 0,
-      resourcesCount: 0,
-      diocesesCount: 0,
-      uniqueLastNamesCount: 0,
-      intervals: []
-    }
-
-    this.count = this.count.bind(this);
-    this.animateValue = this.animateValue.bind(this);
-    this.peopleCountRef = React.createRef();
-    this.resourcesCountRef = React.createRef();
-    this.diocesesCountRef = React.createRef();
-    this.uniqueLastNamesCountRef = React.createRef();
-  }
-
-  count() {
-    let stats = this.props.genericStats;
-    this.animateValue(this.peopleCountRef, 0, stats.people, 1500);
-    this.animateValue(this.resourcesCountRef, 0, stats.resources, 1500);
-    this.animateValue(this.diocesesCountRef, 0, stats.dioceses, 1500);
-    this.animateValue(this.uniqueLastNamesCountRef, 0, stats.lastNames, 1500);
-  }
-
-  animateValue(ref, start, end, duration) {
-    var obj = ref.current;
-    var range = end - start;
-    var minTimer = 50;
-    var stepTime = Math.abs(Math.floor(duration / range));
+const animateValue = (ref, start, end, duration) => {
+  const obj = ref.current;
+  if (obj !== null) {
+    const range = end - start;
+    const minTimer = 50;
+    let stepTime = Math.abs(Math.floor(duration / range));
     stepTime = Math.max(stepTime, minTimer);
-    var startTime = new Date().getTime();
-    var endTime = startTime + duration;
-    var timer;
+    const startTime = new Date().getTime();
+    const endTime = startTime + duration;
+    let timer;
 
     const run = () => {
-      var now = new Date().getTime();
-      var remaining = Math.max((endTime - now) / duration, 0);
-      var value = Math.round(end - (remaining * range));
+      const now = new Date().getTime();
+      const remaining = Math.max((endTime - now) / duration, 0);
+      const remainingRange = remaining * range;
+      const value = Math.round(end - remainingRange);
       obj.innerHTML = value;
       if (value === end) {
-          clearInterval(timer);
+        clearInterval(timer);
       }
-    }
+    };
 
     timer = setInterval(run, stepTime);
     run();
   }
+};
 
-  componentDidMount() {
-    this._isMounted = true;
-    if (this.props.genericStats!==null) {
-      this.count();
+const SectionNumbers = () => {
+  // state
+  /* const [peopleCount, setPeopleCount] = useState(0);
+  const [resourcesCount, setResourcesCount] = useState(0);
+  const [diocesesCount, setDiocesesCount] = useState(0);
+  const [uniqueLastNamesCount, setUniqueLastNamesCount] = useState(0);
+  */
+  // props
+  const genericStats = useSelector((state) => state.genericStats);
+
+  // refs
+  const peopleCountRef = useRef(null);
+  const resourcesCountRef = useRef(null);
+  const diocesesCountRef = useRef(null);
+  const uniqueLastNamesCountRef = useRef(null);
+
+  const count = useCallback(() => {
+    // const { people, resources, dioceses, lastNames } = genericStats;
+    animateValue(peopleCountRef, 0, genericStats.people, 1500);
+    animateValue(resourcesCountRef, 0, genericStats.resources, 1500);
+    animateValue(diocesesCountRef, 0, genericStats.dioceses, 1500);
+    animateValue(uniqueLastNamesCountRef, 0, genericStats.lastNames, 1500);
+  }, [genericStats]);
+
+  useEffect(() => {
+    if (genericStats !== null) {
+      count();
     }
-  }
+  }, [genericStats, count]);
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevProps.genericStats!==this.props.genericStats) {
-      this.count();
-    }
-  }
-
-  componentWillUnmount() {
-    this._isMounted = false;
-  }
-
-  render() {
-    return(
-      <section className="section-numbers">
-        <div className="section-numbers-bg"></div>
-        <div className="section-numbers-bg-gradient"></div>
-        <div className="container section-numbers-content">
-          <div className="row numbers-row">
-            <div className="col-xs-12 col-sm-6 col-md-3 home-count">
-              <i className="pe-7s-users" />
-              <label ref={this.peopleCountRef}>{this.state.peopleCount}</label>
-              <span>Total people</span>
+  return (
+    <section className="section-numbers">
+      <div className="section-numbers-bg" />
+      <div className="section-numbers-bg-gradient" />
+      <div className="container section-numbers-content">
+        <div className="row numbers-row">
+          <div className="col-xs-12 col-sm-6 col-md-3 home-count">
+            <i className="pe-7s-users" />
+            <div className="home-count-label" ref={peopleCountRef}>
+              0
             </div>
-            <div className="col-xs-12 col-sm-6 col-md-3 home-count">
-              <i className="pe-7s-photo" />
-              <label ref={this.resourcesCountRef}>{this.state.resourcesCount}</label>
-              <span>Total resources</span>
+            <span>Total people</span>
+          </div>
+          <div className="col-xs-12 col-sm-6 col-md-3 home-count">
+            <i className="pe-7s-photo" />
+            <div className="home-count-label" ref={resourcesCountRef}>
+              0
             </div>
-            <div className="col-xs-12 col-sm-6 col-md-3 home-count">
-              <i className="pe-7s-map-2" />
-              <label ref={this.diocesesCountRef}>{this.state.diocesesCount}</label>
-              <span>Total dioceses</span>
+            <span>Total resources</span>
+          </div>
+          <div className="col-xs-12 col-sm-6 col-md-3 home-count">
+            <i className="pe-7s-map-2" />
+            <div className="home-count-label" ref={diocesesCountRef}>
+              0
             </div>
-            <div className="col-xs-12 col-sm-6 col-md-3 home-count">
-              <i className="pe-7s-id" />
-              <label ref={this.uniqueLastNamesCountRef}>{this.state.uniqueLastNamesCount}</label>
-              <span>Total unique last names</span>
+            <span>Total dioceses</span>
+          </div>
+          <div className="col-xs-12 col-sm-6 col-md-3 home-count">
+            <i className="pe-7s-id" />
+            <div className="home-count-label" ref={uniqueLastNamesCountRef}>
+              0
             </div>
+            <span>Total unique last names</span>
           </div>
         </div>
-      </section>
-    );
-  }
-}
+      </div>
+    </section>
+  );
+};
 
-export default SectionNumbers = connect(mapStateToProps, {})(SectionNumbers);
+SectionNumbers.defaultProps = {
+  genericStats: {
+    people: 0,
+    resources: 0,
+    dioceses: 0,
+    lastNames: 0,
+  },
+};
+SectionNumbers.propTypes = {
+  genericStats: PropTypes.shape({
+    people: PropTypes.number,
+    resources: PropTypes.number,
+    dioceses: PropTypes.number,
+    lastNames: PropTypes.number,
+  }),
+};
+
+export default SectionNumbers;

@@ -1,8 +1,7 @@
-import React, {Component} from 'react';
-import {
-  Button,
-  Input
-} from 'reactstrap';
+import React, { Component } from 'react';
+import { Button, Input } from 'reactstrap';
+import PropTypes from 'prop-types';
+
 export default class AdvancedSearchFormRow extends Component {
   constructor(props) {
     super(props);
@@ -12,86 +11,136 @@ export default class AdvancedSearchFormRow extends Component {
   }
 
   handleSearchSelectChange(e) {
-    let target = e.target;
-    let value = target.type === 'checkbox' ? target.checked : target.value;
+    const { target } = e;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const {
+      handleAdvancedSearchChange,
+      rowId,
+      searchElements,
+      updateAdvancedSearchInputContent,
+    } = this.props;
+    handleAdvancedSearchChange(e, rowId);
 
-    this.props.handleAdvancedSearchChange(e,this.props.rowId);
-
-    let searchTermRow = this.props.searchElements.find(el=>el.element===value);
-    let searchTermRowIndex = this.props.searchElements.indexOf(searchTermRow);
-    let inputValue = ""
-    if(this.props.searchElements[searchTermRowIndex].inputType==="select") {
-      inputValue = this.props.searchElements[searchTermRowIndex].inputData[0].value;
+    const searchTermRow = searchElements.find((el) => el.element === value);
+    const searchTermRowIndex = searchElements.indexOf(searchTermRow);
+    let inputValue = '';
+    if (searchElements[searchTermRowIndex].inputType === 'select') {
+      inputValue = searchElements[searchTermRowIndex].inputData[0].value;
     }
 
-    this.props.updateAdvancedSearchInputContent(this.props.rowId, "input", inputValue);
+    updateAdvancedSearchInputContent(rowId, 'input', inputValue);
   }
 
   renderSearchTerm() {
-    let selectItem = this.props.searchSelect;
-    let searchTermRow = this.props.searchElements.find(el=>el.element===selectItem);
-    let searchTermRowIndex = this.props.searchElements.indexOf(searchTermRow);
-    let optionData = null
-    if(this.props.searchElements[searchTermRowIndex].inputData !== null) {
-      optionData = this.props.searchElements[searchTermRowIndex].inputData.map(dataItem=>{
-        return <option key={dataItem.value} value={dataItem.value}>{dataItem.label}</option>
-      })
+    const {
+      searchSelect,
+      searchElements,
+      searchInput,
+      handleAdvancedSearchChange,
+      rowId,
+    } = this.props;
+    const selectItem = searchSelect;
+    const searchTermRow = searchElements.find(
+      (el) => el.element === selectItem
+    );
+    const searchTermRowIndex = searchElements.indexOf(searchTermRow);
+    let optionData = null;
+    if (searchElements[searchTermRowIndex].inputData !== null) {
+      optionData = searchElements[searchTermRowIndex].inputData.map(
+        (dataItem) => (
+          <option key={dataItem.value} value={dataItem.value}>
+            {dataItem.label}
+          </option>
+        )
+      );
     }
 
-    let classNameType = "";
-    let inputValue = this.props.searchInput;
-    if(this.props.searchElements[searchTermRowIndex].inputType==="text") {
-      classNameType = "advanced-search-input";
-    }else if(this.props.searchElements[searchTermRowIndex].inputType==="select") {
-      classNameType = "advanced-search-select";
-      //inputValue = stateData.input;
+    let classNameType = '';
+    const inputValue = searchInput;
+    if ([searchTermRowIndex].inputType === 'text') {
+      classNameType = 'advanced-search-input';
+    } else if (searchElements[searchTermRowIndex].inputType === 'select') {
+      classNameType = 'advanced-search-select';
+      // inputValue = stateData.input;
     }
 
-    return <div className={classNameType}>
-      <Input
-        placeholder="Search term..."
-        type={this.props.searchElements[searchTermRowIndex].inputType}
-        name="input"
-        value={inputValue}
-        onChange={(e)=>this.props.handleAdvancedSearchChange(e,this.props.rowId)}>
-      {optionData}
-      </Input>
-    </div>
+    return (
+      <div className={classNameType}>
+        <Input
+          placeholder="Search term..."
+          type={searchElements[searchTermRowIndex].inputType}
+          name="input"
+          value={inputValue}
+          onChange={(e) => handleAdvancedSearchChange(e, rowId)}
+        >
+          {optionData}
+        </Input>
+      </div>
+    );
   }
 
   render() {
-    let button = <Button size="sm" color="secondary" outline type="button" onClick={this.props.addAdvancedSearchRow}>
-      <i className="fa fa-plus" />
-    </Button>
-    if (!this.props.default) {
-      button = <Button size="sm" color="secondary" outline type="button" onClick={()=>this.props.removeAdvancedSearchRow(this.props.rowId)}>
-        <i className="fa fa-minus" />
+    const {
+      addAdvancedSearchRow,
+      default: defaultRow,
+      removeAdvancedSearchRow,
+      rowId,
+      searchSelect,
+      availableElements,
+      searchQualifier,
+      handleAdvancedSearchChange,
+      searchBoolean,
+    } = this.props;
+    let button = (
+      <Button
+        size="sm"
+        color="secondary"
+        outline
+        type="button"
+        onClick={addAdvancedSearchRow}
+      >
+        <i className="fa fa-plus" />
       </Button>
+    );
+    if (!defaultRow) {
+      button = (
+        <Button
+          size="sm"
+          color="secondary"
+          outline
+          type="button"
+          onClick={() => removeAdvancedSearchRow(rowId)}
+        >
+          <i className="fa fa-minus" />
+        </Button>
+      );
     }
 
-    let searchTerm = this.renderSearchTerm();
+    const searchTerm = this.renderSearchTerm();
 
-    return(
+    return (
       <div className="advanced-search-row">
         <div className="advanced-search-select">
           <Input
             type="select"
             name="select"
-            value={this.props.searchSelect}
-            onChange={(e)=>this.handleSearchSelectChange(e,this.props.rowId)}>
-            {this.props.availableElements}
+            value={searchSelect}
+            onChange={(e) => this.handleSearchSelectChange(e, rowId)}
+          >
+            {availableElements}
           </Input>
         </div>
         <div className="advanced-search-qualifier">
           <Input
             type="select"
             name="qualifier"
-            value={this.props.searchQualifier}
-            onChange={(e)=>this.props.handleAdvancedSearchChange(e,this.props.rowId)}>
+            value={searchQualifier}
+            onChange={(e) => handleAdvancedSearchChange(e, rowId)}
+          >
             <option value="contains">Contains</option>
             <option value="equals">Is exact</option>
             <option value="not_equals">Not equal to</option>
-            <option value="not_contains">Doesn't contain</option>
+            <option value="not_contains">Doesn&apos;t contain</option>
           </Input>
         </div>
 
@@ -101,17 +150,43 @@ export default class AdvancedSearchFormRow extends Component {
           <Input
             type="select"
             name="boolean"
-            value={this.props.searchBoolean}
-            onChange={(e)=>this.props.handleAdvancedSearchChange(e,this.props.rowId)}>
+            value={searchBoolean}
+            onChange={(e) => handleAdvancedSearchChange(e, rowId)}
+          >
             <option value="and">And</option>
-            {/*<option value="or">Or</option>*/}
+            {/* <option value="or">Or</option> */}
           </Input>
         </div>
-        <div className="advanced-search-button">
-          {button}
-        </div>
+        <div className="advanced-search-button">{button}</div>
       </div>
-
     );
   }
 }
+AdvancedSearchFormRow.defaultProps = {
+  handleAdvancedSearchChange: () => {},
+  rowId: '',
+  searchElements: [],
+  updateAdvancedSearchInputContent: () => {},
+  searchSelect: '',
+  searchInput: '',
+  addAdvancedSearchRow: () => {},
+  removeAdvancedSearchRow: () => {},
+  default: false,
+  availableElements: [],
+  searchQualifier: '',
+  searchBoolean: 'AND',
+};
+AdvancedSearchFormRow.propTypes = {
+  handleAdvancedSearchChange: PropTypes.func,
+  rowId: PropTypes.string,
+  searchElements: PropTypes.array,
+  updateAdvancedSearchInputContent: PropTypes.func,
+  searchSelect: PropTypes.string,
+  searchInput: PropTypes.string,
+  addAdvancedSearchRow: PropTypes.func,
+  removeAdvancedSearchRow: PropTypes.func,
+  default: PropTypes.bool,
+  availableElements: PropTypes.array,
+  searchQualifier: PropTypes.string,
+  searchBoolean: PropTypes.string,
+};

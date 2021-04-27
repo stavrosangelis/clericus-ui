@@ -1,38 +1,40 @@
-import React,{Component} from 'react';
-import { BrowserRouter as Router, Route, Switch} from 'react-router-dom';
-import {loadProgressBar} from 'axios-progress-bar';
+import React, { Component } from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { loadProgressBar } from 'axios-progress-bar';
 import ScrollUp from 'react-scroll-up';
+import PropTypes from 'prop-types';
+import { compose } from 'redux';
 // css
 import 'axios-progress-bar/dist/nprogress.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './assets/fonts/roboto/css/roboto.css';
 import './assets/fonts/helvetica-neue/style.css';
 import './assets/fonts/font-awesome/css/font-awesome.min.css';
-import "./assets/fonts/pe-icon-7/css/pe-icon-7-stroke.css";
-import "./assets/fonts/spartan/spartan.css";
+import './assets/fonts/pe-icon-7/css/pe-icon-7-stroke.css';
+import './assets/fonts/spartan/spartan.css';
 import './App.scss';
 
+import { connect } from 'react-redux';
 import Topbar from './components/topbar';
 import Header from './components/header';
 import Footer from './components/footer';
 import CookiesConsent from './components/cookies-consent';
 
-import mainRoutes from "./routes/";
-import NotFound from './views/404.js';
+import mainRoutes from './routes';
+import NotFound from './views/404';
 
-import {connect} from "react-redux";
 import {
   loadOrganisationsType,
   loadOrganisations,
   loadEventsType,
-  //loadPeople,
-  //loadClasspieces,
-  //loadTemporals,
-  //loadSpatials,
+  // loadPeople,
+  // loadClasspieces,
+  // loadTemporals,
+  // loadSpatials,
   loadResourcesType,
   loadGenericStats,
   loadPeopleSources,
-} from "./redux/actions";
+} from './redux/actions';
 
 function mapDispatchToProps(dispatch) {
   return {
@@ -42,61 +44,70 @@ function mapDispatchToProps(dispatch) {
     loadResourcesType: () => dispatch(loadResourcesType()),
     loadGenericStats: () => dispatch(loadGenericStats()),
     loadPeopleSources: () => dispatch(loadPeopleSources()),
-  }
+  };
 }
 
-class App extends Component{
-
+class App extends Component {
   componentDidMount() {
+    const {
+      loadOrganisationsType: propsLoadOrganisationsType,
+      loadOrganisations: propsLoadOrganisations,
+      loadEventsType: propsLoadEventsType,
+      loadResourcesType: propsLoadResourcesType,
+      loadGenericStats: propsLoadGenericStats,
+      loadPeopleSources: propsLoadPeopleSources,
+    } = this.props;
     loadProgressBar();
-    this.props.loadOrganisationsType();
-    this.props.loadOrganisations();
-    this.props.loadEventsType();
-    this.props.loadResourcesType();
-    this.props.loadGenericStats();
-    this.props.loadPeopleSources();
+    propsLoadOrganisationsType();
+    propsLoadOrganisations();
+    propsLoadEventsType();
+    propsLoadResourcesType();
+    propsLoadGenericStats();
+    propsLoadPeopleSources();
   }
 
   render() {
-    let routes = [];
-    for (let i=0; i<mainRoutes.length; i++) {
-      let route = mainRoutes[i];
-      let newRoute=[];
-      if (route.component!==null) {
-        newRoute = <Route path={route.path} key={i} component={route.component} />;
+    const routes = [];
+    for (let i = 0; i < mainRoutes.length; i += 1) {
+      const route = mainRoutes[i];
+      let newRoute = [];
+      if (route.component !== null) {
+        newRoute = (
+          <Route path={route.path} key={i} component={route.component} />
+        );
       }
-      if (route.name==="Home") {
-        newRoute = <Route exact path={route.path} key={i} component={route.component} />;
+      if (route.name === 'Home') {
+        newRoute = (
+          <Route exact path={route.path} key={i} component={route.component} />
+        );
       }
       routes.push(newRoute);
     }
-    let noMatch = <Route component={NotFound} key="not-found"/>
+    const noMatch = <Route component={NotFound} key="not-found" />;
     routes.push(noMatch);
     const ScrollToTopStyle = {
-      "position": "fixed",
-      "bottom": "50px",
-      "right": "30px",
-      "cursor": "pointer",
-      "transition": "opacity 0.2s linear 0s, visibility",
-      "opacity": "1",
-      "visibility": "visible",
-      "zIndex": "999"
-    }
+      position: 'fixed',
+      bottom: '50px',
+      right: '30px',
+      cursor: 'pointer',
+      transition: 'opacity 0.2s linear 0s, visibility',
+      opacity: '1',
+      visibility: 'visible',
+      zIndex: '999',
+    };
     return (
-      <Router basename='/'>
+      <Router basename="/">
         <div className="app-body">
           <Topbar />
           <Header />
-          <div className="content-container" style={{paddingBottom: '0'}}>
-            <Switch>
-              {routes}
-            </Switch>
+          <div className="content-container" style={{ paddingBottom: '0' }}>
+            <Switch>{routes}</Switch>
           </div>
           <Footer />
         </div>
         <ScrollUp showUnder={160} style={ScrollToTopStyle}>
           <div className="scroll-up">
-            <i className="fa-chevron-up fa"></i>
+            <i className="fa-chevron-up fa" />
           </div>
         </ScrollUp>
         <CookiesConsent />
@@ -104,5 +115,20 @@ class App extends Component{
     );
   }
 }
-
-export default App = connect(null, mapDispatchToProps)(App);
+App.defaultProps = {
+  loadOrganisationsType: () => {},
+  loadOrganisations: () => {},
+  loadEventsType: () => {},
+  loadResourcesType: () => {},
+  loadGenericStats: () => {},
+  loadPeopleSources: () => {},
+};
+App.propTypes = {
+  loadOrganisationsType: PropTypes.func,
+  loadOrganisations: PropTypes.func,
+  loadEventsType: PropTypes.func,
+  loadResourcesType: PropTypes.func,
+  loadGenericStats: PropTypes.func,
+  loadPeopleSources: PropTypes.func,
+};
+export default compose(connect(null, mapDispatchToProps))(App);

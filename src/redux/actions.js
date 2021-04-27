@@ -1,384 +1,374 @@
 import axios from 'axios';
 
-export function setPaginationParams(type,params) {
-  return (dispatch,getState) => {
+export function setPaginationParams(type, params) {
+  return (dispatch, getState) => {
     let payload = null;
-    let pagination = type+"Pagination";
-    let newValues = Object.assign({},getState()[pagination]);
-    for (let key in params) {
+    const pagination = `${type}Pagination`;
+    const newValues = { ...getState()[pagination] };
+    Object.keys(params).forEach((key) => {
       newValues[key] = params[key];
-    }
+    });
     payload = {
-      [pagination]: newValues
+      [pagination]: newValues,
     };
-    if (payload===null) {
+    if (payload === null) {
       return false;
     }
     dispatch({
-      type: "GENERIC_UPDATE",
-      payload: payload
+      type: 'GENERIC_UPDATE',
+      payload,
     });
-  }
+    return false;
+  };
 }
 
 export function loadGenericStats() {
-  return (dispatch,getState) => {
+  return (dispatch) => {
     axios({
       method: 'get',
-      url: process.env.REACT_APP_APIPATH+'generic-stats',
+      url: `${process.env.REACT_APP_APIPATH}generic-stats`,
       crossDomain: true,
     })
-	  .then(function (response) {
-      let payload = {
-        genericStats: response.data.data,
-      }
-      dispatch({
-        type: "GENERIC_UPDATE",
-        payload: payload
-      });
-	  })
-	  .catch(function (error) {
-	  });
-  }
+      .then((response) => {
+        const payload = {
+          genericStats: response.data.data,
+        };
+        dispatch({
+          type: 'GENERIC_UPDATE',
+          payload,
+        });
+      })
+      .catch((error) => console.log(error));
+  };
 }
 
 export function loadOrganisationsType() {
-  return (dispatch,getState) => {
-    let params = {
-      systemType: "organisationTypes"
-    }
+  return (dispatch) => {
+    const params = {
+      systemType: 'organisationTypes',
+    };
     axios({
       method: 'get',
-      url: process.env.REACT_APP_APIPATH+'taxonomy',
+      url: `${process.env.REACT_APP_APIPATH}taxonomy`,
       crossDomain: true,
-      params: params
+      params,
     })
-	  .then(function (response) {
-      let payload = {
-        loadingOrganisationsType: false,
-        organisationsType: response.data.data.taxonomyterms,
-      }
-      dispatch({
-        type: "GENERIC_UPDATE",
-        payload: payload
-      });
-	  })
-	  .catch(function (error) {
-	  });
-  }
+      .then((response) => {
+        const payload = {
+          loadingOrganisationsType: false,
+          organisationsType: response.data.data.taxonomyterms,
+        };
+        dispatch({
+          type: 'GENERIC_UPDATE',
+          payload,
+        });
+      })
+      .catch((error) => console.log(error));
+  };
 }
 
 export function loadOrganisations() {
-  return (dispatch,getState) => {
-    let params = {
-      limit: 1000000
-    }
+  return (dispatch) => {
+    const params = {
+      limit: 1000000,
+    };
     axios({
       method: 'get',
-      url: process.env.REACT_APP_APIPATH+'ui-organisations',
+      url: `${process.env.REACT_APP_APIPATH}ui-organisations`,
       crossDomain: true,
-      params: params
+      params,
     })
-    .then(function (response) {
-      let payload = {
-        loadingOrganisations: false,
-        organisations: response.data.data.data,
-      }
-      dispatch({
-        type: "GENERIC_UPDATE",
-        payload: payload
-      });
-    })
-    .catch(function (error) {
-    });
-  }
+      .then((response) => {
+        const payload = {
+          loadingOrganisations: false,
+          organisations: response.data.data.data,
+        };
+        dispatch({
+          type: 'GENERIC_UPDATE',
+          payload,
+        });
+      })
+      .catch((error) => console.log(error));
+  };
 }
 
 export function loadEventsType() {
-  return (dispatch,getState) => {
-    let params = {
-      systemType: "eventTypes"
-    }
+  return (dispatch) => {
+    const params = {
+      systemType: 'eventTypes',
+    };
     axios({
       method: 'get',
-      url: process.env.REACT_APP_APIPATH+'taxonomy',
+      url: `${process.env.REACT_APP_APIPATH}taxonomy`,
       crossDomain: true,
-      params: params
+      params,
     })
-	  .then(function (response) {
-      let payload = {
-        loadingEventsType: false,
-        eventsType: response.data.data.taxonomyterms,
-      }
-      dispatch({
-        type: "GENERIC_UPDATE",
-        payload: payload
-      });
-	  })
-	  .catch(function (error) {
-	  });
-  }
+      .then((response) => {
+        const payload = {
+          loadingEventsType: false,
+          eventsType: response.data.data.taxonomyterms,
+        };
+        dispatch({
+          type: 'GENERIC_UPDATE',
+          payload,
+        });
+      })
+      .catch((error) => console.log(error));
+  };
 }
 
 export function loadEvents() {
-  return (dispatch,getState) => {
-    let params = {
-      limit: 1000000
-    }
+  return (dispatch) => {
+    const params = {
+      limit: 1000000,
+    };
     axios({
       method: 'get',
-      url: process.env.REACT_APP_APIPATH+'ui-events',
+      url: `${process.env.REACT_APP_APIPATH}ui-events`,
       crossDomain: true,
-      params: params
+      params,
     })
-    .then(function (response) {
-      let payload = {
-        loadingEvents: false,
-        events: response.data.data.data,
-      }
-      dispatch({
-        type: "GENERIC_UPDATE",
-        payload: payload
-      });
-    })
-    .catch(function (error) {
-    });
-  }
+      .then((response) => {
+        const payload = {
+          loadingEvents: false,
+          events: response.data.data.data,
+        };
+        dispatch({
+          type: 'GENERIC_UPDATE',
+          payload,
+        });
+      })
+      .catch((error) => console.log(error));
+  };
 }
 
 export function loadPeople() {
-  return (dispatch,getState) => {
-    let params = {
-      limit: 1000000
-    }
+  return (dispatch) => {
+    const params = {
+      limit: 1000000,
+    };
     axios({
       method: 'get',
-      url: process.env.REACT_APP_APIPATH+'ui-people',
+      url: `${process.env.REACT_APP_APIPATH}ui-people`,
       crossDomain: true,
-      params: params
+      params,
     })
-    .then(function (response) {
-      let payload = {
-        loadingPeople: false,
-        people: response.data.data.data,
-      }
-      dispatch({
-        type: "GENERIC_UPDATE",
-        payload: payload
-      });
-    })
-    .catch(function (error) {
-    });
-  }
+      .then((response) => {
+        const payload = {
+          loadingPeople: false,
+          people: response.data.data.data,
+        };
+        dispatch({
+          type: 'GENERIC_UPDATE',
+          payload,
+        });
+      })
+      .catch((error) => console.log(error));
+  };
 }
 
 export function loadClasspieces() {
-  return (dispatch,getState) => {
-    let params = {
-      limit: 1000000
-    }
+  return (dispatch) => {
+    const params = {
+      limit: 1000000,
+    };
     axios({
       method: 'get',
-      url: process.env.REACT_APP_APIPATH+'classpieces',
+      url: `${process.env.REACT_APP_APIPATH}classpieces`,
       crossDomain: true,
-      params: params
+      params,
     })
-	  .then(function (response) {
-      let payload = {
-        loadingClasspieces: false,
-        classpieces: response.data.data.data,
-      }
-      dispatch({
-        type: "GENERIC_UPDATE",
-        payload: payload
-      });
-	  })
-	  .catch(function (error) {
-	  });
-  }
+      .then((response) => {
+        const payload = {
+          loadingClasspieces: false,
+          classpieces: response.data.data.data,
+        };
+        dispatch({
+          type: 'GENERIC_UPDATE',
+          payload,
+        });
+      })
+      .catch((error) => console.log(error));
+  };
 }
 
 export function loadTemporals() {
-  return (dispatch,getState) => {
-    let params = {
+  return (dispatch) => {
+    const params = {
       limit: 1000000,
-      orderField: "startDate",
+      orderField: 'startDate',
       orderDesc: false,
-    }
+    };
     axios({
       method: 'get',
-      url: process.env.REACT_APP_APIPATH+'temporals',
+      url: `${process.env.REACT_APP_APIPATH}temporals`,
       crossDomain: true,
-      params: params
+      params,
     })
-	  .then(function (response) {
-      let payload = {
-        loadingTemporals: false,
-        temporals: response.data.data.data,
-      }
-      dispatch({
-        type: "GENERIC_UPDATE",
-        payload: payload
-      });
-	  })
-	  .catch(function (error) {
-	  });
-  }
+      .then((response) => {
+        const payload = {
+          loadingTemporals: false,
+          temporals: response.data.data.data,
+        };
+        dispatch({
+          type: 'GENERIC_UPDATE',
+          payload,
+        });
+      })
+      .catch((error) => console.log(error));
+  };
 }
 
 export function loadSpatials() {
-  return (dispatch,getState) => {
-    let params = {
-      limit: 1000000
-    }
+  return (dispatch) => {
+    const params = {
+      limit: 1000000,
+    };
     axios({
       method: 'get',
-      url: process.env.REACT_APP_APIPATH+'spatials',
+      url: `${process.env.REACT_APP_APIPATH}spatials`,
       crossDomain: true,
-      params: params
+      params,
     })
-	  .then(function (response) {
-      let payload = {
-        loadingSpatials: false,
-        spatials: response.data.data.data,
-      }
-      dispatch({
-        type: "GENERIC_UPDATE",
-        payload: payload
-      });
-	  })
-	  .catch(function (error) {
-	  });
-  }
+      .then((response) => {
+        const payload = {
+          loadingSpatials: false,
+          spatials: response.data.data.data,
+        };
+        dispatch({
+          type: 'GENERIC_UPDATE',
+          payload,
+        });
+      })
+      .catch((error) => console.log(error));
+  };
 }
 
 export function loadResourcesType() {
-  return (dispatch,getState) => {
-    let params = {
-      systemType: "resourceSystemTypes",
+  return (dispatch) => {
+    const params = {
+      systemType: 'resourceSystemTypes',
       flat: true,
-    }
+    };
     axios({
       method: 'get',
-      url: process.env.REACT_APP_APIPATH+'taxonomy',
+      url: `${process.env.REACT_APP_APIPATH}taxonomy`,
       crossDomain: true,
-      params: params
+      params,
     })
-	  .then(function (response) {
-      let payload = {
-        loadingResourcesType: false,
-        resourcesType: response.data.data.taxonomyterms,
-      }
-      dispatch({
-        type: "GENERIC_UPDATE",
-        payload: payload
-      });
-	  })
-	  .catch(function (error) {
-	  });
-  }
+      .then((response) => {
+        const payload = {
+          loadingResourcesType: false,
+          resourcesType: response.data.data.taxonomyterms,
+        };
+        dispatch({
+          type: 'GENERIC_UPDATE',
+          payload,
+        });
+      })
+      .catch((error) => console.log(error));
+  };
 }
 
 export function loadPeopleSources() {
-  return (dispatch,getState) => {
+  return (dispatch) => {
     axios({
       method: 'get',
-      url: process.env.REACT_APP_APIPATH+'ui-people-sources',
+      url: `${process.env.REACT_APP_APIPATH}ui-people-sources`,
       crossDomain: true,
     })
-	  .then(function (response) {
-      let payload = {
-        loadingPeopleSources: false,
-        peopleSources: response.data.data,
-      }
-      dispatch({
-        type: "GENERIC_UPDATE",
-        payload: payload
-      });
-	  })
-	  .catch(function (error) {
-	  });
-  }
+      .then((response) => {
+        const payload = {
+          loadingPeopleSources: false,
+          peopleSources: response.data.data,
+        };
+        dispatch({
+          type: 'GENERIC_UPDATE',
+          payload,
+        });
+      })
+      .catch((error) => console.log(error));
+  };
 }
 
-export function updateFilters(type,params) {
-  return (dispatch,getState) => {
+export function updateFilters(type, params) {
+  return (dispatch, getState) => {
     let payload = null;
-    let filtersName = type+"Filters";
-    let newValues = Object.assign({},getState()[filtersName]);
-    for (let key in params) {
+    const filtersName = `${type}Filters`;
+    const newValues = { ...getState()[filtersName] };
+    Object.keys(params).forEach((key) => {
       newValues[key] = params[key];
-    }
+    });
     payload = {
-      [filtersName]: newValues
+      [filtersName]: newValues,
     };
-    if (payload===null) {
+    if (payload === null) {
       return false;
     }
     dispatch({
-      type: "GENERIC_UPDATE",
-      payload: payload
+      type: 'GENERIC_UPDATE',
+      payload,
     });
-  }
-
+    return false;
+  };
 }
 
 export function clearFilters(type) {
-  return (dispatch,getState) => {
+  return (dispatch, getState) => {
     let payload = null;
-    let filtersName = type+"Filters";
-    let newValues = Object.assign({},getState()[filtersName]);
-    if (typeof newValues.events!=="undefined") {
+    const filtersName = `${type}Filters`;
+    const newValues = { ...getState()[filtersName] };
+    if (typeof newValues.events !== 'undefined') {
       newValues.events = [];
     }
-    if (typeof newValues.organisations!=="undefined") {
+    if (typeof newValues.organisations !== 'undefined') {
       newValues.organisations = [];
     }
-    if (typeof newValues.temporals!=="undefined") {
+    if (typeof newValues.temporals !== 'undefined') {
       newValues.temporals = {
-        startDate: "",
-        endDate: "",
-        dateType: "exact",
+        startDate: '',
+        endDate: '',
+        dateType: 'exact',
       };
     }
-    if (typeof newValues.organisationType!=="undefined") {
-      newValues.organisationType = "";
+    if (typeof newValues.organisationType !== 'undefined') {
+      newValues.organisationType = '';
     }
-    if (typeof newValues.eventType!=="undefined") {
-      newValues.eventType = "";
+    if (typeof newValues.eventType !== 'undefined') {
+      newValues.eventType = '';
     }
     payload = {
-      [filtersName]: newValues
+      [filtersName]: newValues,
     };
-    if (payload===null) {
+    if (payload === null) {
       return false;
     }
     dispatch({
-      type: "GENERIC_UPDATE",
-      payload: payload
+      type: 'GENERIC_UPDATE',
+      payload,
     });
-  }
-
+    return false;
+  };
 }
 
-export function setRelationshipParams(type,params) {
-  return (dispatch,getState) => {
+export function setRelationshipParams(type, params) {
+  return (dispatch, getState) => {
     let payload = null;
-    let relationships = type+"Relationship";
-    let newValues = Object.assign({},getState()[relationships]);
-    for (let key in params) {
+    const relationships = `${type}Relationship`;
+    const newValues = { ...getState()[relationships] };
+    Object.keys(params).forEach((key) => {
       newValues[key] = params[key];
-    }
+    });
     payload = {
-      [relationships]: newValues
+      [relationships]: newValues,
     };
-    if (payload===null) {
+    if (payload === null) {
       return false;
     }
     dispatch({
-      type: "GENERIC_UPDATE",
-      payload: payload
+      type: 'GENERIC_UPDATE',
+      payload,
     });
-  }
-
+    return false;
+  };
 }

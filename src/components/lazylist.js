@@ -1,180 +1,203 @@
-import React, { useEffect, useState, useRef} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 
-const LazyList = props => {
-  let limit = props.limit || 50;
-  let range = props.range || 25;
-  let itemsLength = props.items.length || 0;
-  const [loading,setLoading] = useState(true);
-  const [items,setItems] = useState([]);
-  const [startIndex,setStartIndex] = useState(0);
+const LazyList = (props) => {
+  // props
+  const {
+    limit,
+    range,
+    items: propsItems,
+    reload,
+    scrollIndex,
+    containerClass,
+    listClass,
+  } = props;
+  const itemsLength = propsItems.length;
+  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState([]);
+  const [startIndex, setStartIndex] = useState(0);
   const container = useRef(null);
   const prevNodes = useRef([]);
   const prevScrollIndex = useRef(0);
 
-  useEffect(()=>{
-    if (props.reload) {
+  useEffect(() => {
+    if (reload) {
       setLoading(true);
     }
-  },[props.reload]);
+  }, [reload]);
 
-  useEffect(()=>{
-    if (prevNodes.current!==props.items) {
+  useEffect(() => {
+    if (prevNodes.current !== propsItems) {
       setLoading(true);
-      prevNodes.current=props.items;
+      prevNodes.current = propsItems;
     }
-  },[props.items]);
+  }, [propsItems]);
 
-  useEffect(()=>{
+  useEffect(() => {
     const load = () => {
-      let newData = props.items.slice(0,limit);
+      const newData = propsItems.slice(0, limit);
       setItems(newData);
       setLoading(false);
-    }
+    };
     if (loading) {
       load();
     }
-  },[loading, props.items, limit, items]);
+  }, [loading, propsItems, limit, items]);
 
-  useEffect(()=> {
-    let scrollIndex = props.scrollIndex;
-    if (scrollIndex!==null) {
-      if (scrollIndex!==prevScrollIndex.current) {
+  useEffect(() => {
+    if (scrollIndex !== null) {
+      if (scrollIndex !== prevScrollIndex.current) {
         prevScrollIndex.current = scrollIndex;
         let newStartIndex = 0;
-        if (props.items.length>limit) {
-          newStartIndex = scrollIndex - (limit/2);
+        if (propsItems.length > limit) {
+          newStartIndex = scrollIndex - limit / 2;
         }
-        let endIndex = newStartIndex+limit;
-        if (endIndex>props.items.length) {
-          endIndex = props.items.length;
+        let endIndex = newStartIndex + limit;
+        if (endIndex > propsItems.length) {
+          endIndex = propsItems.length;
         }
-        let newData = props.items.slice(newStartIndex,endIndex);
+        const newData = propsItems.slice(newStartIndex, endIndex);
         setItems(newData);
         setStartIndex(newStartIndex);
       }
     }
-  },[props.scrollIndex, props.items, prevScrollIndex, limit, range]);
+  }, [scrollIndex, propsItems, prevScrollIndex, limit, range]);
 
-  useEffect(()=>{
-    let wrapper = container.current;
-    let domElem = document.querySelector(`*[data-lazylist-index="${props.scrollIndex-2}"]`);
-    if (domElem===null) {
-      domElem = document.querySelector(`*[data-lazylist-index="${props.scrollIndex-1}"]`);
+  useEffect(() => {
+    const wrapper = container.current;
+    let domElem = document.querySelector(
+      `*[data-lazylist-index="${scrollIndex - 2}"]`
+    );
+    if (domElem === null) {
+      domElem = document.querySelector(
+        `*[data-lazylist-index="${scrollIndex - 1}"]`
+      );
     }
-    if (domElem===null) {
-      domElem = document.querySelector(`*[data-lazylist-index="${props.scrollIndex}"]`);
+    if (domElem === null) {
+      domElem = document.querySelector(
+        `*[data-lazylist-index="${scrollIndex}"]`
+      );
     }
-    if (domElem!==null) {
-      let scrollPos = domElem.offsetTop;
+    if (domElem !== null) {
+      const scrollPos = domElem.offsetTop;
       wrapper.scrollTop = scrollPos;
     }
-  },[props.scrollIndex, range]);
+  }, [scrollIndex, range]);
 
   const onScroll = () => {
-    if (props.onScroll!==null) {
+    if (props.onScroll !== null) {
       return props.onScroll();
     }
-  }
+    return false;
+  };
 
   const reDrawList = () => {
-    let wrapper = container.current;
+    const wrapper = container.current;
     let newStartIndex = startIndex;
     let update = false;
-    if (wrapper.scrollHeight === (wrapper.scrollTop + wrapper.clientHeight)) {
-      if ((startIndex+range)<=(itemsLength-limit+range)) {
-        newStartIndex = startIndex+range;
+    if (wrapper.scrollHeight === wrapper.scrollTop + wrapper.clientHeight) {
+      if (startIndex + range <= itemsLength - limit + range) {
+        newStartIndex = startIndex + range;
         update = true;
       }
     }
-    if (wrapper.scrollTop===0) {
-      if (startIndex>range) {
-        newStartIndex = startIndex-range;
+    if (wrapper.scrollTop === 0) {
+      if (startIndex > range) {
+        newStartIndex = startIndex - range;
         update = true;
-      }
-      else if (startIndex>0) {
+      } else if (startIndex > 0) {
         newStartIndex = 0;
         update = true;
       }
     }
     if (update) {
-      let endIndex = newStartIndex+limit;
-      let newData = props.items.slice(newStartIndex,endIndex+1);
+      const endIndex = newStartIndex + limit;
+      const newData = propsItems.slice(newStartIndex, endIndex + 1);
       setItems(newData);
       setStartIndex(newStartIndex);
-      let domElem = wrapper.querySelector(`*[data-lazylist-index="${newStartIndex+range}"]`);
-      if (domElem!==null) {
-        let scrollPos = domElem.offsetTop;
+      const domElem = wrapper.querySelector(
+        `*[data-lazylist-index="${newStartIndex + range}"]`
+      );
+      if (domElem !== null) {
+        const scrollPos = domElem.offsetTop;
         wrapper.scrollTop = scrollPos;
       }
     }
-  }
+  };
 
-  let list = [];
-  if (!loading && items.length>0) {
+  const list = [];
+  if (!loading && items.length > 0) {
     let length = limit;
-    if (length>items.length) {
+    if (length > items.length) {
       length = items.length;
     }
-    for (let i=0;i<=length; i++) {
-      let item = items[i];
-      if (typeof item==="undefined" || item===null) {
-        continue;
+    for (let i = 0; i <= length; i += 1) {
+      const item = items[i];
+      if (typeof item !== 'undefined' && item !== null) {
+        const index = i + startIndex;
+        let order = '';
+        if (props.ordered) {
+          order = `${i + startIndex + 1}. `;
+        }
+        list.push(
+          <li key={index} data-lazylist-index={index}>
+            {order}
+            {props.renderItem(item)}
+          </li>
+        );
       }
-      let index = i+startIndex;
-      let order = "";
-      if (props.ordered) {
-        order = `${i+startIndex+1}. `;
-      }
-      list.push(<li key={index} data-lazylist-index={index}>{order}{props.renderItem(item)}</li>);
     }
   }
 
-
-  let className="lazylist", listClassName="";
-  if (props.containerClass!=="") {
-    className += ` ${props.containerClass}`;
+  let className = 'lazylist';
+  let listClassName = '';
+  if (containerClass !== '') {
+    className += ` ${containerClass}`;
   }
-  if (props.listClass!=="") {
-    listClassName += ` ${props.listClass}`;
+  if (listClass !== '') {
+    listClassName += ` ${listClass}`;
   }
-  return <div
-    className={className}
-    ref={container}
-    onScroll={()=>{
-      reDrawList();
-      onScroll();
-    }}
-    onWheel={()=>{
-      reDrawList();
-      onScroll();
-    }}
-  >
-    <ul className={listClassName}>{list}</ul>
-  </div>;
-}
+  return (
+    <div
+      className={className}
+      ref={container}
+      onScroll={() => {
+        reDrawList();
+        onScroll();
+      }}
+      onWheel={() => {
+        reDrawList();
+        onScroll();
+      }}
+    >
+      <ul className={listClassName}>{list}</ul>
+    </div>
+  );
+};
 
 LazyList.defaultProps = {
   limit: 50,
   range: 25,
   items: [],
-  containerClass: "",
-  listClass: "",
+  reload: false,
+  containerClass: '',
+  listClass: '',
   scrollIndex: null,
   onScroll: null,
-  ordered: false
-}
+  ordered: false,
+};
 
 LazyList.propTypes = {
   limit: PropTypes.number,
   range: PropTypes.number,
   items: PropTypes.array,
+  reload: PropTypes.bool,
   containerClass: PropTypes.string,
   listClass: PropTypes.string,
   renderItem: PropTypes.func.isRequired,
   onScroll: PropTypes.func,
   scrollIndex: PropTypes.number,
   ordered: PropTypes.bool,
-}
+};
 
 export default LazyList;

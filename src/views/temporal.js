@@ -1,11 +1,11 @@
 import React, { Component, lazy, Suspense } from 'react';
 import axios from 'axios';
-import {
-  Spinner,
-  Card, CardBody,
-} from 'reactstrap';
-import {Breadcrumbs} from '../components/breadcrumbs';
-import {updateDocumentTitle, outputDate,renderLoader} from '../helpers';
+import { Spinner, Card, CardBody } from 'reactstrap';
+import PropTypes from 'prop-types';
+
+import Breadcrumbs from '../components/breadcrumbs';
+import { updateDocumentTitle, outputDate, renderLoader } from '../helpers';
+
 const EventsBlock = lazy(() => import('../components/item-blocks/events'));
 
 class Temporal extends Component {
@@ -18,9 +18,9 @@ class Temporal extends Component {
       eventsVisible: true,
       error: {
         visible: false,
-        text: ""
-      }
-    }
+        text: '',
+      },
+    };
 
     this.load = this.load.bind(this);
     this.toggleTable = this.toggleTable.bind(this);
@@ -31,86 +31,114 @@ class Temporal extends Component {
     this.cancelSource = cancelToken.source();
   }
 
+  componentDidMount() {
+    this.load();
+  }
+
+  componentWillUnmount() {
+    this.cancelSource.cancel('api request cancelled');
+  }
+
   async load() {
-    let _id = this.props.match.params._id;
-    if (typeof _id==="undefined" || _id===null || _id==="") {
+    const { match } = this.props;
+    const { _id } = match.params;
+    if (typeof _id === 'undefined' || _id === null || _id === '') {
       return false;
     }
     this.setState({
-      loading: true
+      loading: true,
     });
-    let params = {
-      _id: _id,
+    const params = {
+      _id,
     };
-    let url = process.env.REACT_APP_APIPATH+'ui-temporal';
-    let responseData = await axios({
+    const url = `${process.env.REACT_APP_APIPATH}ui-temporal`;
+    const responseData = await axios({
       method: 'get',
-      url: url,
+      url,
       crossDomain: true,
-      params: params,
-      cancelToken: this.cancelSource.token
+      params,
+      cancelToken: this.cancelSource.token,
     })
-	  .then(function (response) {
-      return response.data;
-	  })
-	  .catch(function (error) {
-	  });
-    if (typeof responseData!=="undefined") {
+      .then((response) => response.data)
+      .catch((error) => console.log(error));
+    if (typeof responseData !== 'undefined') {
       if (responseData.status) {
         this.setState({
           loading: false,
-          item: responseData.data
+          item: responseData.data,
         });
-      }
-      else {
+      } else {
         this.setState({
           loading: false,
           error: {
             visible: true,
-            text: responseData.msg
-          }
+            text: responseData.msg,
+          },
         });
       }
     }
+    return false;
   }
 
-  toggleTable(e, dataType=null) {
-    let payload = {
-      [dataType+"Visible"]:!this.state[dataType+"Visible"]
-    }
+  toggleTable(e, dataType = null) {
+    const { [`${dataType}Visible`]: value } = this.state;
+    const payload = {
+      [`${dataType}Visible`]: !value,
+    };
     this.setState(payload);
   }
 
-  renderTemporalDetails(stateData=null) {
-    let item = stateData.item;
-
-    //1. TemporalDetails
-    let meta = [];
+  renderTemporalDetails(stateData = null) {
+    const { item } = stateData;
+    const { eventsVisible } = this.state;
+    // 1. TemporalDetails
+    const meta = [];
     let eventsRow = [];
-    let eventsHidden = "";
-    let eventsVisibleClass = "";
-    if(!this.state.eventsVisible){
-      eventsHidden = " closed";
-      eventsVisibleClass = "hidden";
+    let eventsHidden = '';
+    let eventsVisibleClass = '';
+    if (!eventsVisible) {
+      eventsHidden = ' closed';
+      eventsVisibleClass = 'hidden';
     }
-    if (typeof item.events!=="undefined" && item.events!==null && item.events!=="") {
-      eventsRow = <Suspense fallback={renderLoader()} key="events">
-        <EventsBlock toggleTable={this.toggleTable} hidden={eventsHidden} visible={eventsVisibleClass} events={item.events} />
-      </Suspense>
+    if (
+      typeof item.events !== 'undefined' &&
+      item.events !== null &&
+      item.events !== ''
+    ) {
+      eventsRow = (
+        <Suspense fallback={renderLoader()} key="events">
+          <EventsBlock
+            toggleTable={this.toggleTable}
+            hidden={eventsHidden}
+            visible={eventsVisibleClass}
+            events={item.events}
+          />
+        </Suspense>
+      );
     }
 
     // dates
     let datesRow = [];
-    if (typeof item.startDate!=="undefined" && item.startDate!=="") {
-      let endDate = "";
-      if (typeof item.endDate!=="undefined" && item.endDate!=="" && item.endDate!==item.startDate) {
-        endDate = " - "+outputDate(item.endDate, false);
+    if (typeof item.startDate !== 'undefined' && item.startDate !== '') {
+      let endDate = '';
+      if (
+        typeof item.endDate !== 'undefined' &&
+        item.endDate !== '' &&
+        item.endDate !== item.startDate
+      ) {
+        endDate = ` - ${outputDate(item.endDate, false)}`;
       }
-      datesRow = <div key="datesRow">
-        <h5>Dates</h5>
-        <div style={{paddingBottom: "10px"}}><span className="tag-bg tag-item">{outputDate(item.startDate, false)}{endDate}</span>
+      datesRow = (
+        <div key="datesRow">
+          <h5>Dates</h5>
+          <div style={{ paddingBottom: '10px' }}>
+            <span className="tag-bg tag-item">
+              {outputDate(item.startDate, false)}
+              {endDate}
+            </span>
+          </div>
         </div>
-      </div>;
+      );
     }
 
     meta.push(datesRow);
@@ -119,94 +147,107 @@ class Temporal extends Component {
     return meta;
   }
 
-  renderItem(stateData=null) {
-    let item = stateData.item;
+  renderItem(stateData = null) {
+    const { item } = stateData;
 
-    let label = item.label;
+    const { label } = item;
 
-    let metaTable = this.renderTemporalDetails(stateData);
+    const metaTable = this.renderTemporalDetails(stateData);
 
-    let output = <div className="item-container">
-      <h3>{label}</h3>
-      <div className="row">
-        <div className="col-12">
-          <div className="item-details-container">
-            {metaTable}
+    const output = (
+      <div className="item-container">
+        <h3>{label}</h3>
+        <div className="row">
+          <div className="col-12">
+            <div className="item-details-container">{metaTable}</div>
           </div>
         </div>
       </div>
-    </div>
+    );
     return output;
   }
 
-  componentDidMount() {
-    this.load();
-  }
-  
-  componentWillUnmount() {
-    this.cancelSource.cancel('api request cancelled');
-  }
-
   render() {
-    let content = <div>
-      <div className="row">
-        <div className="col-12">
-          <div style={{padding: '40pt',textAlign: 'center'}}>
-            <Spinner type="grow" color="info" /> <i>loading...</i>
+    const { loading, item, error } = this.state;
+    let content = (
+      <div>
+        <div className="row">
+          <div className="col-12">
+            <div style={{ padding: '40pt', textAlign: 'center' }}>
+              <Spinner type="grow" color="info" /> <i>loading...</i>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    );
 
-    let label = "";
-    let breadcrumbsItems = [{label: "Dates", icon: "pe-7s-date", active: false, path: "/temporals"}];
-    if (!this.state.loading) {
-      if (this.state.item!==null) {
-        let temporalCard = this.renderItem(this.state);
-        content = <div>
-          <Card>
-            <CardBody>
-              <div className="row">
-                <div className="col-12">
-                  {temporalCard}
+    let label = '';
+    const breadcrumbsItems = [
+      { label: 'Dates', icon: 'pe-7s-date', active: false, path: '/temporals' },
+    ];
+    if (!loading) {
+      if (item !== null) {
+        const temporalCard = this.renderItem(this.state);
+        content = (
+          <div>
+            <Card>
+              <CardBody>
+                <div className="row">
+                  <div className="col-12">{temporalCard}</div>
                 </div>
-              </div>
-            </CardBody>
-          </Card>
-        </div>
-        label = this.state.item.label;
-        breadcrumbsItems.push({label: label, icon: "pe-7s-date", active: true, path: ""});
-        let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+              </CardBody>
+            </Card>
+          </div>
+        );
+        label = item.label;
+        breadcrumbsItems.push({
+          label,
+          icon: 'pe-7s-date',
+          active: true,
+          path: '',
+        });
+        const documentTitle = breadcrumbsItems.map((i) => i.label).join(' / ');
         updateDocumentTitle(documentTitle);
-      }
-      else if (this.state.error.visible){
-        breadcrumbsItems.push({label: this.state.error.text, icon: "fa fa-times", active: true, path: ""});
-        let documentTitle = breadcrumbsItems.map(i=>i.label).join(" / ");
+      } else if (error.visible) {
+        breadcrumbsItems.push({
+          label: error.text,
+          icon: 'fa fa-times',
+          active: true,
+          path: '',
+        });
+        const documentTitle = breadcrumbsItems.map((i) => i.label).join(' / ');
         updateDocumentTitle(documentTitle);
-        content = <div>
-          <Card>
-            <CardBody>
-              <div className="row">
-                <div className="col-12">
-                  <h3>Error</h3>
-                  <p>{this.state.error.text}</p>
+        content = (
+          <div>
+            <Card>
+              <CardBody>
+                <div className="row">
+                  <div className="col-12">
+                    <h3>Error</h3>
+                    <p>{error.text}</p>
+                  </div>
                 </div>
-              </div>
-            </CardBody>
-          </Card>
-        </div>
+              </CardBody>
+            </Card>
+          </div>
+        );
       }
     }
-
 
     return (
       <div className="container">
         <Breadcrumbs items={breadcrumbsItems} />
         {content}
       </div>
-    )
-
+    );
   }
 }
+
+Temporal.defaultProps = {
+  match: null,
+};
+Temporal.propTypes = {
+  match: PropTypes.object,
+};
 
 export default Temporal;
