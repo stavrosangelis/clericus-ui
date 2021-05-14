@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button, Form, Input, InputGroup, InputGroupAddon } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { outputDate } from '../../helpers';
+import { outputDate, outputRelationTypes } from '../../helpers';
 import Pagination from '../pagination';
 
 const Block = (props) => {
@@ -63,21 +63,23 @@ const Block = (props) => {
           break;
         }
         const event = events[i];
+        const termLabel = outputRelationTypes(event.term.label);
         const label = [
-          <i key="type">{event.term.label}</i>,
-          <span key="label">{event.ref.label}</span>,
+          <div key="label">
+            <span>
+              <i key="type">{termLabel}</i> <b>{event.ref.label}</b>
+            </span>
+          </div>,
         ];
         if (
           typeof event.organisations !== 'undefined' &&
           event.organisations.length > 0
         ) {
           const organisationLabels = event.organisations.map((o) => {
-            let comma = '';
-            if (i > 0) comma = ', ';
+            const orgTermLabel = outputRelationTypes(o.term.label);
             return (
               <span key={o._id}>
-                {comma}
-                <i>{o.term.label}</i> {o.ref.label}
+                <i>{orgTermLabel}</i> <b>{o.ref.label}</b>
               </span>
             );
           });

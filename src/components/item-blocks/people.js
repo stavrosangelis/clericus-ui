@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Form, Input, InputGroup, InputGroupAddon } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import { outputRelationTypes } from '../../helpers';
 
 import Pagination from '../pagination';
 
@@ -84,10 +85,11 @@ const Block = (props) => {
           person.ref.label.toLowerCase().includes(simpleSearchSet.toLowerCase())
         ) {
           const url = `/person/${person.ref._id}`;
+          const termLabel = outputRelationTypes(person.term.label);
           peopleData.push(
             <li key={`${i}-${person.ref._id}`}>
               <Link className="tag-bg tag-item" href={url} to={url}>
-                <i>{person.term.label}</i> {person.ref.label}
+                <i>{termLabel}</i> {person.ref.label}
               </Link>
             </li>
           );

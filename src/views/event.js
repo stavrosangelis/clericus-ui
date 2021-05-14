@@ -57,6 +57,16 @@ class Event extends Component {
     this.load();
   }
 
+  componentDidUpdate(prevProps) {
+    const { match: prevMatch } = prevProps;
+    const { _id: prevId } = prevMatch.params;
+    const { match } = this.props;
+    const { _id } = match.params;
+    if (prevId !== _id) {
+      this.load();
+    }
+  }
+
   componentWillUnmount() {
     this.cancelSource.cancel('api request cancelled');
   }

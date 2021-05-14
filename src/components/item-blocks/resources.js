@@ -3,6 +3,7 @@ import { Button, Form, Input, InputGroup, InputGroupAddon } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Pagination from '../pagination';
+import { outputRelationTypes } from '../../helpers';
 
 const Block = (props) => {
   // state
@@ -65,10 +66,11 @@ const Block = (props) => {
         }
         const resource = resources[i];
         const url = `/resource/${resource.ref._id}`;
+        const termLabel = outputRelationTypes(resource.term.label);
         resourcesData.push(
           <li key={resource.ref._id}>
             <Link className="tag-bg tag-item" href={url} to={url}>
-              <i>{resource.term.label}</i> {resource.ref.label}
+              <i>{termLabel}</i> {resource.ref.label}
             </Link>
           </li>
         );

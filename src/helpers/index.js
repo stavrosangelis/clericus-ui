@@ -211,3 +211,22 @@ export const getClosestDate = (query = null, dates = [], type = 'years') => {
   }
   return closestDate;
 };
+
+const isUpperCase = (c) => {
+  const result = c === c.toUpperCase();
+  return result;
+};
+
+export const outputRelationTypes = (str) => {
+  let newString = '';
+  for (let i = 0; i < str.length; i += 1) {
+    const c = str[i];
+    const upperCase = isUpperCase(c);
+    if (upperCase) {
+      newString += ` ${c.toLowerCase()}`;
+    } else {
+      newString += c;
+    }
+  }
+  return newString;
+};

@@ -70,6 +70,16 @@ class Person extends Component {
     this.load();
   }
 
+  componentDidUpdate(prevProps) {
+    const { match: prevMatch } = prevProps;
+    const { _id: prevId } = prevMatch.params;
+    const { match } = this.props;
+    const { _id } = match.params;
+    if (prevId !== _id) {
+      this.load();
+    }
+  }
+
   componentWillUnmount() {
     this.cancelSource.cancel('api request cancelled');
   }
@@ -352,11 +362,14 @@ class Person extends Component {
     }
 
     // people
-    const peopleRow = (
-      <Suspense fallback={renderLoader()} key="people">
-        <PeopleBlock name="person" peopleItem={item.people} />
-      </Suspense>
-    );
+    const peopleRow =
+      typeof item.people !== 'undefined' && item.people.length > 0 ? (
+        <Suspense fallback={renderLoader()} key="people">
+          <PeopleBlock name="person" peopleItem={item.people} />
+        </Suspense>
+      ) : (
+        []
+      );
 
     meta.push(appellationsRow);
     meta.push(descriptionRow);

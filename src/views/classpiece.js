@@ -58,10 +58,27 @@ class Classpiece extends Component {
 
     this.toggleViewer = this.toggleViewer.bind(this);
     this.toggleTable = this.toggleTable.bind(this);
+
+    const cancelToken = axios.CancelToken;
+    this.cancelSource = cancelToken.source();
   }
 
   componentDidMount() {
     this.load();
+  }
+
+  componentDidUpdate(prevProps) {
+    const { match: prevMatch } = prevProps;
+    const { _id: prevId } = prevMatch.params;
+    const { match } = this.props;
+    const { _id } = match.params;
+    if (prevId !== _id) {
+      this.load();
+    }
+  }
+
+  componentWillUnmount() {
+    this.cancelSource.cancel('api request cancelled');
   }
 
   async load() {
@@ -82,6 +99,7 @@ class Classpiece extends Component {
       url,
       crossDomain: true,
       params,
+      cancelToken: this.cancelSource.token,
     })
       .then((response) => response.data)
       .catch((error) => {

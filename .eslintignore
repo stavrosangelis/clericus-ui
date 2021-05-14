@@ -9,6 +9,7 @@ node_modules
 
 # build
 .build/*
+.build-dev/*
 
 # assets
 .src/assets/*
