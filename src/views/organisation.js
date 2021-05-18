@@ -5,7 +5,11 @@ import PropTypes from 'prop-types';
 
 import { Link } from 'react-router-dom';
 import Breadcrumbs from '../components/breadcrumbs';
-import { updateDocumentTitle, renderLoader } from '../helpers';
+import {
+  updateDocumentTitle,
+  renderLoader,
+  jsonStringToObject,
+} from '../helpers';
 
 const DescriptionBlock = lazy(() =>
   import('../components/item-blocks/description')
@@ -30,6 +34,7 @@ class Organisation extends Component {
     this.state = {
       loading: true,
       item: null,
+      appellationsVisible: true,
       descriptionVisible: true,
       eventsVisible: true,
       peopleVisible: true,
@@ -124,6 +129,7 @@ class Organisation extends Component {
   renderOrganisationDetails(stateData = null) {
     const { item } = stateData;
     const {
+      appellationsVisible,
       descriptionVisible,
       classpiecesVisible,
       resourcesVisible,
@@ -134,6 +140,67 @@ class Organisation extends Component {
 
     // 1. OrganisationDetails
     const meta = [];
+
+    // alternate appelation
+    let appellationsRow = [];
+    const appellationsHidden = !appellationsVisible ? ' closed' : '';
+    const appellationsVisibleClass = !appellationsVisible ? 'hidden' : '';
+    if (
+      typeof item.alternateAppelations !== 'undefined' &&
+      item.alternateAppelations !== null &&
+      item.alternateAppelations !== '' &&
+      item.alternateAppelations.length > 0
+    ) {
+      const appellations = item.alternateAppelations.map((a, i) => {
+        const obj = jsonStringToObject(a);
+        console.log(obj);
+        let label = '';
+        let lang = '';
+        let note = '';
+        if (obj.label !== '') {
+          label = obj.label;
+        }
+        if (
+          typeof obj.language !== 'undefined' &&
+          typeof obj.language.label !== 'undefined' &&
+          obj.language.label !== ''
+        ) {
+          lang = ` [${obj.language.label}]`;
+        }
+        if (typeof obj.note !== 'undefined' && obj.note !== '') {
+          note = <i>{` ${obj.note}`}</i>;
+        }
+        const key = `a${i}`;
+        const output = (
+          <div key={key}>
+            {label}
+            {lang}
+            {note}
+          </div>
+        );
+        return output;
+      });
+      appellationsRow = (
+        <div key="appellationsRow">
+          <h5>
+            Alternate appellations
+            <div
+              className="btn btn-default btn-xs pull-right toggle-info-btn"
+              onClick={(e) => {
+                this.toggleTable(e, 'appellations');
+              }}
+              onKeyDown={() => false}
+              role="button"
+              tabIndex={0}
+              aria-label="toggle appellations table"
+            >
+              <i className={`fa fa-angle-down${appellationsHidden}`} />
+            </div>
+          </h5>
+          <div className={appellationsVisibleClass}>{appellations}</div>
+        </div>
+      );
+    }
 
     // description
     let descriptionRow = [];
@@ -291,6 +358,7 @@ class Organisation extends Component {
       );
     }
 
+    meta.push(appellationsRow);
     meta.push(descriptionRow);
     meta.push(locationsRow);
     meta.push(eventsRow);

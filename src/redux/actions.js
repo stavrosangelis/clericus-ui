@@ -68,27 +68,22 @@ export function loadOrganisationsType() {
 }
 
 export function loadOrganisations() {
-  return (dispatch) => {
-    const params = {
-      limit: 1000000,
-    };
-    axios({
+  return async (dispatch) => {
+    const responseData = await axios({
       method: 'get',
-      url: `${process.env.REACT_APP_APIPATH}ui-organisations`,
+      url: `${process.env.REACT_APP_APIPATH}ui-organisations-filters`,
       crossDomain: true,
-      params,
     })
-      .then((response) => {
-        const payload = {
-          loadingOrganisations: false,
-          organisations: response.data.data.data,
-        };
-        dispatch({
-          type: 'GENERIC_UPDATE',
-          payload,
-        });
-      })
+      .then((response) => response.data.data)
       .catch((error) => console.log(error));
+    const payload = {
+      loadingOrganisations: false,
+      organisations: responseData,
+    };
+    dispatch({
+      type: 'GENERIC_UPDATE',
+      payload,
+    });
   };
 }
 
