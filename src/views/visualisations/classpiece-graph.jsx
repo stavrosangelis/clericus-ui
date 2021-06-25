@@ -1,76 +1,53 @@
 import React, { useEffect, useState, lazy, Suspense } from 'react';
 import axios from 'axios';
 import { Spinner } from 'reactstrap';
-import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-import Breadcrumbs from '../../components/breadcrumbs';
 import { updateDocumentTitle, renderLoader } from '../../helpers';
 
-const PersonNetwork = lazy(() =>
+const Breadcrumbs = lazy(() => import('../../components/breadcrumbs'));
+
+const ClasspieceNetwork = lazy(() =>
   import('../../components/visualisations/person-network-pixi')
 );
 const APIPath = process.env.REACT_APP_APIPATH;
 
-const ResourceGraph = (props) => {
+const ClasspieceGraph = (props) => {
   // state
   const [loading, setLoading] = useState(true);
-  const [resource, setResource] = useState(null);
+  const [item, setItem] = useState(null);
 
   // props
   const { match } = props;
 
-  const loadingResourcesType = useSelector(
-    (state) => state.loadingResourcesType
-  );
-  const resourcesType = useSelector((state) => state.resourcesType);
-
   useEffect(() => {
-    const cancelToken = axios.CancelToken;
-    const source = cancelToken.source();
-
     const load = async () => {
       const { _id } = match.params;
       if (typeof _id === 'undefined' || _id === null || _id === '') {
         return false;
       }
+      setLoading(false);
       const responseData = await axios({
         method: 'get',
-        url: `${APIPath}ui-resource`,
+        url: `${APIPath}classpiece`,
         crossDomain: true,
         params: { _id },
-        cancelToken: source.token,
       })
         .then((response) => response.data.data)
         .catch((error) => console.log(error));
-      if (typeof responseData !== 'undefined') {
-        setResource(responseData);
-        setLoading(false);
-      }
+      setItem(responseData);
       return false;
     };
-    if (loading && !loadingResourcesType) {
+    if (loading) {
       load();
     }
-    return () => {
-      source.cancel('api request cancelled');
-    };
-  }, [loading, match, loadingResourcesType]);
-
-  const getSystemType = () => {
-    for (let i = 0; i < resourcesType.length; i += 1) {
-      if (resource.systemType === resourcesType[i]._id) {
-        return resourcesType[i].label;
-      }
-    }
-    return false;
-  };
+  }, [loading, match]);
 
   const breadcrumbsItems = [
     {
-      label: 'Resources',
+      label: 'Classpieces',
       icon: 'pe-7s-photo',
       active: false,
-      path: '/resources',
+      path: '/classpieces',
     },
   ];
   let content = (
@@ -82,48 +59,48 @@ const ResourceGraph = (props) => {
   );
 
   let heading = '';
-  if (!loading && resource !== null) {
-    const dataType = getSystemType();
-    let _idGraph = props.match.params._id;
-    if (dataType === 'Thumbnail') {
-      if (resource.status === 'private') {
-        _idGraph = resource.people[0].ref._id;
-      }
-    }
-    const { label } = resource;
+  if (!loading && item !== null) {
+    const { label } = item;
     heading = `${label} network`;
     breadcrumbsItems.push(
       {
         label,
         icon: 'pe-7s-photo',
         active: false,
-        path: `/resource/${props.match.params._id}`,
+        path: `/classpiece/${props.match.params._id}`,
       },
       { label: 'Network', icon: 'pe-7s-graph1', active: true, path: '' }
     );
+
     const documentTitle = breadcrumbsItems.map((i) => i.label).join(' / ');
     updateDocumentTitle(documentTitle);
     content = (
       <div className="graph-container" id="graph-container">
         <Suspense fallback={renderLoader()}>
-          <PersonNetwork _id={_idGraph} relatedLinks={[]} relatedNodes={[]} />
+          <ClasspieceNetwork
+            _id={props.match.params._id}
+            relatedLinks={[]}
+            relatedNodes={[]}
+          />
         </Suspense>
       </div>
     );
   }
   return (
     <div className="container">
-      <Breadcrumbs items={breadcrumbsItems} />
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
       <h3>{heading}</h3>
       {content}
     </div>
   );
 };
-
-ResourceGraph.defaultProps = {
+ClasspieceGraph.defaultProps = {
   match: null,
 };
-ResourceGraph.propTypes = {
+ClasspieceGraph.propTypes = {
   match: PropTypes.object,
 };
-export default ResourceGraph;
+
+export default ClasspieceGraph;

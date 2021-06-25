@@ -4,7 +4,6 @@ import axios from 'axios';
 import { Map, TileLayer, Marker, Popup, ZoomControl } from 'react-leaflet';
 import HeatmapLayer from 'react-leaflet-heatmap-layer';
 import L from 'leaflet';
-import Breadcrumbs from '../../components/breadcrumbs';
 import '../../assets/leaflet/css/MarkerCluster.css';
 import '../../assets/leaflet/leaflet.css';
 import markerIconPath from '../../assets/leaflet/images/marker-icon.png';
@@ -13,6 +12,7 @@ import { updateDocumentTitle, renderLoader } from '../../helpers';
 import HelpArticle from '../../components/help-article';
 import LazyList from '../../components/lazylist';
 
+const Breadcrumbs = lazy(() => import('../../components/breadcrumbs'));
 const PeopleBlock = lazy(() => import('../../components/item-blocks/people'));
 
 const APIPath = process.env.REACT_APP_APIPATH;
@@ -415,7 +415,9 @@ const Heatmap = () => {
 
   return (
     <div className="container">
-      <Breadcrumbs items={breadcrumbsItems} />
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
       {content}
     </div>
   );

@@ -103,7 +103,12 @@ const News = () => {
       } else {
         const item = (
           <div className="news-item-small" key={i}>
-            <Link href={link} to={link} title={article.label}>
+            <Link
+              href={link}
+              to={link}
+              title={article.label}
+              className="news-item-small-link"
+            >
               <span
                 className="news-item-image"
                 style={{ backgroundImage: `url("${thumbPath}")` }}
@@ -115,8 +120,12 @@ const News = () => {
                   {article.label}
                 </Link>
               </h4>
-              <div className="news-item-date">
-                <i className="pe-7s-user" /> {article.author}{' '}
+            </div>
+            <div className="news-item-date">
+              <div className="item">
+                <i className="pe-7s-user" /> {article.author}
+              </div>
+              <div className="item">
                 <i className="pe-7s-clock" /> {date}
               </div>
             </div>

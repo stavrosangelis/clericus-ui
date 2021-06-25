@@ -1,6 +1,9 @@
 {
   "name": "clericus-ui",
-  "version": "1.11.3",
+  "version": "1.11.8",
+  "description": "This is the Clericus public user interface",
+  "author": "Stavros Angelis",
+  "license": "ISC",
   "private": true,
   "dependencies": {
     "axios": "^0.21.1",

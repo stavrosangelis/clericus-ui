@@ -1,12 +1,19 @@
 import React, { Component, lazy, Suspense } from 'react';
 import axios from 'axios';
 import { Label, Spinner, Card, CardBody } from 'reactstrap';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
-import { Link } from 'react-router-dom';
 import Breadcrumbs from '../components/breadcrumbs';
-import { updateDocumentTitle, outputDate, renderLoader } from '../helpers';
+import {
+  getResourceThumbnailURL,
+  getResourceFullsizeURL,
+  renderLoader,
+  updateDocumentTitle,
+} from '../helpers';
+import parseMetadata from '../helpers/parse-metadata';
 
+const Viewer = lazy(() => import('../components/image-viewer-resource'));
 const DescriptionBlock = lazy(() =>
   import('../components/item-blocks/description')
 );
@@ -21,33 +28,35 @@ const OrganisationsBlock = lazy(() =>
   import('../components/item-blocks/organisations')
 );
 const PeopleBlock = lazy(() => import('../components/item-blocks/people'));
-const SpatialBlock = lazy(() => import('../components/item-blocks/spatial'));
 
-class Event extends Component {
+export default class Resource extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       loading: true,
       item: null,
+      viewerVisible: false,
       descriptionVisible: true,
       eventsVisible: true,
       peopleVisible: true,
       classpiecesVisible: true,
       resourcesVisible: true,
       organisationsVisible: true,
-      datesVisible: true,
-      locationsVisible: true,
+      metadataDataVisible: false,
       error: {
         visible: false,
-        text: '',
+        text: [],
       },
     };
 
     this.load = this.load.bind(this);
-    this.toggleTable = this.toggleTable.bind(this);
     this.renderItem = this.renderItem.bind(this);
-    this.renderEventDetails = this.renderEventDetails.bind(this);
+    this.renderResourceDetails = this.renderResourceDetails.bind(this);
+    this.renderThumbnailMetadata = this.renderThumbnailMetadata.bind(this);
+
+    this.toggleViewer = this.toggleViewer.bind(this);
+    this.toggleTable = this.toggleTable.bind(this);
 
     const cancelToken = axios.CancelToken;
     this.cancelSource = cancelToken.source();
@@ -83,7 +92,7 @@ class Event extends Component {
     const params = {
       _id,
     };
-    const url = `${process.env.REACT_APP_APIPATH}ui-event`;
+    const url = `${process.env.REACT_APP_APIPATH}ui-resource`;
     const responseData = await axios({
       method: 'get',
       url,
@@ -122,7 +131,14 @@ class Event extends Component {
     this.setState(payload);
   }
 
-  renderEventDetails(stateData = null) {
+  toggleViewer() {
+    const { viewerVisible } = this.state;
+    this.setState({
+      viewerVisible: !viewerVisible,
+    });
+  }
+
+  renderResourceDetails(stateData = null) {
     const { item } = stateData;
     const {
       descriptionVisible,
@@ -130,12 +146,10 @@ class Event extends Component {
       resourcesVisible,
       eventsVisible,
       organisationsVisible,
-      datesVisible,
-      locationsVisible,
     } = this.state;
 
-    // 1. OrganisationDetails
-    const meta = [];
+    // 1. resourceDetails
+    const detailsOutput = [];
 
     // description
     let descriptionRow = [];
@@ -159,6 +173,26 @@ class Event extends Component {
             description={item.description}
           />
         </Suspense>
+      );
+    }
+
+    let originalLocation = [];
+    if (
+      typeof item.originalLocation !== 'undefined' &&
+      item.originalLocation !== null &&
+      item.originalLocation !== ''
+    ) {
+      originalLocation = (
+        <div className="original-location" key="original-location">
+          Original location:{' '}
+          <a
+            href={item.originalLocation}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            URL
+          </a>
+        </div>
       );
     }
 
@@ -265,134 +299,82 @@ class Event extends Component {
     // people
     const peopleRow = (
       <Suspense fallback={renderLoader()} key="people">
-        <PeopleBlock name="event" peopleItem={item.people} />
+        <PeopleBlock name="resource" peopleItem={item.people} />
       </Suspense>
     );
 
-    let datesRow = [];
-    let datesHidden = '';
-    let datesVisibleClass = '';
-    if (!datesVisible) {
-      datesHidden = ' closed';
-      datesVisibleClass = 'hidden';
+    detailsOutput.push(descriptionRow);
+    detailsOutput.push(originalLocation);
+    detailsOutput.push(eventsRow);
+    detailsOutput.push(peopleRow);
+    detailsOutput.push(classpiecesRow);
+    detailsOutput.push(resourcesRow);
+    detailsOutput.push(organisationsRow);
+
+    // 1.5 technical metadata
+    let technicalMetadata = [];
+    if (Object.keys(stateData.item.metadata).length > 0) {
+      technicalMetadata = this.renderThumbnailMetadata(
+        stateData.item.metadata,
+        stateData.metadataDataVisible
+      );
+      detailsOutput.push(technicalMetadata);
     }
-    if (
-      typeof item.temporal !== 'undefined' &&
-      item.temporal !== null &&
-      item.temporal.length > 0
-    ) {
-      const temporalData = item.temporal.map((eachItem) => {
-        const temp = eachItem.ref;
-        const tempLabel = [<span key="label">{temp.label}</span>];
-        let tLabel = '';
-        if (typeof temp.startDate !== 'undefined' && temp.startDate !== '') {
-          tLabel = outputDate(temp.startDate);
-        }
-        if (
-          typeof temp.endDate !== 'undefined' &&
-          temp.endDate !== '' &&
-          temp.endDate !== temp.startDate
-        ) {
-          tLabel += ` - ${outputDate(temp.endDate)}`;
-        }
-        tempLabel.push(<span key="dates">[{tLabel}]</span>);
-        const url = `/temporal/${temp._id}`;
-        return (
-          <li key={temp._id}>
-            <Link className="tag-bg tag-item" href={url} to={url}>
-              {tempLabel}
-            </Link>
-          </li>
-        );
-      });
-      datesRow = (
-        <div key="dates">
-          <h5>
-            Dates <small>[{item.temporal.length}]</small>
-            <div
-              className="btn btn-default btn-xs pull-right toggle-info-btn"
-              onClick={(e) => {
-                this.toggleTable(e, 'dates');
-              }}
-              onKeyDown={() => false}
-              role="button"
-              tabIndex={0}
-              aria-label="toggle dates table"
-            >
-              <i className={`fa fa-angle-down${datesHidden}`} />
-            </div>
-          </h5>
-          <div className={datesVisibleClass}>
-            <ul className="tag-list">{temporalData}</ul>
+    return <div className="classpiece-details-container">{detailsOutput}</div>;
+  }
+
+  renderThumbnailMetadata(metadata = null, visible) {
+    let metadataDataHidden = '';
+    let metadataVisibleClass = '';
+    if (!visible) {
+      metadataDataHidden = ' closed';
+      metadataVisibleClass = 'hidden';
+    }
+    const metadataOutput = (
+      <div key="metadata">
+        <h5>
+          Technical metadata
+          <div
+            className="btn btn-default btn-xs pull-right toggle-info-btn"
+            onClick={(e) => {
+              this.toggleTable(e, 'metadataData');
+            }}
+            onKeyDown={() => false}
+            role="button"
+            tabIndex={0}
+            aria-label="toggle metadata table"
+          >
+            <i className={`fa fa-angle-down${metadataDataHidden}`} />
           </div>
+        </h5>
+        <div className={metadataVisibleClass}>
+          {parseMetadata(metadata.image)}
         </div>
-      );
-    }
-
-    let locationsRow = [];
-    let locationsHidden = '';
-    let locationsVisibleClass = '';
-    if (!locationsVisible) {
-      locationsHidden = ' closed';
-      locationsVisibleClass = 'hidden';
-    }
-    if (
-      typeof item.spatial !== 'undefined' &&
-      item.spatial !== null &&
-      item.spatial.length > 0
-    ) {
-      locationsRow = (
-        <Suspense fallback={renderLoader()} key="spatial">
-          <SpatialBlock
-            toggleTable={this.toggleTable}
-            hidden={locationsHidden}
-            visible={locationsVisibleClass}
-            spatial={item.spatial}
-          />
-        </Suspense>
-      );
-    }
-
-    meta.push(peopleRow);
-    meta.push(organisationsRow);
-    meta.push(classpiecesRow);
-    meta.push(resourcesRow);
-    meta.push(eventsRow);
-    meta.push(datesRow);
-    meta.push(locationsRow);
-    meta.push(descriptionRow);
-
-    return meta;
+      </div>
+    );
+    return metadataOutput;
   }
 
   renderItem(stateData = null) {
     const { item } = stateData;
-
-    // 1.1 Event label
     const { label } = item;
-    const eventType = (
-      <h6 className="event-type">
-        <i>{item.eventType.inverseLabel}</i>
-      </h6>
-    );
-    // 2.1 meta
-    const metaTable = this.renderEventDetails(stateData);
 
-    // 2.2 thumbnailImage
+    // 1 resourceDetails - resourceDetails include description, events, organisations, and people
+    const resourceDetails = this.renderResourceDetails(stateData);
+
+    // 2. thumbnailImage
     let thumbnailImage = [];
-    let thumbnailColClass = 'col-0';
-    let contentColClass = 'col-12';
-    const thumbnailURL = null;
+    const thumbnailURL = getResourceThumbnailURL(item);
     if (thumbnailURL !== null) {
       thumbnailImage = (
         <div
           key="thumbnailImage"
-          className="show-classpiece"
+          className="show-resource"
           onClick={() => this.toggleViewer()}
           onKeyDown={() => false}
           role="button"
           tabIndex={0}
-          aria-label="toggle classpiece viewer"
+          aria-label="toggle image viewer"
         >
           <img
             src={thumbnailURL}
@@ -401,28 +383,52 @@ class Event extends Component {
           />
         </div>
       );
-      thumbnailColClass = 'col-xs-12 col-sm-6 col-md-5';
-      contentColClass = 'col-xs-12 col-sm-6 col-md-7';
+    } else if (item.resourceType === 'document') {
+      const fullsizePath = getResourceFullsizeURL(item);
+      if (fullsizePath !== null) {
+        thumbnailImage = [
+          <a
+            key="link"
+            target="_blank"
+            href={fullsizePath}
+            className="pdf-thumbnail"
+            rel="noopener noreferrer"
+          >
+            <i className="fa fa-file-pdf-o" />
+          </a>,
+          <a
+            key="link-label"
+            target="_blank"
+            href={fullsizePath}
+            className="pdf-thumbnail"
+            rel="noopener noreferrer"
+          >
+            <Label>Preview file</Label>{' '}
+          </a>,
+        ];
+      }
     }
 
+    let leftColClass = 'col-sm-6 col-md-7';
+    let rightColClass = 'col-sm-6 col-md-5';
+    if (thumbnailURL === null) {
+      leftColClass = 'extra-side-padding';
+      rightColClass = '';
+    }
     const output = (
-      <div className="item-container">
+      <div>
         <h3>{label}</h3>
-        {eventType}
-        <div className="row item-info-container">
-          <div className={thumbnailColClass}>{thumbnailImage}</div>
-          <div className={contentColClass}>
-            <div className="item-details-container">{metaTable}</div>
-          </div>
+        <div className="row">
+          <div className={`col-xs-12 ${leftColClass}`}>{resourceDetails}</div>
+          <div className={`col-xs-12 ${rightColClass}`}>{thumbnailImage}</div>
         </div>
       </div>
     );
-
     return output;
   }
 
   render() {
-    const { loading, item, error } = this.state;
+    const { loading, item, viewerVisible, error } = this.state;
     const { match } = this.props;
     let content = (
       <div>
@@ -437,21 +443,55 @@ class Event extends Component {
     );
 
     let label = '';
-    const breadcrumbsItems = [
-      { label: 'Events', icon: 'pe-7s-date', active: false, path: '/events' },
+    let breadcrumbsItems = [
+      {
+        label: 'Resources',
+        icon: 'pe-7s-photo',
+        active: false,
+        path: '/resources',
+      },
     ];
+
+    let imgViewer = [];
     if (!loading) {
       if (item !== null) {
-        const eventCard = this.renderItem(this.state);
+        const itemCard = this.renderItem(this.state);
 
-        const networkGraphLinkURL = `/event-graph/${match.params._id}`;
+        const labelGraph = 'resource-graph';
+        const { _id } = match.params;
+
+        let timelineLink = [];
+        if (item.events.length > 0) {
+          const timelinkURL = `/item-timeline/resource/${match.params._id}`;
+          timelineLink = (
+            <div className="col-xs-12 col-sm-4">
+              <Link
+                href={timelinkURL}
+                to={timelinkURL}
+                className="person-component-link"
+                title="Resource graph timeline"
+              >
+                <i className="pe-7s-hourglass" />
+              </Link>
+              <Link
+                href={timelinkURL}
+                to={timelinkURL}
+                className="person-component-link-label"
+                title="Resource graph timeline"
+              >
+                <Label>Timeline</Label>
+              </Link>
+            </div>
+          );
+        }
+        const networkGraphLinkURL = `/${labelGraph}/${_id}`;
         const networkGraphLink = (
           <div className="col-xs-12 col-sm-4">
             <Link
               href={networkGraphLinkURL}
               to={networkGraphLinkURL}
               className="person-component-link"
-              title="Event graph network"
+              title="Resource graph network"
             >
               <i className="pe-7s-graph1" />
             </Link>
@@ -459,7 +499,7 @@ class Event extends Component {
               href={networkGraphLinkURL}
               to={networkGraphLinkURL}
               className="person-component-link-label"
-              title="Event graph network"
+              title="Resource graph network"
             >
               <Label>Network graph</Label>
             </Link>
@@ -470,23 +510,44 @@ class Event extends Component {
             <Card>
               <CardBody>
                 <div className="row">
-                  <div className="col-12">{eventCard}</div>
+                  <div className="col-12">{itemCard}</div>
                 </div>
-                <div className="row">{networkGraphLink}</div>
+                <div className="row timelink-row">
+                  {timelineLink}
+                  {networkGraphLink}
+                </div>
               </CardBody>
             </Card>
           </div>
         );
-
-        label = item.label;
-        breadcrumbsItems.push({
-          label,
-          icon: 'pe-7s-date',
-          active: true,
-          path: '',
-        });
+        const resource = item;
+        label = resource.label;
+        let icon = 'pe-7s-photo';
+        if (resource.resourceType === 'document') {
+          icon = 'fa fa-file-pdf-o';
+        }
+        breadcrumbsItems = [
+          { label: 'Resources', icon, active: false, path: '/resources' },
+          { label, icon, active: true, path: '' },
+        ];
         const documentTitle = breadcrumbsItems.map((i) => i.label).join(' / ');
         updateDocumentTitle(documentTitle);
+        const fullsizePath = getResourceFullsizeURL(resource);
+        if (fullsizePath !== null && resource.resourceType === 'image') {
+          if (resource.resourceType !== 'document') {
+            imgViewer = (
+              <Suspense fallback={renderLoader()}>
+                <Viewer
+                  visible={viewerVisible}
+                  path={fullsizePath}
+                  label={label}
+                  toggle={this.toggleViewer}
+                  item={resource}
+                />
+              </Suspense>
+            );
+          }
+        }
       } else if (error.visible) {
         breadcrumbsItems.push({
           label: error.text,
@@ -516,16 +577,15 @@ class Event extends Component {
       <div className="container">
         <Breadcrumbs items={breadcrumbsItems} />
         {content}
+        {imgViewer}
       </div>
     );
   }
 }
 
-Event.defaultProps = {
+Resource.defaultProps = {
   match: null,
 };
-Event.propTypes = {
+Resource.propTypes = {
   match: PropTypes.object,
 };
-
-export default Event;

@@ -2,9 +2,9 @@ import React, { useEffect, useState, lazy, Suspense } from 'react';
 import axios from 'axios';
 import { Spinner } from 'reactstrap';
 import PropTypes from 'prop-types';
-import Breadcrumbs from '../../components/breadcrumbs';
 import { updateDocumentTitle, renderLoader } from '../../helpers';
 
+const Breadcrumbs = lazy(() => import('../../components/breadcrumbs'));
 const PersonNetwork = lazy(() =>
   import('../../components/visualisations/person-network-pixi')
 );
@@ -95,7 +95,9 @@ const TemporalGraph = (props) => {
   }
   return (
     <div className="container">
-      <Breadcrumbs items={breadcrumbsItems} />
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
       <h3>{heading}</h3>
       {content}
     </div>

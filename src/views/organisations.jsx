@@ -1,41 +1,36 @@
 import React, { Component, lazy, Suspense } from 'react';
 import axios from 'axios';
 import {
-  Label,
   Spinner,
+  ListGroup,
+  ListGroupItem,
+  Collapse,
   Card,
   CardBody,
-  CardImg,
-  CardText,
-  Collapse,
   Tooltip,
 } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import PropTypes from 'prop-types';
-
-import Breadcrumbs from '../components/breadcrumbs';
-import {
-  getResourceThumbnailURL,
-  updateDocumentTitle,
-  renderLoader,
-} from '../helpers';
-import defaultThumbnail from '../assets/images/classpiece-default-thumbnail.jpg';
+import { updateDocumentTitle, renderLoader } from '../helpers';
 import HelpArticle from '../components/help-article';
 
-import { setPaginationParams, setRelationshipParams } from '../redux/actions';
+import {
+  setPaginationParams,
+  setRelationshipParams,
+  updateFilters,
+} from '../redux/actions';
 
-import '../scss/classpieces.scss';
-
+const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
 const Filters = lazy(() => import('../components/filters'));
 const SearchForm = lazy(() => import('../components/search-form'));
 const PageActions = lazy(() => import('../components/page-actions'));
 
 const mapStateToProps = (state) => ({
-  classpiecesPagination: state.classpiecesPagination,
-  classpiecesFilters: state.classpiecesFilters,
-  classpiecesRelationship: state.classpiecesRelationship,
+  organisationsPagination: state.organisationsPagination,
+  organisationsFilters: state.organisationsFilters,
+  organisationsRelationship: state.organisationsRelationship,
 });
 
 function mapDispatchToProps(dispatch) {
@@ -44,84 +39,39 @@ function mapDispatchToProps(dispatch) {
       dispatch(setPaginationParams(type, params)),
     setRelationshipParams: (type, params) =>
       dispatch(setRelationshipParams(type, params)),
+    updateFilters: (type, params) => dispatch(updateFilters(type, params)),
   };
 }
 
-class Classpieces extends Component {
-  static renderItem(i, item) {
-    const parseUrl = `/classpiece/${item._id}`;
-    let thumbnailImage = <img src={defaultThumbnail} alt={item.label} />;
-    const thumbnailPath = getResourceThumbnailURL(item);
-    if (thumbnailPath !== null) {
-      const thumbStyle = { backgroundImage: `url("${thumbnailPath}")` };
-      thumbnailImage = (
-        <Link
-          to={parseUrl}
-          href={parseUrl}
-          className="classpieces-list-thumbnail"
-        >
-          <div className="classpiece-thumbnail" style={thumbStyle} />
-          <CardImg src={defaultThumbnail} alt={item.label} />
-        </Link>
-      );
-    }
-
-    const itemOutput = (
-      <div
-        key={i}
-        className="col-12 col-sm-6 col-md-3"
-        onContextMenu={(e) => {
-          e.preventDefault();
-          return false;
-        }}
-      >
-        <Card style={{ marginBottom: '15px' }}>
-          {thumbnailImage}
-          <CardBody>
-            <CardText className="text-center">
-              <Label>
-                <Link to={parseUrl} href={parseUrl}>
-                  {item.label}
-                </Link>
-              </Label>
-            </CardText>
-          </CardBody>
-        </Card>
-      </div>
-    );
-    return itemOutput;
-  }
-
+class Organisations extends Component {
   constructor(props) {
     super(props);
-    const { classpiecesPagination } = this.props;
+    const { organisationsPagination } = this.props;
     this.state = {
       loading: true,
-      classpiecesLoading: true,
+      organisationsLoading: true,
       items: [],
-      page: classpiecesPagination.page,
-      gotoPage: classpiecesPagination.page,
-      limit: classpiecesPagination.limit,
+      page: organisationsPagination.page,
+      gotoPage: organisationsPagination.page,
+      limit: organisationsPagination.limit,
       totalPages: 0,
       totalItems: 0,
       searchVisible: true,
-      simpleSearchTerm: classpiecesPagination.simpleSearchTerm,
+      simpleSearchTerm: organisationsPagination.simpleSearchTerm,
       helpVisible: false,
     };
 
     this.load = this.load.bind(this);
     this.simpleSearch = this.simpleSearch.bind(this);
     this.clearSearch = this.clearSearch.bind(this);
-    this.toggleSearch = this.toggleSearch.bind(this);
     this.updatePage = this.updatePage.bind(this);
     this.updateStorePagination = this.updateStorePagination.bind(this);
     this.updateLimit = this.updateLimit.bind(this);
     this.gotoPage = this.gotoPage.bind(this);
     this.renderItems = this.renderItems.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    this.updateClasspiecesRelationship = this.updateClasspiecesRelationship.bind(
-      this
-    );
+    this.toggleSearch = this.toggleSearch.bind(this);
+    this.updateType = this.updateType.bind(this);
     this.toggleHelp = this.toggleHelp.bind(this);
 
     // cancelTokens
@@ -139,6 +89,16 @@ class Classpieces extends Component {
     this.load();
   }
 
+  componentDidUpdate(prevProps) {
+    const { organisationsFilters } = this.props;
+    if (
+      prevProps.organisationsFilters.organisationType !==
+      organisationsFilters.organisationType
+    ) {
+      this.load();
+    }
+  }
+
   componentWillUnmount() {
     this.cancelSource1.cancel('api request cancelled');
     this.cancelSource2.cancel('api request cancelled');
@@ -154,23 +114,36 @@ class Classpieces extends Component {
     });
   }
 
-  async load() {
-    const { classpiecesFilters: filters } = this.props;
-    const { page, limit, simpleSearchTerm } = this.state;
+  toggleHelp() {
+    const { helpVisible } = this.state;
     this.setState({
-      classpiecesLoading: true,
+      helpVisible: !helpVisible,
     });
+  }
+
+  updateType(val) {
+    const { updateFilters: updateFiltersFn } = this.props;
+    const payload = {
+      organisationType: val,
+    };
+    updateFiltersFn('organisations', payload);
+  }
+
+  async load() {
+    this.setState({
+      organisationsLoading: true,
+    });
+    const { organisationsFilters: filters } = this.props;
+    const { page, limit, simpleSearchTerm } = this.state;
     const params = {
       page,
       limit,
-      events: filters.events,
-      organisations: filters.organisations,
-      temporals: filters.temporals,
+      organisationType: filters.organisationType,
     };
     if (simpleSearchTerm !== '') {
       params.label = simpleSearchTerm;
     }
-    const url = `${process.env.REACT_APP_APIPATH}classpieces`;
+    const url = `${process.env.REACT_APP_APIPATH}ui-organisations`;
     const responseData = await axios({
       method: 'get',
       url,
@@ -183,7 +156,7 @@ class Classpieces extends Component {
         console.log(error);
       });
     if (typeof responseData !== 'undefined') {
-      const classpieces = responseData.data;
+      const organisations = responseData.data;
       let currentPage = 1;
       if (responseData.currentPage > 0) {
         currentPage = responseData.currentPage;
@@ -197,13 +170,13 @@ class Classpieces extends Component {
       } else {
         this.setState({
           loading: false,
-          classpiecesLoading: false,
+          organisationsLoading: false,
           page: responseData.currentPage,
           totalPages: responseData.totalPages,
           totalItems: responseData.totalItems,
-          items: classpieces,
+          items: organisations,
         });
-        this.updateClasspiecesRelationship();
+        // this.updateOrganisationsRelationship(organisations);
       }
     }
   }
@@ -211,7 +184,7 @@ class Classpieces extends Component {
   async simpleSearch(e) {
     e.preventDefault();
     const { simpleSearchTerm, page, limit } = this.state;
-    const { classpiecesFilters } = this.props;
+    const { organisationsFilters: filters } = this.props;
     if (simpleSearchTerm.length < 2) {
       return false;
     }
@@ -219,18 +192,15 @@ class Classpieces extends Component {
       simpleSearchTerm,
     });
     this.setState({
-      classpiecesLoading: true,
+      organisationsLoading: true,
     });
-    const filters = classpiecesFilters;
     const params = {
       label: simpleSearchTerm,
       page,
       limit,
-      events: filters.events,
-      organisations: filters.organisations,
-      temporals: filters.temporals,
+      organisationType: filters.organisationType,
     };
-    const url = `${process.env.REACT_APP_APIPATH}classpieces`;
+    const url = `${process.env.REACT_APP_APIPATH}ui-organisations`;
     const responseData = await axios({
       method: 'get',
       url,
@@ -239,9 +209,11 @@ class Classpieces extends Component {
       cancelToken: this.cancelSource2.token,
     })
       .then((response) => response.data.data)
-      .catch((error) => console.log(error));
+      .catch((error) => {
+        console.log(error);
+      });
     if (typeof responseData !== 'undefined') {
-      const classpieces = responseData.data;
+      const organisations = responseData.data;
       let currentPage = 1;
       if (responseData.currentPage > 0) {
         currentPage = responseData.currentPage;
@@ -255,14 +227,13 @@ class Classpieces extends Component {
       } else {
         this.setState({
           loading: false,
-          classpiecesLoading: false,
+          organisationsLoading: false,
           page: responseData.currentPage,
           totalPages: responseData.totalPages,
           totalItems: responseData.totalItems,
-          items: classpieces,
+          items: organisations,
         });
-
-        this.updateClasspiecesRelationship();
+        // this.updateOrganisationsRelationship(organisations);
       }
     }
     return false;
@@ -288,23 +259,20 @@ class Classpieces extends Component {
     });
   }
 
-  async updateClasspiecesRelationship() {
-    const { page, limit } = this.state;
+  async updateOrganisationsRelationship() {
     const {
-      classpiecesFilters,
+      organisationsFilters: filters,
       setRelationshipParams: setRelationshipParamsFn,
     } = this.props;
-    const filters = classpiecesFilters;
+    const { page, limit } = this.state;
     const params = {
       page,
       limit,
-      events: filters.events,
-      organisations: filters.organisations,
-      temporals: filters.temporals,
+      organisationTypes: filters.organisations,
     };
-    const url = `${process.env.REACT_APP_APIPATH}classpieces-active-filters`;
+    const url = `${process.env.REACT_APP_APIPATH}ui-organisations-active-filters`;
     const responseData = await axios({
-      method: 'get',
+      method: 'post',
       url,
       crossDomain: true,
       params,
@@ -314,10 +282,9 @@ class Classpieces extends Component {
       .catch((error) => console.log(error));
     if (typeof responseData !== 'undefined' && responseData.status) {
       const payload = {
-        events: responseData.data.events.map((item) => item),
-        organisations: responseData.data.organisations.map((item) => item),
+        organisationTypes: responseData.data.organisations.map((item) => item),
       };
-      setRelationshipParamsFn('classpieces', payload);
+      setRelationshipParamsFn('organisations', payload);
     }
   }
 
@@ -371,7 +338,7 @@ class Classpieces extends Component {
     page = null,
     simpleSearchTerm = null,
   }) {
-    const { setRelationshipParams: setRelationshipParamsFn } = this.props;
+    const { setPaginationParams: setPaginationParamsFn } = this.props;
     const payload = {};
     if (limit !== null) {
       payload.limit = limit;
@@ -382,43 +349,66 @@ class Classpieces extends Component {
     if (simpleSearchTerm !== null) {
       payload.simpleSearchTerm = simpleSearchTerm;
     }
-    setRelationshipParamsFn('classpieces', payload);
-  }
-
-  toggleHelp() {
-    const { helpVisible } = this.state;
-    this.setState({
-      helpVisible: !helpVisible,
-    });
+    setPaginationParamsFn('organisations', payload);
   }
 
   renderItems() {
     const { items, simpleSearchTerm } = this.state;
-    const { classpiecesPagination } = this.props;
+    const { organisationsPagination } = this.props;
+    let outputObj = [];
     const output = [];
     if (items.length > 0) {
       for (let i = 0; i < items.length; i += 1) {
         const item = items[i];
-        output.push(this.constructor.renderItem(i, item));
+        const { label } = item;
+
+        let thumbnailImage = [];
+        const thumbnailURL = null;
+        if (thumbnailURL !== null) {
+          thumbnailImage = (
+            <img
+              src={thumbnailURL}
+              className="organisations-list-thumbnail img-fluid img-thumbnail"
+              alt={label}
+            />
+          );
+        }
+        const link = `/organisation/${item._id}`;
+        const outputItem = (
+          <ListGroupItem key={i}>
+            <Link to={link} href={link}>
+              {thumbnailImage}
+            </Link>
+            <Link to={link} href={link}>
+              {label}
+            </Link>
+          </ListGroupItem>
+        );
+        output.push(outputItem);
       }
+      outputObj = (
+        <div className="organisations-list">
+          <ListGroup>{output}</ListGroup>
+        </div>
+      );
     } else {
       let query = '';
       if (simpleSearchTerm !== '') {
-        query = <b>&quot;{classpiecesPagination.simpleSearchTerm}&quot;</b>;
+        query = <b>&quot;{organisationsPagination.simpleSearchTerm}&quot;</b>;
       }
       const item = (
         <div key="no-results" className="col-12">
           <Card style={{ marginBottom: '15px' }}>
             <CardBody>
               <h5>No results found</h5>
-              <p>There are no classpieces matching your query {query}</p>
+              <p>There are no organisations matching your query {query}</p>
             </CardBody>
           </Card>
         </div>
       );
-      output.push(item);
+      outputObj.push(item);
     }
-    return output;
+    return outputObj;
   }
 
   render() {
@@ -428,22 +418,22 @@ class Classpieces extends Component {
       page,
       gotoPage,
       totalPages,
-      classpiecesLoading,
+      organisationsLoading,
       searchVisible,
       simpleSearchTerm,
       totalItems,
       helpVisible,
     } = this.state;
-    const { classpiecesFilters, classpiecesRelationship } = this.props;
-    const heading = 'Classpieces';
+    const { organisationsFilters, organisationsRelationship } = this.props;
+    const heading = 'Organisations';
     const breadcrumbsItems = [
-      { label: heading, icon: 'pe-7s-photo', active: true, path: '' },
+      { label: heading, icon: 'pe-7s-users', active: true, path: '' },
     ];
     updateDocumentTitle(heading);
     let content = (
       <div>
         <div className="row">
-          <div className="col-xs-12">
+          <div className="col-xs-12 col-sm-4">
             <h4>Filters</h4>
           </div>
           <div className="col-xs-12 col-sm-8">
@@ -465,7 +455,6 @@ class Classpieces extends Component {
         <Suspense fallback={renderLoader()}>
           <PageActions
             limit={limit}
-            sort={false}
             current_page={page}
             gotoPageValue={gotoPage}
             total_pages={totalPages}
@@ -473,11 +462,11 @@ class Classpieces extends Component {
             gotoPage={this.gotoPage}
             handleChange={this.handleChange}
             updateLimit={this.updateLimit}
-            pageType="classpieces"
+            pageType="organisations"
           />
         </Suspense>
       );
-      let classpieces = (
+      let organisations = (
         <div className="row">
           <div className="col-12">
             <div style={{ padding: '40pt', textAlign: 'center' }}>
@@ -486,10 +475,9 @@ class Classpieces extends Component {
           </div>
         </div>
       );
-      if (!classpiecesLoading) {
-        classpieces = this.renderItems();
+      if (!organisationsLoading) {
+        organisations = this.renderItems();
       }
-
       const searchElements = [
         {
           element: 'label',
@@ -497,39 +485,40 @@ class Classpieces extends Component {
           inputType: 'text',
           inputData: null,
         },
-        {
-          element: 'description',
-          label: 'Description',
-          inputType: 'text',
-          inputData: null,
-        },
       ];
+
       const searchBox = (
         <Collapse isOpen={searchVisible}>
           <Suspense fallback={renderLoader()}>
             <SearchForm
+              name="organisations"
               searchElements={searchElements}
               simpleSearchTerm={simpleSearchTerm}
               simpleSearch={this.simpleSearch}
               clearSearch={this.clearSearch}
               handleChange={this.handleChange}
               adadvancedSearchEnable={false}
+              advancedSearch={this.advancedSearchSubmit}
+              updateAdvancedSearchRows={this.updateAdvancedSearchRows}
+              clearAdvancedSearch={this.clearAdvancedSearch}
+              updateAdvancedSearchInputs={this.updateAdvancedSearchInputs}
             />
           </Suspense>
         </Collapse>
       );
 
-      const filterType = ['events', 'temporals'];
+      const filterType = ['organisationType'];
       content = (
         <div>
           <div className="row">
             <div className="col-xs-12 col-sm-4">
               <Suspense fallback={renderLoader()}>
                 <Filters
-                  name="classpieces"
+                  name="organisations"
                   filterType={filterType}
-                  filtersSet={classpiecesFilters}
-                  relationshipSet={classpiecesRelationship}
+                  filtersSet={organisationsFilters}
+                  relationshipSet={organisationsRelationship}
+                  updateType={this.updateType}
                   updatedata={this.load}
                 />
               </Suspense>
@@ -568,10 +557,10 @@ class Classpieces extends Component {
               </h2>
               {searchBox}
               {pageActions}
-              <div className="row">{classpieces}</div>
+              {organisations}
               {pageActions}
               <HelpArticle
-                permalink="classpieces-help"
+                permalink="organisations-help"
                 visible={helpVisible}
                 toggle={this.toggleHelp}
               />
@@ -580,29 +569,30 @@ class Classpieces extends Component {
         </div>
       );
     }
-
     return (
       <div className="container">
-        <Breadcrumbs items={breadcrumbsItems} />
+        <Suspense fallback={[]}>
+          <Breadcrumbs items={breadcrumbsItems} />
+        </Suspense>
         {content}
       </div>
     );
   }
 }
 
-Classpieces.defaultProps = {
-  classpiecesPagination: null,
-  classpiecesFilters: {
-    events: [],
-    organisations: [],
-    temporals: {
-      startDate: '',
-      endDate: '',
-      dateType: 'exact',
-    },
+Organisations.defaultProps = {
+  organisationsPagination: {
+    limit: 25,
+    page: 1,
+    simpleSearchTerm: '',
   },
+  organisationsFilters: {
+    organisationType: '',
+  },
+  updateFilters: () => {},
   setRelationshipParams: () => {},
-  classpiecesRelationship: {
+  setPaginationParams: () => {},
+  organisationsRelationship: {
     classpieces: [],
     events: [],
     organisations: [],
@@ -611,19 +601,19 @@ Classpieces.defaultProps = {
     spatials: [],
   },
 };
-Classpieces.propTypes = {
-  classpiecesPagination: PropTypes.object,
-  classpiecesFilters: PropTypes.shape({
-    events: PropTypes.array,
-    organisations: PropTypes.array,
-    temporals: PropTypes.shape({
-      startDate: PropTypes.string,
-      endDate: PropTypes.string,
-      dateType: PropTypes.string,
-    }),
+Organisations.propTypes = {
+  organisationsPagination: PropTypes.shape({
+    limit: PropTypes.number,
+    page: PropTypes.number,
+    simpleSearchTerm: PropTypes.string,
   }),
+  organisationsFilters: PropTypes.shape({
+    organisationType: PropTypes.string,
+  }),
+  updateFilters: PropTypes.func,
   setRelationshipParams: PropTypes.func,
-  classpiecesRelationship: PropTypes.shape({
+  setPaginationParams: PropTypes.func,
+  organisationsRelationship: PropTypes.shape({
     classpieces: PropTypes.array,
     events: PropTypes.array,
     organisations: PropTypes.array,
@@ -634,5 +624,5 @@ Classpieces.propTypes = {
 };
 
 export default compose(connect(mapStateToProps, mapDispatchToProps))(
-  Classpieces
+  Organisations
 );

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Suspense, lazy } from 'react';
 import axios from 'axios';
 import {
   Spinner,
@@ -12,8 +12,9 @@ import {
 } from 'reactstrap';
 import { load } from 'recaptcha-v3';
 import dompurify from 'dompurify';
-import Breadcrumbs from '../components/breadcrumbs';
 import { updateDocumentTitle } from '../helpers';
+
+const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
 
 const APIPath = process.env.REACT_APP_APIPATH;
 const ContactForm = () => {
@@ -290,7 +291,9 @@ const ContactForm = () => {
 
   return (
     <div className="container">
-      <Breadcrumbs items={breadcrumbsItems} />
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
       {content}
     </div>
   );

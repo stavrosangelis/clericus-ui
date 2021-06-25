@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import axios from 'axios';
 import { Spinner, Card, CardBody } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-
-import Breadcrumbs from '../components/breadcrumbs';
 import { updateDocumentTitle } from '../helpers';
 
 import '../scss/articles.scss';
+
+const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
@@ -175,7 +175,7 @@ const Articles = (props) => {
                 {article.label}
               </Link>
             </h4>
-            <div className="news-item-date">
+            <div className="article-date">
               <i className="pe-7s-user" /> {article.author}{' '}
               <i className="pe-7s-clock" /> {date}
             </div>
@@ -217,7 +217,9 @@ const Articles = (props) => {
   }
   return (
     <div className="container">
-      <Breadcrumbs items={breadcrumbsItems} />
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
       {content}
     </div>
   );

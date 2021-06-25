@@ -3,8 +3,6 @@ import axios from 'axios';
 import { Label, Spinner, Card, CardBody } from 'reactstrap';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-
-import Breadcrumbs from '../components/breadcrumbs';
 import {
   getPersonThumbnailURL,
   updateDocumentTitle,
@@ -14,7 +12,8 @@ import {
 import defaultThumbnail from '../assets/images/spcc.jpg';
 import icpThumbnail from '../assets/images/icp-logo.jpg';
 
-const Viewer = lazy(() => import('../components/image-viewer-resource.js'));
+const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
+const Viewer = lazy(() => import('../components/image-viewer-resource'));
 const DescriptionBlock = lazy(() =>
   import('../components/item-blocks/description')
 );
@@ -681,7 +680,9 @@ class Person extends Component {
     }
     return (
       <div className="container">
-        <Breadcrumbs items={breadcrumbsItems} />
+        <Suspense fallback={[]}>
+          <Breadcrumbs items={breadcrumbsItems} />
+        </Suspense>
         {content}
       </div>
     );

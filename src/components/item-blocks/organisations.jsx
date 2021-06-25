@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Button, Form, Input, InputGroup, InputGroupAddon } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { outputDate, outputRelationTypes } from '../../helpers';
 import Pagination from '../pagination';
+import { outputRelationTypes } from '../../helpers';
 
 const Block = (props) => {
   // state
@@ -17,7 +17,12 @@ const Block = (props) => {
   const lastIndex = firstIndex + limit;
 
   // props
-  const { events: propsEvents, toggleTable, hidden, visible } = props;
+  const {
+    organisations: propsOrganisations,
+    toggleTable,
+    hidden,
+    visible,
+  } = props;
 
   const handleSearchTermChange = (e) => {
     const { target } = e;
@@ -51,93 +56,30 @@ const Block = (props) => {
       setPage(e);
     }
   };
-  let eventsRow = [];
-  if (propsEvents.length > 0) {
-    const events = propsEvents.filter((p) =>
+
+  let organisationsRow = [];
+  if (propsOrganisations.length > 0) {
+    const organisations = propsOrganisations.filter((p) =>
       p.ref.label.toLowerCase().includes(simpleSearchSet.toLowerCase())
     );
-    const eventsData = [];
-    for (let i = 0; i < events.length; i += 1) {
+    const organisationsData = [];
+    for (let i = 0; i < organisations.length; i += 1) {
       if (i > firstIndex) {
         if (i > lastIndex) {
           break;
         }
-        const event = events[i];
-        const termLabel = outputRelationTypes(event.term.label);
-        const label = [
-          <div key="label">
-            <span>
-              <i key="type">{termLabel}</i> <b>{event.ref.label}</b>
-            </span>
-          </div>,
-        ];
-        if (
-          typeof event.organisations !== 'undefined' &&
-          event.organisations.length > 0
-        ) {
-          const organisationLabels = event.organisations.map((o) => {
-            const orgTermLabel = outputRelationTypes(o.term.label);
-            return (
-              <span key={o._id}>
-                <i>{orgTermLabel}</i> <b>{o.ref.label}</b>
-              </span>
-            );
-          });
-          if (organisationLabels.length > 0) {
-            label.push(<div key="organisations">{organisationLabels}</div>);
-          }
-        }
-        if (
-          typeof event.temporal !== 'undefined' &&
-          event.temporal.length > 0
-        ) {
-          const temporalLabels = event.temporal.map((t) => {
-            const temp = t.ref;
-            let tLabel = '';
-            if (
-              typeof temp.startDate !== 'undefined' &&
-              temp.startDate !== ''
-            ) {
-              tLabel = outputDate(temp.startDate);
-            }
-            if (
-              typeof temp.endDate !== 'undefined' &&
-              temp.endDate !== '' &&
-              temp.endDate !== temp.startDate
-            ) {
-              tLabel += ` - ${outputDate(temp.endDate)}`;
-            }
-            return tLabel;
-          });
-          if (temporalLabels.length > 0) {
-            const temporalLabel = temporalLabels.join(' | ');
-            label.push(
-              <div key="temp">
-                <i className="fa fa-calendar-o" />{' '}
-                <span key="dates">{temporalLabel}</span>
-              </div>
-            );
-          }
-        }
-        if (typeof event.spatial !== 'undefined' && event.spatial.length > 0) {
-          const spatialLabels = event.spatial.map((s) => {
-            const spatial = s.ref;
-            return spatial.label;
-          });
-          if (spatialLabels.length > 0) {
-            const spatialLabel = spatialLabels.join(' | ');
-            label.push(
-              <div key="spatial">
-                <i className="fa fa-map" /> {spatialLabel}
-              </div>
-            );
-          }
-        }
-        const url = `/event/${event.ref._id}`;
-        eventsData.push(
-          <li key={event.ref._id}>
+        const organisation = organisations[i];
+        const url = `/organisation/${organisation.ref._id}`;
+        const termLabel = outputRelationTypes(organisation.term.label);
+        const organisationType =
+          organisation.ref.organisationType !== ''
+            ? ` [${organisation.ref.organisationType}]`
+            : '';
+        organisationsData.push(
+          <li key={organisation.ref.label}>
             <Link className="tag-bg tag-item" href={url} to={url}>
-              {label}
+              <i>{termLabel}</i> {organisation.ref.label}
+              {organisationType}
             </Link>
           </li>
         );
@@ -178,7 +120,7 @@ const Block = (props) => {
       </div>
     );
 
-    let totalPages = Math.ceil(events.length / limit);
+    let totalPages = Math.ceil(organisations.length / limit);
     let newPage = page;
     if (totalPages < newPage) {
       if (totalPages === 0) {
@@ -202,19 +144,19 @@ const Block = (props) => {
       );
     }
 
-    eventsRow = (
-      <div key="events">
+    organisationsRow = (
+      <div key="organisations">
         <h5>
-          Events <small>[{propsEvents.length}]</small>
+          Organisations <small>[{propsOrganisations.length}]</small>
           <div
             className="btn btn-default btn-xs pull-right toggle-info-btn pull-icon-middle"
             onClick={(e) => {
-              toggleTable(e, 'events');
+              toggleTable(e, 'organisations');
             }}
             onKeyDown={() => false}
             role="button"
             tabIndex={0}
-            aria-label="toggle events table visibility"
+            aria-label="toggle organisations visibility"
           >
             <i className={`fa fa-angle-down${hidden}`} />
           </div>
@@ -234,24 +176,27 @@ const Block = (props) => {
         </h5>
         <div className={visible}>
           {searchBar}
-          <ul className="tag-list">{eventsData}</ul>
+          <ul className="tag-list">{organisationsData}</ul>
           {pagination}
         </div>
       </div>
     );
   }
-  return eventsRow;
+
+  return organisationsRow;
 };
+
 Block.defaultProps = {
   hidden: '',
   visible: '',
-  events: [],
+  organisations: [],
   toggleTable: () => {},
 };
 Block.propTypes = {
   hidden: PropTypes.string,
   visible: PropTypes.string,
-  events: PropTypes.array,
+  organisations: PropTypes.array,
   toggleTable: PropTypes.func,
 };
+
 export default Block;

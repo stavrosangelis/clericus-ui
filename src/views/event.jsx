@@ -4,13 +4,9 @@ import { Label, Spinner, Card, CardBody } from 'reactstrap';
 import PropTypes from 'prop-types';
 
 import { Link } from 'react-router-dom';
-import Breadcrumbs from '../components/breadcrumbs';
-import {
-  updateDocumentTitle,
-  renderLoader,
-  jsonStringToObject,
-} from '../helpers';
+import { updateDocumentTitle, outputDate, renderLoader } from '../helpers';
 
+const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
 const DescriptionBlock = lazy(() =>
   import('../components/item-blocks/description')
 );
@@ -27,20 +23,20 @@ const OrganisationsBlock = lazy(() =>
 const PeopleBlock = lazy(() => import('../components/item-blocks/people'));
 const SpatialBlock = lazy(() => import('../components/item-blocks/spatial'));
 
-class Organisation extends Component {
+class Event extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       loading: true,
       item: null,
-      appellationsVisible: true,
       descriptionVisible: true,
       eventsVisible: true,
       peopleVisible: true,
       classpiecesVisible: true,
       resourcesVisible: true,
       organisationsVisible: true,
+      datesVisible: true,
       locationsVisible: true,
       error: {
         visible: false,
@@ -49,9 +45,9 @@ class Organisation extends Component {
     };
 
     this.load = this.load.bind(this);
-    this.renderItem = this.renderItem.bind(this);
-    this.renderOrganisationDetails = this.renderOrganisationDetails.bind(this);
     this.toggleTable = this.toggleTable.bind(this);
+    this.renderItem = this.renderItem.bind(this);
+    this.renderEventDetails = this.renderEventDetails.bind(this);
 
     const cancelToken = axios.CancelToken;
     this.cancelSource = cancelToken.source();
@@ -87,7 +83,7 @@ class Organisation extends Component {
     const params = {
       _id,
     };
-    const url = `${process.env.REACT_APP_APIPATH}ui-organisation`;
+    const url = `${process.env.REACT_APP_APIPATH}ui-event`;
     const responseData = await axios({
       method: 'get',
       url,
@@ -126,81 +122,20 @@ class Organisation extends Component {
     this.setState(payload);
   }
 
-  renderOrganisationDetails(stateData = null) {
+  renderEventDetails(stateData = null) {
     const { item } = stateData;
     const {
-      appellationsVisible,
       descriptionVisible,
       classpiecesVisible,
       resourcesVisible,
       eventsVisible,
       organisationsVisible,
+      datesVisible,
       locationsVisible,
     } = this.state;
 
     // 1. OrganisationDetails
     const meta = [];
-
-    // alternate appelation
-    let appellationsRow = [];
-    const appellationsHidden = !appellationsVisible ? ' closed' : '';
-    const appellationsVisibleClass = !appellationsVisible ? 'hidden' : '';
-    if (
-      typeof item.alternateAppelations !== 'undefined' &&
-      item.alternateAppelations !== null &&
-      item.alternateAppelations !== '' &&
-      item.alternateAppelations.length > 0
-    ) {
-      const appellations = item.alternateAppelations.map((a, i) => {
-        const obj = jsonStringToObject(a);
-        console.log(obj);
-        let label = '';
-        let lang = '';
-        let note = '';
-        if (obj.label !== '') {
-          label = obj.label;
-        }
-        if (
-          typeof obj.language !== 'undefined' &&
-          typeof obj.language.label !== 'undefined' &&
-          obj.language.label !== ''
-        ) {
-          lang = ` [${obj.language.label}]`;
-        }
-        if (typeof obj.note !== 'undefined' && obj.note !== '') {
-          note = <i>{` ${obj.note}`}</i>;
-        }
-        const key = `a${i}`;
-        const output = (
-          <div key={key}>
-            {label}
-            {lang}
-            {note}
-          </div>
-        );
-        return output;
-      });
-      appellationsRow = (
-        <div key="appellationsRow">
-          <h5>
-            Alternate appellations
-            <div
-              className="btn btn-default btn-xs pull-right toggle-info-btn"
-              onClick={(e) => {
-                this.toggleTable(e, 'appellations');
-              }}
-              onKeyDown={() => false}
-              role="button"
-              tabIndex={0}
-              aria-label="toggle appellations table"
-            >
-              <i className={`fa fa-angle-down${appellationsHidden}`} />
-            </div>
-          </h5>
-          <div className={appellationsVisibleClass}>{appellations}</div>
-        </div>
-      );
-    }
 
     // description
     let descriptionRow = [];
@@ -327,12 +262,72 @@ class Organisation extends Component {
       );
     }
 
-    // 1.3 OrganisationDetails - people
+    // people
     const peopleRow = (
       <Suspense fallback={renderLoader()} key="people">
-        <PeopleBlock name="organisation" peopleItem={item.people} />
+        <PeopleBlock name="event" peopleItem={item.people} />
       </Suspense>
     );
+
+    let datesRow = [];
+    let datesHidden = '';
+    let datesVisibleClass = '';
+    if (!datesVisible) {
+      datesHidden = ' closed';
+      datesVisibleClass = 'hidden';
+    }
+    if (
+      typeof item.temporal !== 'undefined' &&
+      item.temporal !== null &&
+      item.temporal.length > 0
+    ) {
+      const temporalData = item.temporal.map((eachItem) => {
+        const temp = eachItem.ref;
+        const tempLabel = [<span key="label">{temp.label}</span>];
+        let tLabel = '';
+        if (typeof temp.startDate !== 'undefined' && temp.startDate !== '') {
+          tLabel = outputDate(temp.startDate);
+        }
+        if (
+          typeof temp.endDate !== 'undefined' &&
+          temp.endDate !== '' &&
+          temp.endDate !== temp.startDate
+        ) {
+          tLabel += ` - ${outputDate(temp.endDate)}`;
+        }
+        tempLabel.push(<span key="dates">[{tLabel}]</span>);
+        const url = `/temporal/${temp._id}`;
+        return (
+          <li key={temp._id}>
+            <Link className="tag-bg tag-item" href={url} to={url}>
+              {tempLabel}
+            </Link>
+          </li>
+        );
+      });
+      datesRow = (
+        <div key="dates">
+          <h5>
+            Dates <small>[{item.temporal.length}]</small>
+            <div
+              className="btn btn-default btn-xs pull-right toggle-info-btn"
+              onClick={(e) => {
+                this.toggleTable(e, 'dates');
+              }}
+              onKeyDown={() => false}
+              role="button"
+              tabIndex={0}
+              aria-label="toggle dates table"
+            >
+              <i className={`fa fa-angle-down${datesHidden}`} />
+            </div>
+          </h5>
+          <div className={datesVisibleClass}>
+            <ul className="tag-list">{temporalData}</ul>
+          </div>
+        </div>
+      );
+    }
 
     let locationsRow = [];
     let locationsHidden = '';
@@ -358,14 +353,14 @@ class Organisation extends Component {
       );
     }
 
-    meta.push(appellationsRow);
-    meta.push(descriptionRow);
-    meta.push(locationsRow);
-    meta.push(eventsRow);
     meta.push(peopleRow);
     meta.push(organisationsRow);
     meta.push(classpiecesRow);
     meta.push(resourcesRow);
+    meta.push(eventsRow);
+    meta.push(datesRow);
+    meta.push(locationsRow);
+    meta.push(descriptionRow);
 
     return meta;
   }
@@ -373,12 +368,15 @@ class Organisation extends Component {
   renderItem(stateData = null) {
     const { item } = stateData;
 
-    // 1.1 Organisation label
-    const label = `${item.label} [${item.organisationType}]`;
-
+    // 1.1 Event label
+    const { label } = item;
+    const eventType = (
+      <h6 className="event-type">
+        <i>{item.eventType.inverseLabel}</i>
+      </h6>
+    );
     // 2.1 meta
-    // let metaTable = <Table><tbody>{meta}</tbody></Table>
-    const metaTable = this.renderOrganisationDetails(stateData);
+    const metaTable = this.renderEventDetails(stateData);
 
     // 2.2 thumbnailImage
     let thumbnailImage = [];
@@ -394,7 +392,7 @@ class Organisation extends Component {
           onKeyDown={() => false}
           role="button"
           tabIndex={0}
-          aria-label="toggle image viewer"
+          aria-label="toggle classpiece viewer"
         >
           <img
             src={thumbnailURL}
@@ -408,8 +406,9 @@ class Organisation extends Component {
     }
 
     const output = (
-      <div>
+      <div className="item-container">
         <h3>{label}</h3>
+        {eventType}
         <div className="row item-info-container">
           <div className={thumbnailColClass}>{thumbnailImage}</div>
           <div className={contentColClass}>
@@ -439,49 +438,20 @@ class Organisation extends Component {
 
     let label = '';
     const breadcrumbsItems = [
-      {
-        label: 'Organisations',
-        icon: 'pe-7s-culture',
-        active: false,
-        path: '/organisations',
-      },
+      { label: 'Events', icon: 'pe-7s-date', active: false, path: '/events' },
     ];
     if (!loading) {
       if (item !== null) {
-        const organisationCard = this.renderItem(this.state);
+        const eventCard = this.renderItem(this.state);
 
-        let timelineLink = [];
-        if (item.events.length > 0) {
-          const timelinkURL = `/item-timeline/organisation/${match.params._id}`;
-          timelineLink = (
-            <div className="col-xs-12 col-sm-4">
-              <Link
-                href={timelinkURL}
-                to={timelinkURL}
-                className="person-component-link"
-                title="Organisation graph timeline"
-              >
-                <i className="pe-7s-hourglass" />
-              </Link>
-              <Link
-                href={timelinkURL}
-                to={timelinkURL}
-                className="person-component-link-label"
-                title="Organisation graph timeline"
-              >
-                <Label>Timeline</Label>
-              </Link>
-            </div>
-          );
-        }
-        const networkGraphLinkURL = `/organisation-graph/${match.params._id}`;
+        const networkGraphLinkURL = `/event-graph/${match.params._id}`;
         const networkGraphLink = (
           <div className="col-xs-12 col-sm-4">
             <Link
               href={networkGraphLinkURL}
               to={networkGraphLinkURL}
               className="person-component-link"
-              title="Organisation graph network"
+              title="Event graph network"
             >
               <i className="pe-7s-graph1" />
             </Link>
@@ -489,7 +459,7 @@ class Organisation extends Component {
               href={networkGraphLinkURL}
               to={networkGraphLinkURL}
               className="person-component-link-label"
-              title="Organisation graph network"
+              title="Event graph network"
             >
               <Label>Network graph</Label>
             </Link>
@@ -500,12 +470,9 @@ class Organisation extends Component {
             <Card>
               <CardBody>
                 <div className="row">
-                  <div className="col-12">{organisationCard}</div>
+                  <div className="col-12">{eventCard}</div>
                 </div>
-                <div className="row">
-                  {timelineLink}
-                  {networkGraphLink}
-                </div>
+                <div className="row">{networkGraphLink}</div>
               </CardBody>
             </Card>
           </div>
@@ -514,7 +481,7 @@ class Organisation extends Component {
         label = item.label;
         breadcrumbsItems.push({
           label,
-          icon: 'pe-7s-culture',
+          icon: 'pe-7s-date',
           active: true,
           path: '',
         });
@@ -547,18 +514,20 @@ class Organisation extends Component {
     }
     return (
       <div className="container">
-        <Breadcrumbs items={breadcrumbsItems} />
+        <Suspense fallback={[]}>
+          <Breadcrumbs items={breadcrumbsItems} />
+        </Suspense>
         {content}
       </div>
     );
   }
 }
 
-Organisation.defaultProps = {
+Event.defaultProps = {
   match: null,
 };
-Organisation.propTypes = {
+Event.propTypes = {
   match: PropTypes.object,
 };
 
-export default Organisation;
+export default Event;

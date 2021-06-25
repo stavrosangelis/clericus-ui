@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import axios from 'axios';
 import { Spinner, Card, CardBody } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import Breadcrumbs from '../components/breadcrumbs';
 import { updateDocumentTitle } from '../helpers';
 import LazyList from '../components/lazylist';
 
 const APIPath = process.env.REACT_APP_APIPATH;
+const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
 
 const Search = (props) => {
   // state
@@ -288,7 +288,9 @@ const Search = (props) => {
 
   return (
     <div className="container">
-      <Breadcrumbs items={breadcrumbsItems} />
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
       <div className="row">
         <div className="col-12">
           <Card>

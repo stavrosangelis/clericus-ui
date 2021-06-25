@@ -1,48 +1,77 @@
 import React, { useEffect, useState, lazy, Suspense } from 'react';
 import axios from 'axios';
 import { Spinner } from 'reactstrap';
+import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-import Breadcrumbs from '../../components/breadcrumbs';
 import { updateDocumentTitle, renderLoader } from '../../helpers';
 
+const Breadcrumbs = lazy(() => import('../../components/breadcrumbs'));
 const PersonNetwork = lazy(() =>
   import('../../components/visualisations/person-network-pixi')
 );
 const APIPath = process.env.REACT_APP_APIPATH;
 
-const EventGraph = (props) => {
+const ResourceGraph = (props) => {
   // state
   const [loading, setLoading] = useState(true);
-  const [event, setEvent] = useState(null);
+  const [resource, setResource] = useState(null);
 
   // props
   const { match } = props;
 
+  const loadingResourcesType = useSelector(
+    (state) => state.loadingResourcesType
+  );
+  const resourcesType = useSelector((state) => state.resourcesType);
+
   useEffect(() => {
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+
     const load = async () => {
       const { _id } = match.params;
       if (typeof _id === 'undefined' || _id === null || _id === '') {
         return false;
       }
-      setLoading(false);
       const responseData = await axios({
         method: 'get',
-        url: `${APIPath}ui-event`,
+        url: `${APIPath}ui-resource`,
         crossDomain: true,
         params: { _id },
+        cancelToken: source.token,
       })
         .then((response) => response.data.data)
         .catch((error) => console.log(error));
-      setEvent(responseData);
+      if (typeof responseData !== 'undefined') {
+        setResource(responseData);
+        setLoading(false);
+      }
       return false;
     };
-    if (loading) {
+    if (loading && !loadingResourcesType) {
       load();
     }
-  }, [loading, match]);
+    return () => {
+      source.cancel('api request cancelled');
+    };
+  }, [loading, match, loadingResourcesType]);
+
+  const getSystemType = () => {
+    for (let i = 0; i < resourcesType.length; i += 1) {
+      if (resource.systemType === resourcesType[i]._id) {
+        return resourcesType[i].label;
+      }
+    }
+    return false;
+  };
 
   const breadcrumbsItems = [
-    { label: 'Events', icon: 'pe-7s-date', active: false, path: '/events' },
+    {
+      label: 'Resources',
+      icon: 'pe-7s-photo',
+      active: false,
+      path: '/resources',
+    },
   ];
   let content = (
     <div className="graph-container" id="graph-container">
@@ -53,15 +82,22 @@ const EventGraph = (props) => {
   );
 
   let heading = '';
-  if (!loading && event !== null) {
-    const { label } = event;
+  if (!loading && resource !== null) {
+    const dataType = getSystemType();
+    let _idGraph = props.match.params._id;
+    if (dataType === 'Thumbnail') {
+      if (resource.status === 'private') {
+        _idGraph = resource.people[0].ref._id;
+      }
+    }
+    const { label } = resource;
     heading = `${label} network`;
     breadcrumbsItems.push(
       {
         label,
-        icon: 'pe-7s-date',
+        icon: 'pe-7s-photo',
         active: false,
-        path: `/event/${props.match.params._id}`,
+        path: `/resource/${props.match.params._id}`,
       },
       { label: 'Network', icon: 'pe-7s-graph1', active: true, path: '' }
     );
@@ -70,28 +106,26 @@ const EventGraph = (props) => {
     content = (
       <div className="graph-container" id="graph-container">
         <Suspense fallback={renderLoader()}>
-          <PersonNetwork
-            _id={props.match.params._id}
-            relatedLinks={[]}
-            relatedNodes={[]}
-          />
+          <PersonNetwork _id={_idGraph} relatedLinks={[]} relatedNodes={[]} />
         </Suspense>
       </div>
     );
   }
   return (
     <div className="container">
-      <Breadcrumbs items={breadcrumbsItems} />
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
       <h3>{heading}</h3>
       {content}
     </div>
   );
 };
-EventGraph.defaultProps = {
+
+ResourceGraph.defaultProps = {
   match: null,
 };
-EventGraph.propTypes = {
+ResourceGraph.propTypes = {
   match: PropTypes.object,
 };
-
-export default EventGraph;
+export default ResourceGraph;

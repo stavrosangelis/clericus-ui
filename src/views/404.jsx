@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardBody } from 'reactstrap';
-import Breadcrumbs from '../components/breadcrumbs';
 
 import { updateDocumentTitle } from '../helpers';
+
+const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
 
 const NotFound = () => {
   const heading = 'Error 404 page not found';
@@ -37,7 +38,9 @@ const NotFound = () => {
 
   return (
     <div className="container">
-      <Breadcrumbs items={breadcrumbsItems} />
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
       {content}
     </div>
   );

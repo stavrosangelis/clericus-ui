@@ -13,7 +13,6 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import PropTypes from 'prop-types';
-import Breadcrumbs from '../components/breadcrumbs';
 import { updateDocumentTitle, renderLoader } from '../helpers';
 import HelpArticle from '../components/help-article';
 
@@ -23,6 +22,7 @@ import {
   updateFilters,
 } from '../redux/actions';
 
+const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
 const Filters = lazy(() => import('../components/filters'));
 const SearchForm = lazy(() => import('../components/search-form'));
 const PageActions = lazy(() => import('../components/page-actions'));
@@ -569,7 +569,9 @@ class Events extends Component {
     }
     return (
       <div className="container">
-        <Breadcrumbs items={breadcrumbsItems} />
+        <Suspense fallback={[]}>
+          <Breadcrumbs items={breadcrumbsItems} />
+        </Suspense>
         {content}
       </div>
     );

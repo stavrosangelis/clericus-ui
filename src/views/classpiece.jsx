@@ -3,8 +3,6 @@ import axios from 'axios';
 import { Label, Spinner, Card, CardBody } from 'reactstrap';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-
-import Breadcrumbs from '../components/breadcrumbs';
 import {
   getResourceThumbnailURL,
   getResourceFullsizeURL,
@@ -13,7 +11,8 @@ import {
 } from '../helpers';
 import parseMetadata from '../helpers/parse-metadata';
 
-const Viewer = lazy(() => import('../components/image-viewer.js'));
+const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
+const Viewer = lazy(() => import('../components/image-viewer'));
 
 const DescriptionBlock = lazy(() =>
   import('../components/item-blocks/description')
@@ -526,7 +525,9 @@ class Classpiece extends Component {
     }
     return (
       <div className="container">
-        <Breadcrumbs items={breadcrumbsItems} />
+        <Suspense fallback={[]}>
+          <Breadcrumbs items={breadcrumbsItems} />
+        </Suspense>
         {content}
         {imgViewer}
       </div>

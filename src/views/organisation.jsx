@@ -1,19 +1,15 @@
 import React, { Component, lazy, Suspense } from 'react';
 import axios from 'axios';
 import { Label, Spinner, Card, CardBody } from 'reactstrap';
-import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-
-import Breadcrumbs from '../components/breadcrumbs';
+import { Link } from 'react-router-dom';
 import {
-  getResourceThumbnailURL,
-  getResourceFullsizeURL,
-  renderLoader,
   updateDocumentTitle,
+  renderLoader,
+  jsonStringToObject,
 } from '../helpers';
-import parseMetadata from '../helpers/parse-metadata';
 
-const Viewer = lazy(() => import('../components/image-viewer-resource.js'));
+const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
 const DescriptionBlock = lazy(() =>
   import('../components/item-blocks/description')
 );
@@ -28,34 +24,32 @@ const OrganisationsBlock = lazy(() =>
   import('../components/item-blocks/organisations')
 );
 const PeopleBlock = lazy(() => import('../components/item-blocks/people'));
+const SpatialBlock = lazy(() => import('../components/item-blocks/spatial'));
 
-export default class Resource extends Component {
+class Organisation extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       loading: true,
       item: null,
-      viewerVisible: false,
+      appellationsVisible: true,
       descriptionVisible: true,
       eventsVisible: true,
       peopleVisible: true,
       classpiecesVisible: true,
       resourcesVisible: true,
       organisationsVisible: true,
-      metadataDataVisible: false,
+      locationsVisible: true,
       error: {
         visible: false,
-        text: [],
+        text: '',
       },
     };
 
     this.load = this.load.bind(this);
     this.renderItem = this.renderItem.bind(this);
-    this.renderResourceDetails = this.renderResourceDetails.bind(this);
-    this.renderThumbnailMetadata = this.renderThumbnailMetadata.bind(this);
-
-    this.toggleViewer = this.toggleViewer.bind(this);
+    this.renderOrganisationDetails = this.renderOrganisationDetails.bind(this);
     this.toggleTable = this.toggleTable.bind(this);
 
     const cancelToken = axios.CancelToken;
@@ -92,7 +86,7 @@ export default class Resource extends Component {
     const params = {
       _id,
     };
-    const url = `${process.env.REACT_APP_APIPATH}ui-resource`;
+    const url = `${process.env.REACT_APP_APIPATH}ui-organisation`;
     const responseData = await axios({
       method: 'get',
       url,
@@ -131,25 +125,81 @@ export default class Resource extends Component {
     this.setState(payload);
   }
 
-  toggleViewer() {
-    const { viewerVisible } = this.state;
-    this.setState({
-      viewerVisible: !viewerVisible,
-    });
-  }
-
-  renderResourceDetails(stateData = null) {
+  renderOrganisationDetails(stateData = null) {
     const { item } = stateData;
     const {
+      appellationsVisible,
       descriptionVisible,
       classpiecesVisible,
       resourcesVisible,
       eventsVisible,
       organisationsVisible,
+      locationsVisible,
     } = this.state;
 
-    // 1. resourceDetails
-    const detailsOutput = [];
+    // 1. OrganisationDetails
+    const meta = [];
+
+    // alternate appelation
+    let appellationsRow = [];
+    const appellationsHidden = !appellationsVisible ? ' closed' : '';
+    const appellationsVisibleClass = !appellationsVisible ? 'hidden' : '';
+    if (
+      typeof item.alternateAppelations !== 'undefined' &&
+      item.alternateAppelations !== null &&
+      item.alternateAppelations !== '' &&
+      item.alternateAppelations.length > 0
+    ) {
+      const appellations = item.alternateAppelations.map((a, i) => {
+        const obj = jsonStringToObject(a);
+        console.log(obj);
+        let label = '';
+        let lang = '';
+        let note = '';
+        if (obj.label !== '') {
+          label = obj.label;
+        }
+        if (
+          typeof obj.language !== 'undefined' &&
+          typeof obj.language.label !== 'undefined' &&
+          obj.language.label !== ''
+        ) {
+          lang = ` [${obj.language.label}]`;
+        }
+        if (typeof obj.note !== 'undefined' && obj.note !== '') {
+          note = <i>{` ${obj.note}`}</i>;
+        }
+        const key = `a${i}`;
+        const output = (
+          <div key={key}>
+            {label}
+            {lang}
+            {note}
+          </div>
+        );
+        return output;
+      });
+      appellationsRow = (
+        <div key="appellationsRow">
+          <h5>
+            Alternate appellations
+            <div
+              className="btn btn-default btn-xs pull-right toggle-info-btn"
+              onClick={(e) => {
+                this.toggleTable(e, 'appellations');
+              }}
+              onKeyDown={() => false}
+              role="button"
+              tabIndex={0}
+              aria-label="toggle appellations table"
+            >
+              <i className={`fa fa-angle-down${appellationsHidden}`} />
+            </div>
+          </h5>
+          <div className={appellationsVisibleClass}>{appellations}</div>
+        </div>
+      );
+    }
 
     // description
     let descriptionRow = [];
@@ -173,26 +223,6 @@ export default class Resource extends Component {
             description={item.description}
           />
         </Suspense>
-      );
-    }
-
-    let originalLocation = [];
-    if (
-      typeof item.originalLocation !== 'undefined' &&
-      item.originalLocation !== null &&
-      item.originalLocation !== ''
-    ) {
-      originalLocation = (
-        <div className="original-location" key="original-location">
-          Original location:{' '}
-          <a
-            href={item.originalLocation}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            URL
-          </a>
-        </div>
       );
     }
 
@@ -296,80 +326,69 @@ export default class Resource extends Component {
       );
     }
 
-    // people
+    // 1.3 OrganisationDetails - people
     const peopleRow = (
       <Suspense fallback={renderLoader()} key="people">
-        <PeopleBlock name="resource" peopleItem={item.people} />
+        <PeopleBlock name="organisation" peopleItem={item.people} />
       </Suspense>
     );
 
-    detailsOutput.push(descriptionRow);
-    detailsOutput.push(originalLocation);
-    detailsOutput.push(eventsRow);
-    detailsOutput.push(peopleRow);
-    detailsOutput.push(classpiecesRow);
-    detailsOutput.push(resourcesRow);
-    detailsOutput.push(organisationsRow);
-
-    // 1.5 technical metadata
-    let technicalMetadata = [];
-    if (Object.keys(stateData.item.metadata).length > 0) {
-      technicalMetadata = this.renderThumbnailMetadata(
-        stateData.item.metadata,
-        stateData.metadataDataVisible
+    let locationsRow = [];
+    let locationsHidden = '';
+    let locationsVisibleClass = '';
+    if (!locationsVisible) {
+      locationsHidden = ' closed';
+      locationsVisibleClass = 'hidden';
+    }
+    if (
+      typeof item.spatial !== 'undefined' &&
+      item.spatial !== null &&
+      item.spatial.length > 0
+    ) {
+      locationsRow = (
+        <Suspense fallback={renderLoader()} key="spatial">
+          <SpatialBlock
+            toggleTable={this.toggleTable}
+            hidden={locationsHidden}
+            visible={locationsVisibleClass}
+            spatial={item.spatial}
+          />
+        </Suspense>
       );
-      detailsOutput.push(technicalMetadata);
     }
-    return <div className="classpiece-details-container">{detailsOutput}</div>;
-  }
 
-  renderThumbnailMetadata(metadata = null, visible) {
-    let metadataDataHidden = '';
-    let metadataVisibleClass = '';
-    if (!visible) {
-      metadataDataHidden = ' closed';
-      metadataVisibleClass = 'hidden';
-    }
-    const metadataOutput = (
-      <div key="metadata">
-        <h5>
-          Technical metadata
-          <div
-            className="btn btn-default btn-xs pull-right toggle-info-btn"
-            onClick={(e) => {
-              this.toggleTable(e, 'metadataData');
-            }}
-            onKeyDown={() => false}
-            role="button"
-            tabIndex={0}
-            aria-label="toggle metadata table"
-          >
-            <i className={`fa fa-angle-down${metadataDataHidden}`} />
-          </div>
-        </h5>
-        <div className={metadataVisibleClass}>
-          {parseMetadata(metadata.image)}
-        </div>
-      </div>
-    );
-    return metadataOutput;
+    meta.push(appellationsRow);
+    meta.push(descriptionRow);
+    meta.push(locationsRow);
+    meta.push(eventsRow);
+    meta.push(peopleRow);
+    meta.push(organisationsRow);
+    meta.push(classpiecesRow);
+    meta.push(resourcesRow);
+
+    return meta;
   }
 
   renderItem(stateData = null) {
     const { item } = stateData;
-    const { label } = item;
 
-    // 1 resourceDetails - resourceDetails include description, events, organisations, and people
-    const resourceDetails = this.renderResourceDetails(stateData);
+    // 1.1 Organisation label
+    const label = `${item.label} [${item.organisationType}]`;
 
-    // 2. thumbnailImage
+    // 2.1 meta
+    // let metaTable = <Table><tbody>{meta}</tbody></Table>
+    const metaTable = this.renderOrganisationDetails(stateData);
+
+    // 2.2 thumbnailImage
     let thumbnailImage = [];
-    const thumbnailURL = getResourceThumbnailURL(item);
+    let thumbnailColClass = 'col-0';
+    let contentColClass = 'col-12';
+    const thumbnailURL = null;
     if (thumbnailURL !== null) {
       thumbnailImage = (
         <div
           key="thumbnailImage"
-          className="show-resource"
+          className="show-classpiece"
           onClick={() => this.toggleViewer()}
           onKeyDown={() => false}
           role="button"
@@ -383,52 +402,27 @@ export default class Resource extends Component {
           />
         </div>
       );
-    } else if (item.resourceType === 'document') {
-      const fullsizePath = getResourceFullsizeURL(item);
-      if (fullsizePath !== null) {
-        thumbnailImage = [
-          <a
-            key="link"
-            target="_blank"
-            href={fullsizePath}
-            className="pdf-thumbnail"
-            rel="noopener noreferrer"
-          >
-            <i className="fa fa-file-pdf-o" />
-          </a>,
-          <a
-            key="link-label"
-            target="_blank"
-            href={fullsizePath}
-            className="pdf-thumbnail"
-            rel="noopener noreferrer"
-          >
-            <Label>Preview file</Label>{' '}
-          </a>,
-        ];
-      }
+      thumbnailColClass = 'col-xs-12 col-sm-6 col-md-5';
+      contentColClass = 'col-xs-12 col-sm-6 col-md-7';
     }
 
-    let leftColClass = 'col-sm-6 col-md-7';
-    let rightColClass = 'col-sm-6 col-md-5';
-    if (thumbnailURL === null) {
-      leftColClass = 'extra-side-padding';
-      rightColClass = '';
-    }
     const output = (
       <div>
         <h3>{label}</h3>
-        <div className="row">
-          <div className={`col-xs-12 ${leftColClass}`}>{resourceDetails}</div>
-          <div className={`col-xs-12 ${rightColClass}`}>{thumbnailImage}</div>
+        <div className="row item-info-container">
+          <div className={thumbnailColClass}>{thumbnailImage}</div>
+          <div className={contentColClass}>
+            <div className="item-details-container">{metaTable}</div>
+          </div>
         </div>
       </div>
     );
+
     return output;
   }
 
   render() {
-    const { loading, item, viewerVisible, error } = this.state;
+    const { loading, item, error } = this.state;
     const { match } = this.props;
     let content = (
       <div>
@@ -443,33 +437,28 @@ export default class Resource extends Component {
     );
 
     let label = '';
-    let breadcrumbsItems = [
+    const breadcrumbsItems = [
       {
-        label: 'Resources',
-        icon: 'pe-7s-photo',
+        label: 'Organisations',
+        icon: 'pe-7s-culture',
         active: false,
-        path: '/resources',
+        path: '/organisations',
       },
     ];
-
-    let imgViewer = [];
     if (!loading) {
       if (item !== null) {
-        const itemCard = this.renderItem(this.state);
-
-        const labelGraph = 'resource-graph';
-        const { _id } = match.params;
+        const organisationCard = this.renderItem(this.state);
 
         let timelineLink = [];
         if (item.events.length > 0) {
-          const timelinkURL = `/item-timeline/resource/${match.params._id}`;
+          const timelinkURL = `/item-timeline/organisation/${match.params._id}`;
           timelineLink = (
             <div className="col-xs-12 col-sm-4">
               <Link
                 href={timelinkURL}
                 to={timelinkURL}
                 className="person-component-link"
-                title="Resource graph timeline"
+                title="Organisation graph timeline"
               >
                 <i className="pe-7s-hourglass" />
               </Link>
@@ -477,21 +466,21 @@ export default class Resource extends Component {
                 href={timelinkURL}
                 to={timelinkURL}
                 className="person-component-link-label"
-                title="Resource graph timeline"
+                title="Organisation graph timeline"
               >
                 <Label>Timeline</Label>
               </Link>
             </div>
           );
         }
-        const networkGraphLinkURL = `/${labelGraph}/${_id}`;
+        const networkGraphLinkURL = `/organisation-graph/${match.params._id}`;
         const networkGraphLink = (
           <div className="col-xs-12 col-sm-4">
             <Link
               href={networkGraphLinkURL}
               to={networkGraphLinkURL}
               className="person-component-link"
-              title="Resource graph network"
+              title="Organisation graph network"
             >
               <i className="pe-7s-graph1" />
             </Link>
@@ -499,7 +488,7 @@ export default class Resource extends Component {
               href={networkGraphLinkURL}
               to={networkGraphLinkURL}
               className="person-component-link-label"
-              title="Resource graph network"
+              title="Organisation graph network"
             >
               <Label>Network graph</Label>
             </Link>
@@ -510,9 +499,9 @@ export default class Resource extends Component {
             <Card>
               <CardBody>
                 <div className="row">
-                  <div className="col-12">{itemCard}</div>
+                  <div className="col-12">{organisationCard}</div>
                 </div>
-                <div className="row timelink-row">
+                <div className="row">
                   {timelineLink}
                   {networkGraphLink}
                 </div>
@@ -520,34 +509,16 @@ export default class Resource extends Component {
             </Card>
           </div>
         );
-        const resource = item;
-        label = resource.label;
-        let icon = 'pe-7s-photo';
-        if (resource.resourceType === 'document') {
-          icon = 'fa fa-file-pdf-o';
-        }
-        breadcrumbsItems = [
-          { label: 'Resources', icon, active: false, path: '/resources' },
-          { label, icon, active: true, path: '' },
-        ];
+
+        label = item.label;
+        breadcrumbsItems.push({
+          label,
+          icon: 'pe-7s-culture',
+          active: true,
+          path: '',
+        });
         const documentTitle = breadcrumbsItems.map((i) => i.label).join(' / ');
         updateDocumentTitle(documentTitle);
-        const fullsizePath = getResourceFullsizeURL(resource);
-        if (fullsizePath !== null && resource.resourceType === 'image') {
-          if (resource.resourceType !== 'document') {
-            imgViewer = (
-              <Suspense fallback={renderLoader()}>
-                <Viewer
-                  visible={viewerVisible}
-                  path={fullsizePath}
-                  label={label}
-                  toggle={this.toggleViewer}
-                  item={resource}
-                />
-              </Suspense>
-            );
-          }
-        }
       } else if (error.visible) {
         breadcrumbsItems.push({
           label: error.text,
@@ -575,17 +546,20 @@ export default class Resource extends Component {
     }
     return (
       <div className="container">
-        <Breadcrumbs items={breadcrumbsItems} />
+        <Suspense fallback={[]}>
+          <Breadcrumbs items={breadcrumbsItems} />
+        </Suspense>
         {content}
-        {imgViewer}
       </div>
     );
   }
 }
 
-Resource.defaultProps = {
+Organisation.defaultProps = {
   match: null,
 };
-Resource.propTypes = {
+Organisation.propTypes = {
   match: PropTypes.object,
 };
+
+export default Organisation;

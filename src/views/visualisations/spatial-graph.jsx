@@ -3,51 +3,55 @@ import axios from 'axios';
 import { Spinner } from 'reactstrap';
 import PropTypes from 'prop-types';
 import { updateDocumentTitle, renderLoader } from '../../helpers';
-import Breadcrumbs from '../../components/breadcrumbs';
 
-const ClasspieceNetwork = lazy(() =>
+const Breadcrumbs = lazy(() => import('../../components/breadcrumbs'));
+const PersonNetwork = lazy(() =>
   import('../../components/visualisations/person-network-pixi')
 );
 const APIPath = process.env.REACT_APP_APIPATH;
 
-const ClasspieceGraph = (props) => {
+const SpatialGraph = (props) => {
   // state
   const [loading, setLoading] = useState(true);
-  const [item, setItem] = useState(null);
+  const [spatial, setSpatial] = useState(null);
 
   // props
   const { match } = props;
 
   useEffect(() => {
+    const cancelToken = axios.CancelToken;
+    const source = cancelToken.source();
+
     const load = async () => {
       const { _id } = match.params;
       if (typeof _id === 'undefined' || _id === null || _id === '') {
         return false;
       }
-      setLoading(false);
       const responseData = await axios({
         method: 'get',
-        url: `${APIPath}classpiece`,
+        url: `${APIPath}spatial`,
         crossDomain: true,
         params: { _id },
+        cancelToken: source.token,
       })
         .then((response) => response.data.data)
         .catch((error) => console.log(error));
-      setItem(responseData);
+      if (typeof responseData !== 'undefined') {
+        setSpatial(responseData);
+        setLoading(false);
+      }
       return false;
     };
     if (loading) {
       load();
     }
+    return () => {
+      source.cancel('api request cancelled');
+    };
   }, [loading, match]);
 
   const breadcrumbsItems = [
-    {
-      label: 'Classpieces',
-      icon: 'pe-7s-photo',
-      active: false,
-      path: '/classpieces',
-    },
+    { label: 'Spatials', icon: 'pe-7s-date', active: false, path: '/spatials' },
   ];
   let content = (
     <div className="graph-container" id="graph-container">
@@ -58,25 +62,24 @@ const ClasspieceGraph = (props) => {
   );
 
   let heading = '';
-  if (!loading && item !== null) {
-    const { label } = item;
+  if (!loading && spatial !== null) {
+    const { label } = spatial;
     heading = `${label} network`;
     breadcrumbsItems.push(
       {
         label,
-        icon: 'pe-7s-photo',
+        icon: 'pe-7s-date',
         active: false,
-        path: `/classpiece/${props.match.params._id}`,
+        path: `/spatial/${props.match.params._id}`,
       },
       { label: 'Network', icon: 'pe-7s-graph1', active: true, path: '' }
     );
-
     const documentTitle = breadcrumbsItems.map((i) => i.label).join(' / ');
     updateDocumentTitle(documentTitle);
     content = (
       <div className="graph-container" id="graph-container">
         <Suspense fallback={renderLoader()}>
-          <ClasspieceNetwork
+          <PersonNetwork
             _id={props.match.params._id}
             relatedLinks={[]}
             relatedNodes={[]}
@@ -87,17 +90,20 @@ const ClasspieceGraph = (props) => {
   }
   return (
     <div className="container">
-      <Breadcrumbs items={breadcrumbsItems} />
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
       <h3>{heading}</h3>
       {content}
     </div>
   );
 };
-ClasspieceGraph.defaultProps = {
+
+SpatialGraph.defaultProps = {
   match: null,
 };
-ClasspieceGraph.propTypes = {
+SpatialGraph.propTypes = {
   match: PropTypes.object,
 };
 
-export default ClasspieceGraph;
+export default SpatialGraph;

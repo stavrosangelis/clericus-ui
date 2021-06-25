@@ -19,7 +19,7 @@ import {
 } from 'reactstrap';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import Breadcrumbs from '../../components/breadcrumbs';
+import PropTypes from 'prop-types';
 import {
   getResourceThumbnailURL,
   updateDocumentTitle,
@@ -27,10 +27,12 @@ import {
   getClosestDate,
   renderLoader,
 } from '../../helpers';
-import 'react-datepicker/dist/react-datepicker.css';
 import HelpArticle from '../../components/help-article';
 import LazyList from '../../components/lazylist';
 
+import 'react-datepicker/dist/react-datepicker.css';
+
+const Breadcrumbs = lazy(() => import('../../components/breadcrumbs'));
 const DatePicker = lazy(() => import('react-datepicker'));
 
 const APIPath = process.env.REACT_APP_APIPATH;
@@ -196,9 +198,10 @@ const groupItemsByYears = (items, yearParam = 1850, modulus = 10) => {
   return returnItems;
 };
 
-const Timeline = () => {
+const Timeline = (props) => {
   // state
   const [loading, setLoading] = useState(true);
+  const [item, setItem] = useState(null);
   const [items, setItems] = useState([]);
   const [itemsHTML, setItemsHTML] = useState([]);
   const [eventsContainerVisible, setEventsContainerVisible] = useState(false);
@@ -233,8 +236,9 @@ const Timeline = () => {
   const [zoom, setZoom] = useState(zoomValues[zoomIndex - 1]);
   const [helpVisible, setHelpVisible] = useState(false);
   const [scrollIndex, setScrollIndex] = useState(0);
-  const [loadingEvent, setLoadingEvent] = useState(false);
-  const [viewEventId, setViewEventId] = useState(null);
+
+  // props
+  const { match } = props;
 
   const groupByDay = useCallback(() => {
     const newItems = items.map((itemParam, i) => {
@@ -264,8 +268,8 @@ const Timeline = () => {
     setEventsContainerVisible(visible);
   };
 
-  const showEvents = (e, item) => {
-    let itemsNum = item.events.length;
+  const showEvents = (e, itemParam) => {
+    let itemsNum = itemParam.events.length;
     setEventsNum(itemsNum);
     if (itemsNum > 9) {
       itemsNum = 9;
@@ -286,7 +290,7 @@ const Timeline = () => {
     }
     const elemWidth = containerBbox.width - elemLeft;
     toggleEventsContainer(true);
-    setSelectedItem(item);
+    setSelectedItem(itemParam);
     setEventsContainerLeft(elemLeft);
     setEventsContainerTop(elemTop);
     setEventsContainerWidth(elemWidth);
@@ -304,15 +308,15 @@ const Timeline = () => {
       resources: true,
     });
     const newEventsHTML = [];
-    for (let i = 0; i < item.events.length; i += 1) {
-      const newItem = item.events[i];
-      let dateLabel = outputDate(item.startDate);
+    for (let i = 0; i < itemParam.events.length; i += 1) {
+      const newItem = itemParam.events[i];
+      let dateLabel = outputDate(itemParam.startDate);
       if (
-        typeof item.endDate !== 'undefined' &&
-        item.endDate !== '' &&
-        item.endDate !== item.startDate
+        typeof itemParam.endDate !== 'undefined' &&
+        itemParam.endDate !== '' &&
+        itemParam.endDate !== itemParam.startDate
       ) {
-        dateLabel += ` - ${outputDate(item.endDate)}`;
+        dateLabel += ` - ${outputDate(itemParam.endDate)}`;
       }
       newItem.i = i;
       newItem.dateLabel = dateLabel;
@@ -321,7 +325,61 @@ const Timeline = () => {
     setEventsHTML(newEventsHTML);
   };
 
-  const showEventsGroup = (e, item, itemsNumParam) => {
+  const toggleSelectedEvent = (val = null) => {
+    const visible = val || !selectedEventVisible;
+    setSelectedEventVisible(visible);
+  };
+
+  const loadEvent = async (_id) => {
+    const responseData = await axios({
+      method: 'get',
+      url: `${APIPath}ui-event`,
+      crossDomain: true,
+      params: { _id },
+    })
+      .then((response) => response.data)
+      .catch((error) => console.log(error));
+    setSelectedEvent(responseData.data);
+    toggleSelectedEvent(true);
+    const visible = {
+      events: false,
+      organisations: false,
+      people: false,
+      resources: false,
+    };
+    if (responseData.data.events.length > 0) {
+      visible.events = true;
+    }
+    if (responseData.data.organisations.length > 0) {
+      visible.organisations = true;
+    }
+    if (responseData.data.people.length > 0) {
+      visible.people = true;
+    }
+    if (responseData.data.resources.length > 0) {
+      visible.resources = true;
+    }
+    if (responseData.data.classpieces.length > 0) {
+      visible.classpieces = true;
+    }
+    setRelatedVisible(visible);
+  };
+
+  const renderEventHTML = (itemParam) => (
+    <div
+      className="timeline-event-item"
+      key={itemParam.i}
+      onClick={() => loadEvent(itemParam._id)}
+      onKeyDown={() => false}
+      role="button"
+      tabIndex={0}
+      aria-label="load event"
+    >
+      {itemParam.label} <small>[{itemParam.dateLabel}]</small>
+    </div>
+  );
+
+  const showEventsGroup = (e, itemParam, itemsNumParam) => {
     let itemsNum = itemsNumParam;
     setEventsNum(itemsNum);
     if (itemsNum > 9) {
@@ -343,7 +401,7 @@ const Timeline = () => {
     }
     const elemWidth = containerBbox.width - elemLeft;
     toggleEventsContainer(true);
-    setSelectedItem(item);
+    setSelectedItem(itemParam);
     setEventsContainerLeft(elemLeft);
     setEventsContainerTop(elemTop);
     setEventsContainerWidth(elemWidth);
@@ -361,8 +419,8 @@ const Timeline = () => {
       resources: true,
     });
     const newEventsHTML = [];
-    for (let j = 0; j < item.items.length; j += 1) {
-      const newItem = item.items[j].item;
+    for (let j = 0; j < itemParam.items.length; j += 1) {
+      const newItem = itemParam.items[j].item;
       const { events } = newItem;
       let dateLabel = outputDate(newItem.startDate);
       if (
@@ -383,23 +441,23 @@ const Timeline = () => {
     setEventsHTML(newEventsHTML);
   };
 
-  const renderTimelineItem = (item = null) => {
-    if (item === null) {
+  const renderTimelineItem = (itemParam = null) => {
+    if (itemParam === null) {
       return null;
     }
-    if (typeof item.group === 'undefined' || !item.group) {
+    if (typeof itemParam.group === 'undefined' || !itemParam.group) {
       return (
         <div
-          data-date={item.startDate}
+          data-date={itemParam.startDate}
           className="timeline-point"
-          onClick={(e) => showEvents(e, item)}
+          onClick={(e) => showEvents(e, itemParam)}
           onKeyDown={() => false}
           role="button"
           tabIndex={0}
-          aria-label="show events"
+          aria-label="tshow events"
         >
           <Label>
-            {item.label} <small>[{item.events.length}]</small>
+            {itemParam.label} <small>[{itemParam.events.length}]</small>
           </Label>
           <div className="triangle-up" />
           <div className="triangle-down" />
@@ -408,34 +466,38 @@ const Timeline = () => {
     }
 
     let eventsLength = 0;
-    if (typeof item.items !== 'undefined') {
-      for (let i = 0; i < item.items.length; i += 1) {
-        const child = item.items[i];
+    if (typeof itemParam.items !== 'undefined') {
+      for (let i = 0; i < itemParam.items.length; i += 1) {
+        const child = itemParam.items[i];
         eventsLength += child.item.events.length;
       }
     }
     let yearClass = '';
-    if (Number(item.date) % 10 === 0) {
+    if (Number(itemParam.date) % 10 === 0) {
       yearClass = ' decade';
     }
-    if (Number(item.date) % 50 === 0) {
+    if (Number(itemParam.date) % 50 === 0) {
       yearClass = ' fifty';
     }
-    if (Number(item.date) % 100 === 0) {
+    if (Number(itemParam.date) % 100 === 0) {
       yearClass = ' century';
+    }
+    let label = itemParam.date;
+    if (typeof itemParam.date === 'object') {
+      [label] = itemParam.date;
     }
     return (
       <div
         data-date={item.date}
         className={`timeline-point${yearClass}`}
-        onClick={(e) => showEventsGroup(e, item, eventsLength)}
+        onClick={(e) => showEventsGroup(e, itemParam, eventsLength)}
         onKeyDown={() => false}
         role="button"
         tabIndex={0}
-        aria-label="toggle image viewer"
+        aria-label="show events group"
       >
         <Label>
-          {item.date} <small>[{eventsLength}]</small>
+          {label} <small>[{eventsLength}]</small>
         </Label>
         <div className="triangle-up" />
         <div className="triangle-down" />
@@ -446,31 +508,74 @@ const Timeline = () => {
   useEffect(() => {
     const cancelToken = axios.CancelToken;
     const source = cancelToken.source();
+    const cancelToken2 = axios.CancelToken;
+    const source2 = cancelToken2.source();
 
     const load = async () => {
+      let url = null;
+      const { type } = match.params;
+      let params = {};
+      if (type === 'person') {
+        url = `${APIPath}ui-person`;
+        params = { _id: match.params._id };
+      }
+      if (type === 'classpiece') {
+        url = `${APIPath}classpiece`;
+        params = { _id: match.params._id };
+      }
+      if (type === 'resource') {
+        url = `${APIPath}resource`;
+        params = { _id: match.params._id };
+      }
+      if (type === 'event') {
+        url = `${APIPath}ui-event`;
+        params = { _id: match.params._id };
+      }
+      if (type === 'organisation') {
+        url = `${APIPath}ui-organisation`;
+        params = { _id: match.params._id };
+      }
+      if (url === null) {
+        return;
+      }
       const responseData = await axios({
         method: 'get',
-        url: `${APIPath}timeline`,
+        url,
         crossDomain: true,
+        params,
         cancelToken: source.token,
       })
         .then((response) => response.data)
         .catch((error) => console.log(error));
       if (typeof responseData !== 'undefined') {
         const respData = responseData.data;
-        setItems(respData);
-        const newData = initialData(respData);
-        setItemsHTML(newData);
-        setLoading(false);
+        setItem(respData);
+        const eventsData = await axios({
+          method: 'get',
+          url: `${APIPath}item-timeline`,
+          crossDomain: true,
+          params,
+          cancelToken: source2.token,
+        })
+          .then((response) => response.data)
+          .catch((error) => console.log(error));
+        if (typeof eventsData !== 'undefined') {
+          const evtData = eventsData.data;
+          setItems(evtData);
+          const newData = initialData(evtData);
+          setItemsHTML(newData);
+        }
       }
+      setLoading(false);
     };
     if (loading) {
       load();
     }
     return () => {
       source.cancel('api request cancelled');
+      source2.cancel('api request cancelled');
     };
-  }, [loading]);
+  }, [loading, match]);
 
   useEffect(() => {
     let resizeTimer;
@@ -493,90 +598,15 @@ const Timeline = () => {
     };
   });
 
-  useEffect(() => {
-    const cancelToken = axios.CancelToken;
-    const source = cancelToken.source();
-
-    const loadEvent = async () => {
-      const responseData = await axios({
-        method: 'get',
-        url: `${APIPath}ui-event`,
-        crossDomain: true,
-        params: { _id: viewEventId },
-        cancelToken: source.token,
-      })
-        .then((response) => response.data)
-        .catch((error) => console.log(error));
-      if (typeof responseData !== 'undefined') {
-        setSelectedEvent(responseData.data);
-        setSelectedEventVisible(true);
-        const visible = {
-          events: true,
-          organisations: true,
-          people: true,
-          resources: true,
-        };
-        if (responseData.data.events.length > 0) {
-          visible.events = true;
-        }
-        if (responseData.data.organisations.length > 0) {
-          visible.organisations = true;
-        }
-        if (responseData.data.people.length > 0) {
-          visible.people = true;
-        }
-        if (responseData.data.resources.length > 0) {
-          visible.resources = true;
-        }
-        if (responseData.data.classpieces.length > 0) {
-          visible.classpieces = true;
-        }
-        setRelatedVisible(visible);
-        setLoadingEvent(false);
-      }
-    };
-
-    if (viewEventId !== null && loadingEvent) {
-      loadEvent(viewEventId);
-    }
-    return () => {
-      source.cancel('api request cancelled');
-    };
-  }, [viewEventId, loadingEvent]);
-
   const toggleSearchContainerVisible = () => {
     setSearchContainerVisible(!searchContainerVisible);
   };
-
-  const loadEvent = (_id) => {
-    setViewEventId(_id);
-    setLoadingEvent(true);
-  };
-
-  const renderEventHTML = (item) => (
-    <div
-      className="timeline-event-item"
-      key={item.i}
-      onClick={() => loadEvent(item._id)}
-      onKeyDown={() => false}
-      role="button"
-      tabIndex={0}
-      aria-label="load event"
-    >
-      {item.label} <small>[{item.dateLabel}]</small>
-    </div>
-  );
 
   const toggleRelatedOpen = (name) => {
     const value = !relatedOpen[name];
     const relatedOpenCopy = { ...relatedOpen };
     relatedOpenCopy[name] = value;
     setRelatedOpen(relatedOpenCopy);
-  };
-
-  const toggleSelectedEvent = (val = null) => {
-    const visible = val || !selectedEventVisible;
-    setSelectedEventVisible(visible);
   };
 
   const searchDate = async (e) => {
@@ -655,11 +685,123 @@ const Timeline = () => {
     setHelpVisible(!helpVisible);
   };
 
-  const heading = 'Events timeline';
-  const breadcrumbsItems = [
-    { label: heading, icon: 'pe-7s-hourglass', active: true, path: '' },
-  ];
-  updateDocumentTitle(heading);
+  let heading = '';
+  const pageType = match.params.type;
+  const breadcrumbsItems = [];
+  let breadcrumbsParent = {};
+  if (pageType === 'classpiece') {
+    breadcrumbsParent = {
+      label: 'Classpieces',
+      icon: 'pe-7s-photo',
+      active: false,
+      path: '/classpieces',
+    };
+  }
+  if (pageType === 'event') {
+    breadcrumbsParent = {
+      label: 'Events',
+      icon: 'pe-7s-date',
+      active: false,
+      path: '/events',
+    };
+  }
+  if (pageType === 'organisation') {
+    breadcrumbsParent = {
+      label: 'Organisations',
+      icon: 'pe-7s-culture',
+      active: false,
+      path: '/organisations',
+    };
+  }
+  if (pageType === 'person') {
+    breadcrumbsParent = {
+      label: 'People',
+      icon: 'pe-7s-users',
+      active: false,
+      path: '/people',
+    };
+  }
+  if (pageType === 'resource') {
+    breadcrumbsParent = {
+      label: 'Resources',
+      icon: 'pe-7s-photo',
+      active: false,
+      path: '/resources',
+    };
+  }
+  breadcrumbsItems.push(breadcrumbsParent);
+
+  if (!loading && item !== null) {
+    let { label } = item;
+    if (pageType === 'classpiece') {
+      breadcrumbsItems.push(
+        {
+          label,
+          icon: 'pe-7s-photo',
+          active: false,
+          path: `/classpiece/${props.match.params._id}`,
+        },
+        { label: 'Timeline', icon: 'pe-7s-hourglass', active: true, path: '' }
+      );
+    }
+    if (pageType === 'event') {
+      breadcrumbsItems.push(
+        {
+          label,
+          icon: 'pe-7s-date',
+          active: false,
+          path: `/event/${props.match.params._id}`,
+        },
+        { label: 'Timeline', icon: 'pe-7s-hourglass', active: true, path: '' }
+      );
+    }
+    if (pageType === 'organisation') {
+      breadcrumbsItems.push(
+        {
+          label,
+          icon: 'pe-7s-culture',
+          active: false,
+          path: `/organisation/${props.match.params._id}`,
+        },
+        { label: 'Timeline', icon: 'pe-7s-hourglass', active: true, path: '' }
+      );
+    }
+    if (pageType === 'person') {
+      label = item.firstName;
+      if (
+        typeof item.middleName !== 'undefined' &&
+        item.middleName !== null &&
+        item.middleName !== ''
+      ) {
+        label += ` ${item.middleName}`;
+      }
+      label += ` ${item.lastName}`;
+      breadcrumbsItems.push(
+        {
+          label,
+          icon: 'pe-7s-user',
+          active: false,
+          path: `/person/${props.match.params._id}`,
+        },
+        { label: 'Timeline', icon: 'pe-7s-hourglass', active: true, path: '' }
+      );
+    }
+    if (pageType === 'resource') {
+      breadcrumbsItems.push(
+        {
+          label,
+          icon: 'pe-7s-photo',
+          active: false,
+          path: `/resource/${props.match.params._id}`,
+        },
+        { label: 'Timeline', icon: 'pe-7s-hourglass', active: true, path: '' }
+      );
+    }
+    const documentTitle = breadcrumbsItems.map((i) => i.label).join(' / ');
+    updateDocumentTitle(documentTitle);
+    heading = `${label} Timeline`;
+  }
+
   let content = (
     <div className="row">
       <div className="col-12">
@@ -993,7 +1135,7 @@ const Timeline = () => {
         onKeyDown={() => false}
         role="button"
         tabIndex={0}
-        aria-label="toggle search"
+        aria-label="toggle search container"
       >
         <i className="fa fa-search" />
       </div>
@@ -1107,11 +1249,19 @@ const Timeline = () => {
   }
   return (
     <div className="container">
-      <Breadcrumbs items={breadcrumbsItems} />
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
       <h3>{heading}</h3>
       {content}
     </div>
   );
 };
 
+Timeline.defaultProps = {
+  match: null,
+};
+Timeline.propTypes = {
+  match: PropTypes.object,
+};
 export default Timeline;

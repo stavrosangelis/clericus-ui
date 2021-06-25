@@ -2,18 +2,18 @@ import React, { useEffect, useState, lazy, Suspense } from 'react';
 import axios from 'axios';
 import { Spinner } from 'reactstrap';
 import PropTypes from 'prop-types';
-import Breadcrumbs from '../../components/breadcrumbs';
 import { updateDocumentTitle, renderLoader } from '../../helpers';
 
+const Breadcrumbs = lazy(() => import('../../components/breadcrumbs'));
 const PersonNetwork = lazy(() =>
   import('../../components/visualisations/person-network-pixi')
 );
 const APIPath = process.env.REACT_APP_APIPATH;
 
-const PersonGraph = (props) => {
+const OrganisationGraph = (props) => {
   // state
   const [loading, setLoading] = useState(true);
-  const [person, setPerson] = useState(null);
+  const [organisation, setOrganisation] = useState(null);
 
   // props
   const { match } = props;
@@ -29,7 +29,7 @@ const PersonGraph = (props) => {
       }
       const responseData = await axios({
         method: 'get',
-        url: `${APIPath}ui-person`,
+        url: `${APIPath}ui-organisation`,
         crossDomain: true,
         params: { _id },
         cancelToken: source.token,
@@ -37,7 +37,7 @@ const PersonGraph = (props) => {
         .then((response) => response.data.data)
         .catch((error) => console.log(error));
       if (typeof responseData !== 'undefined') {
-        setPerson(responseData);
+        setOrganisation(responseData);
         setLoading(false);
       }
       return false;
@@ -51,7 +51,12 @@ const PersonGraph = (props) => {
   }, [loading, match]);
 
   const breadcrumbsItems = [
-    { label: 'People', icon: 'pe-7s-users', active: false, path: '/people' },
+    {
+      label: 'Organisations',
+      icon: 'pe-7s-culture',
+      active: false,
+      path: '/organisations',
+    },
   ];
   let content = (
     <div className="graph-container" id="graph-container">
@@ -62,23 +67,15 @@ const PersonGraph = (props) => {
   );
 
   let heading = '';
-  if (!loading && person !== null) {
-    let label = person.firstName;
-    if (
-      typeof person.middleName !== 'undefined' &&
-      person.middleName !== null &&
-      person.middleName !== ''
-    ) {
-      label += ` ${person.middleName}`;
-    }
-    label += ` ${person.lastName}`;
+  if (!loading && organisation !== null) {
+    const { label } = organisation;
     heading = `${label} network`;
     breadcrumbsItems.push(
       {
         label,
-        icon: 'pe-7s-user',
+        icon: 'pe-7s-culture',
         active: false,
-        path: `/person/${props.match.params._id}`,
+        path: `/organisation/${props.match.params._id}`,
       },
       { label: 'Network', icon: 'pe-7s-graph1', active: true, path: '' }
     );
@@ -98,18 +95,20 @@ const PersonGraph = (props) => {
   }
   return (
     <div className="container">
-      <Breadcrumbs items={breadcrumbsItems} />
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
       <h3>{heading}</h3>
       {content}
     </div>
   );
 };
 
-PersonGraph.defaultProps = {
+OrganisationGraph.defaultProps = {
   match: null,
 };
-PersonGraph.propTypes = {
+OrganisationGraph.propTypes = {
   match: PropTypes.object,
 };
 
-export default PersonGraph;
+export default OrganisationGraph;

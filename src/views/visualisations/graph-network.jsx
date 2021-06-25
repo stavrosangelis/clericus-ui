@@ -1,7 +1,7 @@
 import React, { lazy, Suspense } from 'react';
-import Breadcrumbs from '../../components/breadcrumbs';
 import { updateDocumentTitle, renderLoader } from '../../helpers';
 
+const Breadcrumbs = lazy(() => import('../../components/breadcrumbs'));
 const GraphNetwork = lazy(() =>
   import('../../components/visualisations/graph-network-pixi')
 );
@@ -21,7 +21,9 @@ const NetworkGraph = () => {
   );
   return (
     <div className="container">
-      <Breadcrumbs items={breadcrumbsItems} />
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
       <h3>{heading}</h3>
       {content}
     </div>

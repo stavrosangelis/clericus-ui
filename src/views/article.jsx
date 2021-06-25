@@ -1,16 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import axios from 'axios';
 import { Spinner, Card, CardBody } from 'reactstrap';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import dompurify from 'dompurify';
-
-import Breadcrumbs from '../components/breadcrumbs';
 import { updateDocumentTitle } from '../helpers';
 
 import '../scss/article.scss';
 
 const APIPath = process.env.REACT_APP_APIPATH;
+const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
 
 const Article = (props) => {
   // props
@@ -169,7 +168,9 @@ const Article = (props) => {
   }
   return (
     <div className="container">
-      <Breadcrumbs items={breadcrumbsItems} />
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
       {content}
     </div>
   );
