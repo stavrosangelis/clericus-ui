@@ -57,13 +57,12 @@ export default class AdvancedSearchFormRow extends Component {
 
     let classNameType = '';
     const inputValue = searchInput;
-    if ([searchTermRowIndex].inputType === 'text') {
+    if (searchElements[searchTermRowIndex].inputType === 'text') {
       classNameType = 'advanced-search-input';
     } else if (searchElements[searchTermRowIndex].inputType === 'select') {
       classNameType = 'advanced-search-select';
       // inputValue = stateData.input;
     }
-
     return (
       <div className={classNameType}>
         <Input
