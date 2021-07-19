@@ -114,6 +114,7 @@ h1, h2, h3, h4, h5 {
 }
 .main-nav .nav-item {
   border-bottom: 2px solid #FFF;
+  background-color: #fff;
 }
 .main-nav .nav-item:hover {
   border-bottom: 2px solid $dark-grey;
@@ -199,6 +200,23 @@ h1, h2, h3, h4, h5 {
   border: 0 none;
   background-color: #ddd;
   width: calc(100% - 1px);
+}
+.navbar-nav > li.dropdown.nav-item > ul.dropdown-menu > li.dropdown.nav-item > div.nav-item-wc > a {
+  padding: 8px !important;
+}
+.navbar-nav > li.dropdown.nav-item > ul.dropdown-menu > li.dropdown.nav-item > div.nav-item-wc > a:hover {
+  background-color: #ddd;
+}
+.navbar-nav > li.dropdown.nav-item > ul.dropdown-menu > li.dropdown.nav-item > div.nav-item-wc > a::after {
+  content: "\f105";
+  font-family: 'FontAwesome';
+  position: absolute;
+  right: 6px;
+}
+@media only screen and (max-width: 767px) {
+  .navbar-nav > li.dropdown.nav-item > ul.dropdown-menu > li.dropdown.nav-item > div.nav-item-wc > a::after {
+    content: "";
+  }
 }
 
   /* fix for open state */
