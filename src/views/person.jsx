@@ -330,6 +330,7 @@ class Person extends Component {
             hidden={eventsHidden}
             visible={eventsVisibleClass}
             events={item.events}
+            _id={item._id}
           />
         </Suspense>
       );

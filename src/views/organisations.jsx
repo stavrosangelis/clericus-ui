@@ -360,7 +360,7 @@ class Organisations extends Component {
     if (items.length > 0) {
       for (let i = 0; i < items.length; i += 1) {
         const item = items[i];
-        const { label } = item;
+        const { label, organisationType } = item;
 
         let thumbnailImage = [];
         const thumbnailURL = null;
@@ -374,6 +374,12 @@ class Organisations extends Component {
           );
         }
         const link = `/organisation/${item._id}`;
+        const organisationTypeOutput =
+          organisationType !== '' ? (
+            <small>{` [${organisationType}]`}</small>
+          ) : (
+            []
+          );
         const outputItem = (
           <ListGroupItem key={i}>
             <Link to={link} href={link}>
@@ -381,6 +387,7 @@ class Organisations extends Component {
             </Link>
             <Link to={link} href={link}>
               {label}
+              {organisationTypeOutput}
             </Link>
           </ListGroupItem>
         );

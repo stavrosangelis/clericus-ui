@@ -140,10 +140,8 @@ class Event extends Component {
     // description
     let descriptionRow = [];
     let descriptionHidden = '';
-    let descriptionVisibleClass = '';
     if (!descriptionVisible) {
       descriptionHidden = ' closed';
-      descriptionVisibleClass = 'hidden';
     }
     if (
       typeof item.description !== 'undefined' &&
@@ -155,7 +153,7 @@ class Event extends Component {
           <DescriptionBlock
             toggleTable={this.toggleTable}
             hidden={descriptionHidden}
-            visible={descriptionVisibleClass}
+            visible={descriptionVisible}
             description={item.description}
           />
         </Suspense>
@@ -353,6 +351,7 @@ class Event extends Component {
       );
     }
 
+    meta.push(descriptionRow);
     meta.push(peopleRow);
     meta.push(organisationsRow);
     meta.push(classpiecesRow);
@@ -360,7 +359,6 @@ class Event extends Component {
     meta.push(eventsRow);
     meta.push(datesRow);
     meta.push(locationsRow);
-    meta.push(descriptionRow);
 
     return meta;
   }
@@ -370,11 +368,12 @@ class Event extends Component {
 
     // 1.1 Event label
     const { label } = item;
-    const eventType = (
-      <h6 className="event-type">
-        <i>{item.eventType.inverseLabel}</i>
-      </h6>
-    );
+    const eventType =
+      item.eventType.inverseLabel !== '' ? (
+        <small>[{item.eventType.inverseLabel}]</small>
+      ) : (
+        []
+      );
     // 2.1 meta
     const metaTable = this.renderEventDetails(stateData);
 
@@ -407,8 +406,10 @@ class Event extends Component {
 
     const output = (
       <div className="item-container">
-        <h3>{label}</h3>
-        {eventType}
+        <h3>
+          {label} {eventType}
+        </h3>
+
         <div className="row item-info-container">
           <div className={thumbnailColClass}>{thumbnailImage}</div>
           <div className={contentColClass}>

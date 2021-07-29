@@ -152,7 +152,6 @@ class Organisation extends Component {
     ) {
       const appellations = item.alternateAppelations.map((a, i) => {
         const obj = jsonStringToObject(a);
-        console.log(obj);
         let label = '';
         let lang = '';
         let note = '';

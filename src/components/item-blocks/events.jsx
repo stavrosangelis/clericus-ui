@@ -17,7 +17,7 @@ const Block = (props) => {
   const lastIndex = firstIndex + limit;
 
   // props
-  const { events: propsEvents, toggleTable, hidden, visible } = props;
+  const { _id, events: propsEvents, toggleTable, hidden, visible } = props;
 
   const handleSearchTermChange = (e) => {
     const { target } = e;
@@ -72,6 +72,33 @@ const Block = (props) => {
             </span>
           </div>,
         ];
+        if (typeof event.people !== 'undefined' && event.people.length > 0) {
+          const peopleLabels = event.people.map((o, oi) => {
+            const personTermLabel = outputRelationTypes(o.term.label);
+            const br =
+              oi > 0 ? (
+                <span>
+                  ,
+                  <br />
+                </span>
+              ) : (
+                []
+              );
+            const output =
+              o.ref._id !== _id ? (
+                <span key={o._id}>
+                  {br}
+                  <i>{personTermLabel}</i> <b>{o.ref.label}</b>
+                </span>
+              ) : (
+                []
+              );
+            return output;
+          });
+          if (peopleLabels.length > 0) {
+            label.push(<div key="people">{peopleLabels}</div>);
+          }
+        }
         if (
           typeof event.organisations !== 'undefined' &&
           event.organisations.length > 0
@@ -249,12 +276,14 @@ const Block = (props) => {
   return eventsRow;
 };
 Block.defaultProps = {
+  _id: null,
   hidden: '',
   visible: '',
   events: [],
   toggleTable: () => {},
 };
 Block.propTypes = {
+  _id: PropTypes.string,
   hidden: PropTypes.string,
   visible: PropTypes.string,
   events: PropTypes.array,

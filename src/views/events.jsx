@@ -13,7 +13,12 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import PropTypes from 'prop-types';
-import { updateDocumentTitle, renderLoader } from '../helpers';
+import {
+  updateDocumentTitle,
+  renderLoader,
+  outputRelationTypes,
+  outputDate,
+} from '../helpers';
 import HelpArticle from '../components/help-article';
 
 import {
@@ -363,6 +368,7 @@ class Events extends Component {
       for (let i = 0; i < items.length; i += 1) {
         const item = items[i];
         const { label } = item;
+        const description = [];
 
         let thumbnailImage = [];
         const thumbnailURL = null;
@@ -375,6 +381,99 @@ class Events extends Component {
             />
           );
         }
+
+        if (typeof item.people !== 'undefined' && item.people.length > 0) {
+          const peopleLabels = item.people.map((o, oi) => {
+            const personTermLabel = outputRelationTypes(o.term.label);
+            const br =
+              oi > 0 ? (
+                <small>
+                  ,
+                  <br />
+                </small>
+              ) : (
+                []
+              );
+            const personOutput = (
+              <small key={o._id}>
+                {br}
+                <i>{personTermLabel}</i> <span style={{ width: '10px' }} />{' '}
+                <b>{o.ref.label}</b>
+              </small>
+            );
+            return personOutput;
+          });
+          if (peopleLabels.length > 0) {
+            description.push(<div key="people">{peopleLabels}</div>);
+          }
+        }
+        if (
+          typeof item.organisations !== 'undefined' &&
+          item.organisations.length > 0
+        ) {
+          const organisationLabels = item.organisations.map((o) => {
+            const orgTermLabel = outputRelationTypes(o.term.label);
+            const organisationType =
+              o.ref.organisationType !== ''
+                ? ` [${o.ref.organisationType}]`
+                : '';
+            return (
+              <small key={o._id}>
+                <i>{orgTermLabel}</i> <b>{o.ref.label}</b>
+                {organisationType}
+              </small>
+            );
+          });
+          if (organisationLabels.length > 0) {
+            description.push(
+              <div key="organisations">{organisationLabels}</div>
+            );
+          }
+        }
+        if (typeof item.temporal !== 'undefined' && item.temporal.length > 0) {
+          const temporalLabels = item.temporal.map((t) => {
+            const temp = t.ref;
+            let tLabel = '';
+            if (
+              typeof temp.startDate !== 'undefined' &&
+              temp.startDate !== ''
+            ) {
+              tLabel = outputDate(temp.startDate);
+            }
+            if (
+              typeof temp.endDate !== 'undefined' &&
+              temp.endDate !== '' &&
+              temp.endDate !== temp.startDate
+            ) {
+              tLabel += ` - ${outputDate(temp.endDate)}`;
+            }
+            return tLabel;
+          });
+          if (temporalLabels.length > 0) {
+            const temporalLabel = temporalLabels.join(' | ');
+            description.push(
+              <div key="temp">
+                <i className="fa fa-calendar-o" />{' '}
+                <small key="dates">{temporalLabel}</small>
+              </div>
+            );
+          }
+        }
+        if (typeof item.spatial !== 'undefined' && item.spatial.length > 0) {
+          const spatialLabels = item.spatial.map((s) => {
+            const spatial = s.ref;
+            return spatial.label;
+          });
+          if (spatialLabels.length > 0) {
+            const spatialLabel = spatialLabels.join(' | ');
+            description.push(
+              <div key="spatial">
+                <i className="fa fa-map" /> {spatialLabel}
+              </div>
+            );
+          }
+        }
+
         const link = `/event/${item._id}`;
         const outputItem = (
           <ListGroupItem key={i}>
@@ -384,6 +483,7 @@ class Events extends Component {
             <Link to={link} href={link}>
               {label}
             </Link>
+            {description}
           </ListGroupItem>
         );
         output.push(outputItem);
