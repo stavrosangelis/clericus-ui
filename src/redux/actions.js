@@ -137,6 +137,31 @@ export function loadEvents() {
   };
 }
 
+export function loadPeopleType() {
+  return (dispatch) => {
+    const params = {
+      systemType: 'personTypes',
+    };
+    axios({
+      method: 'get',
+      url: `${process.env.REACT_APP_APIPATH}taxonomy`,
+      crossDomain: true,
+      params,
+    })
+      .then((response) => {
+        const payload = {
+          loadingPersonType: false,
+          personType: response.data.data.taxonomyterms,
+        };
+        dispatch({
+          type: 'GENERIC_UPDATE',
+          payload,
+        });
+      })
+      .catch((error) => console.log(error));
+  };
+}
+
 export function loadPeople() {
   return (dispatch) => {
     const params = {
@@ -300,6 +325,7 @@ export function updateFilters(type, params) {
     if (payload === null) {
       return false;
     }
+    console.log(payload);
     dispatch({
       type: 'GENERIC_UPDATE',
       payload,
@@ -331,6 +357,9 @@ export function clearFilters(type) {
     }
     if (typeof newValues.eventType !== 'undefined') {
       newValues.eventType = '';
+    }
+    if (typeof newValues.personType !== 'undefined') {
+      newValues.personType = '';
     }
     payload = {
       [filtersName]: newValues,

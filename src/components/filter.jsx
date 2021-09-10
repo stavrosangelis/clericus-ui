@@ -215,6 +215,13 @@ const Filter = (props) => {
     ) {
       setFilterType('');
     }
+    if (
+      filtersType === 'personType' &&
+      filtersSet.personType === '' &&
+      filterType !== filtersSet.personType
+    ) {
+      setFilterType('');
+    }
   }, [filtersType, filtersSet, filterType]);
 
   const clearFilters = () => {
@@ -226,7 +233,9 @@ const Filter = (props) => {
       updateFilters(filtersType, []);
     }
     if (
-      (filtersType === 'organisationType' || filtersType === 'eventType') &&
+      (filtersType === 'organisationType' ||
+        filtersType === 'eventType' ||
+        filtersType === 'personType') &&
       filterType !== ''
     ) {
       setFilterType('');
@@ -334,26 +343,6 @@ const Filter = (props) => {
     );
     return output;
   };
-  /* console.log(filterItems)
-  let filterItemsHTML = filterItems.map((item,i)=>{
-    let disabled = false;
-    let hidden = "";
-    if (relationshipSet.indexOf(item._id)===-1) {
-      disabled = true;
-      hidden = "hidden";
-    }
-    if (filtersType==="organisations" && filterType!=="" && filterType!==item.organisationType) {
-      disabled = true;
-      hidden = "hidden";
-    }
-    return <FormGroup key={i} className={hidden+" filter-item"}>
-      <Label onMouseOver={(e)=>over(e)} data-target={`${filtersType}-fi-${i}`}>
-        <div className="title" id={`${filtersType}-fi-${i}`}>{item.label}</div>
-        <Input type="checkbox" name={filtersType} onChange={()=>toggleFilter(item)} disabled={disabled} checked={item.checked} />{' '}
-        <span className="filter-span">{item.label}</span>
-      </Label>
-    </FormGroup>
-  }); */
 
   let filtersTypesHTML = [];
   if (filtersTypes.length > 0) {
@@ -367,7 +356,8 @@ const Filter = (props) => {
       let value = item._id;
       if (
         filtersType === 'organisations' ||
-        filtersType === 'organisationType'
+        filtersType === 'organisationType' ||
+        filtersType === 'personType'
       ) {
         value = item.labelId;
       }

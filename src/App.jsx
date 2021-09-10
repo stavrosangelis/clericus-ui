@@ -25,6 +25,7 @@ import {
   loadOrganisationsType,
   loadOrganisations,
   loadEventsType,
+  loadPeopleType,
   loadResourcesType,
   loadGenericStats,
   loadPeopleSources,
@@ -40,6 +41,7 @@ function App() {
     dispatch(loadOrganisationsType());
     dispatch(loadOrganisations());
     dispatch(loadEventsType());
+    dispatch(loadPeopleType());
     dispatch(loadResourcesType());
     dispatch(loadGenericStats());
     dispatch(loadPeopleSources());

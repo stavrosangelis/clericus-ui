@@ -22,7 +22,11 @@ import defaultThumbnail from '../assets/images/spcc.jpg';
 import icpThumbnail from '../assets/images/icp-logo.jpg';
 import HelpArticle from '../components/help-article';
 
-import { setPaginationParams, setRelationshipParams } from '../redux/actions';
+import {
+  setPaginationParams,
+  setRelationshipParams,
+  updateFilters,
+} from '../redux/actions';
 
 const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
 const Filters = lazy(() => import('../components/filters'));
@@ -45,6 +49,7 @@ function mapDispatchToProps(dispatch) {
       dispatch(setPaginationParams(type, params)),
     setRelationshipParams: (type, params) =>
       dispatch(setRelationshipParams(type, params)),
+    updateFilters: (type, params) => dispatch(updateFilters(type, params)),
   };
 }
 
@@ -86,6 +91,7 @@ class People extends Component {
     this.renderItems = this.renderItems.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.updatePeopleRelationship = this.updatePeopleRelationship.bind(this);
+    this.updateType = this.updateType.bind(this);
     this.toggleHelp = this.toggleHelp.bind(this);
 
     // cancelTokens
@@ -104,6 +110,13 @@ class People extends Component {
 
   componentDidMount() {
     this.load();
+  }
+
+  componentDidUpdate(prevProps) {
+    const { peopleFilters } = this.props;
+    if (prevProps.peopleFilters.personType !== peopleFilters.personType) {
+      this.load();
+    }
   }
 
   componentWillUnmount() {
@@ -129,6 +142,14 @@ class People extends Component {
     });
   }
 
+  updateType(val) {
+    const { updateFilters: updateFiltersFn } = this.props;
+    const payload = {
+      personType: val,
+    };
+    updateFiltersFn('people', payload);
+  }
+
   async load() {
     const { peopleFilters: filters } = this.props;
     const {
@@ -151,8 +172,10 @@ class People extends Component {
       temporals: filters.temporals,
       orderField,
       orderDesc,
-      personType: 'Clergy',
     };
+    if (filters.personType !== '') {
+      params.personType = filters.personType;
+    }
     if (simpleSearchTerm !== '') {
       params.label = simpleSearchTerm;
     } else if (advancedSearchInputs.length > 0) {
@@ -223,8 +246,10 @@ class People extends Component {
       temporals: filters.temporals,
       orderField,
       orderDesc,
-      personType: 'Clergy',
     };
+    if (filters.personType !== '') {
+      params.personType = filters.personType;
+    }
     const url = `${process.env.REACT_APP_APIPATH}ui-people`;
     const responseData = await axios({
       method: 'post',
@@ -772,7 +797,14 @@ class People extends Component {
         </Collapse>
       );
 
-      const filterType = ['events', 'organisations', 'temporals', 'sources'];
+      const filterType = [
+        'personType',
+        'events',
+        'organisations',
+        'temporals',
+        'sources',
+      ];
+
       content = (
         <div>
           <div className="row">
@@ -783,6 +815,7 @@ class People extends Component {
                   filterType={filterType}
                   filtersSet={peopleFilters}
                   relationshipSet={peopleRelationship}
+                  updateType={this.updateType}
                   updatedata={this.load}
                 />
               </Suspense>
@@ -856,6 +889,7 @@ People.defaultProps = {
   peopleFilters: {
     events: [],
     organisations: [],
+    personType: '',
     sources: [],
     temporals: {
       startDate: '',
@@ -863,6 +897,7 @@ People.defaultProps = {
       dateType: 'exact',
     },
   },
+  updateFilters: () => {},
   setRelationshipParams: () => {},
   setPaginationParams: () => {},
   peopleRelationship: {
@@ -886,6 +921,7 @@ People.propTypes = {
   peopleFilters: PropTypes.shape({
     events: PropTypes.array,
     organisations: PropTypes.array,
+    personType: PropTypes.string,
     sources: PropTypes.array,
     temporals: PropTypes.shape({
       startDate: PropTypes.string,
@@ -893,6 +929,7 @@ People.propTypes = {
       dateType: PropTypes.string,
     }),
   }),
+  updateFilters: PropTypes.func,
   setRelationshipParams: PropTypes.func,
   setPaginationParams: PropTypes.func,
   peopleRelationship: PropTypes.shape({

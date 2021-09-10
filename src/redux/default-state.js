@@ -29,6 +29,7 @@ const defaultState = {
   },
   peopleFilters: {
     events: [],
+    personType: '',
     sources: [],
     temporals: {
       startDate: '',
@@ -174,6 +175,9 @@ const defaultState = {
 
   loadingEventsType: true,
   eventsType: [],
+
+  loadingPersonType: true,
+  personType: [],
 
   loadingEvents: true,
   events: [],

@@ -22,6 +22,9 @@ const Filters = (props) => {
   const loadingEventsType = useSelector((state) => state.loadingEventsType);
   const eventsType = useSelector((state) => state.eventsType);
 
+  const loadingPersonType = useSelector((state) => state.loadingPersonType);
+  const personType = useSelector((state) => state.personType);
+
   const loadingResourcesType = useSelector(
     (state) => state.loadingResourcesType
   );
@@ -63,6 +66,7 @@ const Filters = (props) => {
   const classpiecesOut = [];
   let eventsOut = [];
   let organisationsOut = [];
+  let personTypeOut = [];
   let resourcesOut = [];
   const peopleOut = [];
   let temporalsOut = [];
@@ -130,6 +134,23 @@ const Filters = (props) => {
             itemsType={eventsType}
             items={[]}
             label="Event type"
+            updateFilters={updateFilters}
+            updateType={updateType}
+          />
+        </Suspense>
+      );
+    }
+    if (filterType === 'personType') {
+      personTypeOut = (
+        <Suspense fallback={renderLoader()} key="personType">
+          <Filter
+            loading={loadingPersonType}
+            relationshipSet={[]}
+            filtersSet={filtersSet}
+            filtersType="personType"
+            itemsType={personType}
+            items={[]}
+            label="Type"
             updateFilters={updateFilters}
             updateType={updateType}
           />
@@ -208,6 +229,7 @@ const Filters = (props) => {
       {classpiecesOut}
       {eventsOut}
       {organisationsOut}
+      {personTypeOut}
       {resourcesOut}
       {peopleOut}
       {temporalsOut}
