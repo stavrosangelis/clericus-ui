@@ -65,18 +65,24 @@ const Block = (props) => {
         }
         const event = events[i];
         const termLabel = outputRelationTypes(event.term.label);
+        const br = event.people.length > 0 ? <span>,</span> : [];
         const label = [
-          <div key="label">
+          <div key="label" className="event-label">
             <span>
               <i key="type">{termLabel}</i> <b>{event.ref.label}</b>
             </span>
+            {br}
           </div>,
         ];
         if (typeof event.people !== 'undefined' && event.people.length > 0) {
-          const peopleLabels = event.people.map((o, oi) => {
+          let index = 0;
+          const peopleLabels = event.people.map((o) => {
+            if (o.ref._id === _id) {
+              index -= 1;
+            }
             const personTermLabel = outputRelationTypes(o.term.label);
-            const br =
-              oi > 0 ? (
+            const pbr =
+              index > 0 ? (
                 <span>
                   ,
                   <br />
@@ -87,12 +93,13 @@ const Block = (props) => {
             const output =
               o.ref._id !== _id ? (
                 <span key={o._id}>
-                  {br}
+                  {pbr}
                   <i>{personTermLabel}</i> <b>{o.ref.label}</b>
                 </span>
               ) : (
                 []
               );
+            index += 1;
             return output;
           });
           if (peopleLabels.length > 0) {
