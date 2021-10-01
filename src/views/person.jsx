@@ -539,9 +539,13 @@ class Person extends Component {
 
     // 2.1 meta
     const metaTable = this.renderPersonDetails(stateData);
+    const laity =
+      item.personType === 'Laity' ? <small>[{item.personType}]</small> : [];
     const output = (
       <div className="person-container">
-        <h3>{label}</h3>
+        <h3>
+          {label} {laity}
+        </h3>
         <div className="row person-info-container">
           <div className="col-xs-12 col-sm-6 col-md-5">{thumbnailImage}</div>
           <div className="col-xs-12 col-sm-6 col-md-7">

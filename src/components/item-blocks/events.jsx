@@ -103,7 +103,11 @@ const Block = (props) => {
             return output;
           });
           if (peopleLabels.length > 0) {
-            label.push(<div key="people">{peopleLabels}</div>);
+            label.push(
+              <div key="people" className="event-related-people">
+                {peopleLabels}
+              </div>
+            );
           }
         }
         if (

@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import muahilogo from '../assets/images/logo-transparentx400.png';
 import spcmlogo from '../assets/images/spcm-logo.png';
 import mUlogo from '../assets/images/M10520_Maynooth_University_Know_No_Bounds_Logo_English-RGB.jpg';
 import ccImg from '../assets/images/by-nc-nd.jpg';
 
 import BottomMenu from './bottom-menu';
+import { renderLoader } from '../helpers';
+
+const Twitter = lazy(() => import('../components/home/twitter'));
 
 const Footer = () => (
   <div className="footer-container">
@@ -56,10 +59,14 @@ const Footer = () => (
               </div>
             </div>
           </div>
-          <div className="col-12 col-md-3">
+          <div className="col-12 col-md-4">
             <BottomMenu />
           </div>
-          <div className="col-12 col-md-3" />
+          <div className="col-12 col-md-4">
+            <Suspense fallback={renderLoader()}>
+              <Twitter />
+            </Suspense>
+          </div>
         </div>
       </div>
     </div>

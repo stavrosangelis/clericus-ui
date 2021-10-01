@@ -1037,17 +1037,17 @@ section {
 }
 .mu-footer-logo {
   border-radius: 4px;
-  max-height: 40px;
+  max-height: 60px;
   background-color: #fff;
   padding: 10px;
   margin: 5px;
 }
 .muahi-footer-logo {
-  max-height: 40px;
+  max-height: 60px;
   margin: 8px;
 }
 .spcm-footer-logo {
-  max-height: 40px;
+  max-height: 60px;
   margin: 8px;
 }
 .footer-2 {
@@ -2858,4 +2858,8 @@ section {
 }
 .extra-side-padding {
   padding: 0 15px;
+}
+.event-related-people {
+  max-height: 150px;
+  overflow-y: auto;
 }

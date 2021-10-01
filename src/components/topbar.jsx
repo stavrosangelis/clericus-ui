@@ -10,7 +10,11 @@ const Topbar = () => (
         </span>
       </li> */}
       <li>
-        <a href="https://twitter.com/MU_AHI" target="_blank" rel="noreferrer">
+        <a
+          href="https://twitter.com/clericusDH"
+          target="_blank"
+          rel="noreferrer"
+        >
           <span className="social-icon">
             <i className="fa fa-twitter" />
           </span>
