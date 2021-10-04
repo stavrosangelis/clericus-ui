@@ -65,7 +65,7 @@ const Block = (props) => {
         }
         const event = events[i];
         const termLabel = outputRelationTypes(event.term.label);
-        const br = event.people.length > 0 ? <span>,</span> : [];
+        const br = event.people?.length > 0 ? <span>,</span> : [];
         const label = [
           <div key="label" className="event-label">
             <span>
