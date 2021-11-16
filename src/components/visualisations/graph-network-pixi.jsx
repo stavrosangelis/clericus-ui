@@ -8,7 +8,7 @@ import { Viewport } from 'pixi-viewport';
 import PropTypes from 'prop-types';
 
 import DataWorker from './graph-data.worker';
-import { webglSupport } from '../../helpers';
+import { webglSupport, debounce } from '../../helpers';
 import HelpArticle from '../help-article';
 import LazyList from '../lazylist';
 
@@ -29,7 +29,6 @@ let associatedLinks = [];
 let selectedNode;
 let lineContainer;
 let nodesContainer;
-let textContainer;
 const publicFunctions = {};
 
 const transformEnd = () => {
@@ -45,14 +44,14 @@ const loader = new PIXI.Loader();
 
 const hexColor = (value) => value.replace('#', '0x');
 
-const splitArray = (array, size) => {
+/* const splitArray = (array, size) => {
   const newArr = [];
   for (let i = 0; i < array.length; i += size) {
     const chunk = array.slice(i, i + size);
     newArr.push(chunk);
   }
   return newArr;
-};
+}; */
 
 const drawNodes = async () => {
   if (typeof nodes === 'undefined') {
@@ -64,60 +63,51 @@ const drawNodes = async () => {
 
   loader.load(() => {
     const bbox = container.getVisibleBounds();
-    const leftX = bbox.x;
+    const { x: leftX, y: topY } = bbox;
     const rightX = bbox.x + bbox.width;
-    const topY = bbox.y;
     const bottomY = bbox.y + bbox.height;
-    const nodesSplit = splitArray(nodes, 500);
-    for (let j = 0; j < nodesSplit.length; j += 1) {
-      const newNodes = nodesSplit[j];
-      for (let i = 0; i < newNodes.length; i += 1) {
-        const d = newNodes[i];
+    const { length } = nodes;
+    for (let i = 0; i < length; i += 1) {
+      const d = nodes[i];
+      const { x, y } = d;
+      let radius = d.size || 30;
+      if (leftX < x && rightX > x && topY < y && bottomY > y) {
         d.visible = true;
-        let radius = d.size || 30;
-        const { x } = d;
-        const { y } = d;
-        if (leftX <= x && rightX >= x && topY <= y && bottomY >= y) {
-          d.gfx = new PIXI.Graphics();
-          d.gfx.interactive = true;
-          d.gfx.on('click', () => publicFunctions.clickNode(d));
-          d.gfx.on('tap', () => publicFunctions.clickNode(d));
-          let lineWidth = 1;
-          let strokeStyle = hexColor(d.strokeColor);
-          // d.visible = true;
-          // circle
-          if (typeof d.selected !== 'undefined' && d.selected) {
-            lineWidth = 5;
-            strokeStyle = 0x33729f;
-            radius += 5;
-          } else if (typeof d.associated !== 'undefined' && d.associated) {
-            lineWidth = 4;
-            strokeStyle = 0x33729f;
-            radius += 4;
-          } else {
-            lineWidth = 1;
-          }
-          d.gfx.beginFill(hexColor(d.color));
-          if (container.scaled > 0.1) {
-            d.gfx.lineStyle(lineWidth, strokeStyle);
-          }
-          d.gfx.drawCircle(x, y, radius);
-          nodesContainer.addChild(d.gfx);
-          if (d.label !== '' && container.scaled > 0.3) {
-            const label = d.label.trim().replace(/  +/g, ' ');
-            const spaces = label.split(' ');
-            const minusY = spaces.length / 2;
-            // label = label.replace(/\s/g,"\n");
-            const text = new PIXI.BitmapText(label, {
-              fontName: 'Arial',
-              fontSize: 11,
-              align: 'center',
-            });
-            text.maxWidth = radius + lineWidth * 2;
-            text.x = x - (radius / 2 + lineWidth * 2 + 1);
-            text.y = y - 10 * minusY;
-            textContainer.addChild(text);
-          }
+        d.gfx = new PIXI.Graphics();
+        d.gfx.interactive = true;
+        d.gfx.on('click', () => publicFunctions.clickNode(d));
+        d.gfx.on('tap', () => publicFunctions.clickNode(d));
+        let lineWidth = 1;
+        let strokeStyle = hexColor(d.strokeColor);
+        // circle
+        if (typeof d.selected !== 'undefined' && d.selected) {
+          lineWidth = 5;
+          strokeStyle = 0x33729f;
+          radius += 5;
+        } else if (typeof d.associated !== 'undefined' && d.associated) {
+          lineWidth = 4;
+          strokeStyle = 0x33729f;
+          radius += 4;
+        }
+        d.gfx.beginFill(hexColor(d.color));
+        if (container.scaled > 0.1) {
+          d.gfx.lineStyle(lineWidth, strokeStyle);
+        }
+        d.gfx.drawCircle(x, y, radius);
+        nodesContainer.addChild(d.gfx);
+        if (d.label !== '' && container.scaled > 0.7) {
+          const label = d.label.trim().replace(/  +/g, ' ');
+          const spaces = label.split(' ');
+          const minusY = spaces.length / 2;
+          const text = new PIXI.BitmapText(label, {
+            fontName: 'Arial',
+            fontSize: 11,
+            align: 'center',
+          });
+          text.maxWidth = radius + lineWidth * 2;
+          text.x = x - (radius / 2 + lineWidth * 2 + 1);
+          text.y = y - 10 * minusY;
+          nodesContainer.addChild(text);
         }
       }
     }
@@ -130,32 +120,26 @@ const drawLines = () => {
     return false;
   }
   const bbox = container.getVisibleBounds();
-  const leftX = bbox.x;
+  const { x: leftX, y: topY } = bbox;
   const rightX = bbox.x + bbox.width;
-  const topY = bbox.y;
   const bottomY = bbox.y + bbox.height;
-  const linksSplit = splitArray(links, 500);
-  for (let j = 0; j < linksSplit.length; j += 1) {
-    const newLinks = linksSplit[j];
-    for (let i = 0; i < newLinks.length; i += 1) {
-      const d = newLinks[i];
-      const sx = d.source.x;
-      const sy = d.source.y;
-      const tx = d.target.x;
-      const ty = d.target.y;
-      if (leftX <= sx && rightX >= sx && topY <= sy && bottomY >= sy) {
-        const line = new PIXI.Graphics();
-        let lWidth = 1;
-        let strokeStyle = 0x666666;
-        if (typeof d.associated !== 'undefined' && d.associated) {
-          lWidth = 5;
-          strokeStyle = 0x33729f;
-        }
-        line.lineStyle(lWidth, strokeStyle);
-        line.moveTo(sx, sy);
-        line.lineTo(tx, ty);
-        lineContainer.addChild(line);
+  const { length } = links;
+  for (let i = 0; i < length; i += 1) {
+    const d = links[i];
+    const { x: sx, y: sy } = d.source;
+    const { x: tx, y: ty } = d.target;
+    if (leftX < sx && rightX > sx && topY < sy && bottomY > sy) {
+      const line = new PIXI.Graphics();
+      let lWidth = 0.5;
+      let strokeStyle = 0x666666;
+      if (typeof d.associated !== 'undefined' && d.associated) {
+        lWidth = 5;
+        strokeStyle = 0x33729f;
       }
+      line.lineStyle(lWidth, strokeStyle);
+      line.moveTo(sx, sy);
+      line.lineTo(tx, ty);
+      lineContainer.addChild(line);
     }
   }
   return false;
@@ -164,14 +148,15 @@ const drawLines = () => {
 const redraw = () => {
   lineContainer.removeChildren();
   nodesContainer.removeChildren();
-  textContainer.removeChildren();
+  const { scaled } = container;
   drawNodes();
-  drawLines();
+  if (scaled > 0.2) {
+    drawLines();
+  }
 };
 
 const moving = () => {
   lineContainer.removeChildren();
-  textContainer.removeChildren();
 };
 
 const movedEnd = () => {
@@ -231,7 +216,6 @@ const GraphNetwork = (props) => {
     associatedLinks = [];
     selectedNode.selected = false;
     delete selectedNode.selected;
-    textContainer.removeChildren();
     redraw();
   };
 
@@ -255,6 +239,7 @@ const GraphNetwork = (props) => {
       setInitiated(true);
       const graphContainer = document.getElementById('graph-container');
       width = graphContainer.offsetWidth - 2;
+
       PIXI.Renderer.create = function create(options) {
         if (webglSupport()) {
           return new PIXI.Renderer(options);
@@ -272,8 +257,7 @@ const GraphNetwork = (props) => {
         resolution,
         backgroundColor: 0xffffff,
         autoResize: true,
-        preserveDrawingBuffer: true,
-        powerPreference: 'high-performance',
+        preserveDrawingBuffer: false,
         sharedTicker: true,
       });
 
@@ -282,26 +266,24 @@ const GraphNetwork = (props) => {
       container = new Viewport({
         screenWidth: width,
         screenHeight: height,
-        worldWidth: 1000,
-        worldHeight: 1000,
+        worldWidth: width,
+        worldHeight: 660,
         interaction: app.renderer.plugins.interaction,
         ticker: PIXI.Ticker.shared,
         bounce: false,
         decelerate: false,
       })
-        .on('moved', () => moving())
-        .on('moved-end', () => movedEnd())
-        .on('zoomed-end', () => zoomedEnd());
+        .on('moved', () => debounce(moving(), 500))
+        .on('moved-end', () => debounce(movedEnd(), 500))
+        .on('zoomed-end', () => debounce(zoomedEnd(), 500));
       app.stage.addChild(container);
 
       container.drag({ wheel: false });
 
       lineContainer = new PIXI.Container();
       nodesContainer = new PIXI.Container();
-      textContainer = new PIXI.Container();
       container.addChild(lineContainer);
       container.addChild(nodesContainer);
-      container.addChild(textContainer);
     };
     if (!initiated) {
       initiateGraph();
@@ -351,39 +333,39 @@ const GraphNetwork = (props) => {
       links = data.links;
       d3.select('#graph-zoom-in').on('click', () => {
         container.zoomPercent(0.25, true);
-        zoomedEnd();
+        debounce(zoomedEnd(), 500);
       });
       d3.select('#graph-zoom-out').on('click', () => {
         if (container.scaled < 0.1) {
           return false;
         }
         container.zoomPercent(-0.25, true);
-        zoomedEnd();
+        debounce(zoomedEnd(), 500);
         return false;
       });
       d3.select('#graph-pan-up').on('click', () => {
         const newX = transform.x;
         const newY = transform.y + 50;
         container.moveCenter(newX, newY);
-        zoomedEnd();
+        debounce(zoomedEnd(), 500);
       });
       d3.select('#graph-pan-right').on('click', () => {
         const newX = transform.x - 50;
         const newY = transform.y;
         container.moveCenter(newX, newY);
-        zoomedEnd();
+        debounce(zoomedEnd(), 500);
       });
       d3.select('#graph-pan-down').on('click', () => {
         const newX = transform.x;
         const newY = transform.y - 50;
         container.moveCenter(newX, newY);
-        zoomedEnd();
+        debounce(zoomedEnd(), 500);
       });
       d3.select('#graph-pan-left').on('click', () => {
         const newX = transform.x + 50;
         const newY = transform.y;
         container.moveCenter(newX, newY);
-        zoomedEnd();
+        debounce(zoomedEnd(), 500);
       });
 
       setDrawingIndicator('drawing complete.');
@@ -413,7 +395,7 @@ const GraphNetwork = (props) => {
     return () => {
       window.removeEventListener('resize', updateCanvasSize);
     };
-  });
+  }, []);
 
   useEffect(() => {
     const cancelToken = axios.CancelToken;
