@@ -70,7 +70,7 @@ const SpatialGraph = (props) => {
         label,
         icon: 'pe-7s-date',
         active: false,
-        path: `/spatial/${props.match.params._id}`,
+        path: `/spatial/${match.params._id}`,
       },
       { label: 'Network', icon: 'pe-7s-graph1', active: true, path: '' }
     );
@@ -80,7 +80,7 @@ const SpatialGraph = (props) => {
       <div className="graph-container" id="graph-container">
         <Suspense fallback={renderLoader()}>
           <PersonNetwork
-            _id={props.match.params._id}
+            _id={match.params._id}
             relatedLinks={[]}
             relatedNodes={[]}
           />

@@ -61,7 +61,7 @@ const EventGraph = (props) => {
         label,
         icon: 'pe-7s-date',
         active: false,
-        path: `/event/${props.match.params._id}`,
+        path: `/event/${match.params._id}`,
       },
       { label: 'Network', icon: 'pe-7s-graph1', active: true, path: '' }
     );
@@ -71,7 +71,7 @@ const EventGraph = (props) => {
       <div className="graph-container" id="graph-container">
         <Suspense fallback={renderLoader()}>
           <PersonNetwork
-            _id={props.match.params._id}
+            _id={match.params._id}
             relatedLinks={[]}
             relatedNodes={[]}
           />

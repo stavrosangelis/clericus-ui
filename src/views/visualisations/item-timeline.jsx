@@ -251,17 +251,20 @@ const Timeline = (props) => {
 
   const groupByYear = useCallback(() => groupItemsByYear(items), [items]);
 
-  const groupBy10 = useCallback(() => groupItemsByYears(items, 1850, 10), [
-    items,
-  ]);
+  const groupBy10 = useCallback(
+    () => groupItemsByYears(items, 1850, 10),
+    [items]
+  );
 
-  const groupBy50 = useCallback(() => groupItemsByYears(items, 1850, 50), [
-    items,
-  ]);
+  const groupBy50 = useCallback(
+    () => groupItemsByYears(items, 1850, 50),
+    [items]
+  );
 
-  const groupBy100 = useCallback(() => groupItemsByYears(items, 1800, 100), [
-    items,
-  ]);
+  const groupBy100 = useCallback(
+    () => groupItemsByYears(items, 1800, 100),
+    [items]
+  );
 
   const toggleEventsContainer = (val = null) => {
     const visible = val || !eventsContainerVisible;
@@ -739,7 +742,7 @@ const Timeline = (props) => {
           label,
           icon: 'pe-7s-photo',
           active: false,
-          path: `/classpiece/${props.match.params._id}`,
+          path: `/classpiece/${match.params._id}`,
         },
         { label: 'Timeline', icon: 'pe-7s-hourglass', active: true, path: '' }
       );
@@ -750,7 +753,7 @@ const Timeline = (props) => {
           label,
           icon: 'pe-7s-date',
           active: false,
-          path: `/event/${props.match.params._id}`,
+          path: `/event/${match.params._id}`,
         },
         { label: 'Timeline', icon: 'pe-7s-hourglass', active: true, path: '' }
       );
@@ -761,7 +764,7 @@ const Timeline = (props) => {
           label,
           icon: 'pe-7s-culture',
           active: false,
-          path: `/organisation/${props.match.params._id}`,
+          path: `/organisation/${match.params._id}`,
         },
         { label: 'Timeline', icon: 'pe-7s-hourglass', active: true, path: '' }
       );
@@ -781,7 +784,7 @@ const Timeline = (props) => {
           label,
           icon: 'pe-7s-user',
           active: false,
-          path: `/person/${props.match.params._id}`,
+          path: `/person/${match.params._id}`,
         },
         { label: 'Timeline', icon: 'pe-7s-hourglass', active: true, path: '' }
       );
@@ -792,7 +795,7 @@ const Timeline = (props) => {
           label,
           icon: 'pe-7s-photo',
           active: false,
-          path: `/resource/${props.match.params._id}`,
+          path: `/resource/${match.params._id}`,
         },
         { label: 'Timeline', icon: 'pe-7s-hourglass', active: true, path: '' }
       );

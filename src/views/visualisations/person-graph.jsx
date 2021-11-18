@@ -78,7 +78,7 @@ const PersonGraph = (props) => {
         label,
         icon: 'pe-7s-user',
         active: false,
-        path: `/person/${props.match.params._id}`,
+        path: `/person/${match.params._id}`,
       },
       { label: 'Network', icon: 'pe-7s-graph1', active: true, path: '' }
     );
@@ -88,7 +88,7 @@ const PersonGraph = (props) => {
       <div className="graph-container" id="graph-container">
         <Suspense fallback={renderLoader()}>
           <PersonNetwork
-            _id={props.match.params._id}
+            _id={match.params._id}
             relatedLinks={[]}
             relatedNodes={[]}
           />

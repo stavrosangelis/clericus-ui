@@ -67,7 +67,7 @@ const ClasspieceGraph = (props) => {
         label,
         icon: 'pe-7s-photo',
         active: false,
-        path: `/classpiece/${props.match.params._id}`,
+        path: `/classpiece/${match.params._id}`,
       },
       { label: 'Network', icon: 'pe-7s-graph1', active: true, path: '' }
     );
@@ -78,7 +78,7 @@ const ClasspieceGraph = (props) => {
       <div className="graph-container" id="graph-container">
         <Suspense fallback={renderLoader()}>
           <ClasspieceNetwork
-            _id={props.match.params._id}
+            _id={match.params._id}
             relatedLinks={[]}
             relatedNodes={[]}
           />

@@ -13,11 +13,8 @@ import AdvancedSearchFormRow from './advanced-search-row';
 export default class SearchForm extends Component {
   constructor(props) {
     super(props);
-    const {
-      searchElements,
-      advancedSearchInputsLength,
-      advancedSearchInputs,
-    } = this.props;
+    const { searchElements, advancedSearchInputsLength, advancedSearchInputs } =
+      this.props;
     let advancedSearchElement = null;
     if (searchElements.length > 0) {
       advancedSearchElement = searchElements[0].element;
@@ -49,12 +46,10 @@ export default class SearchForm extends Component {
     };
 
     this.handleChange = this.handleChange.bind(this);
-    this.handleAdvancedSearchChange = this.handleAdvancedSearchChange.bind(
-      this
-    );
-    this.updateAdvancedSearchInputContent = this.updateAdvancedSearchInputContent.bind(
-      this
-    );
+    this.handleAdvancedSearchChange =
+      this.handleAdvancedSearchChange.bind(this);
+    this.updateAdvancedSearchInputContent =
+      this.updateAdvancedSearchInputContent.bind(this);
     this.toggleSearch = this.toggleSearch.bind(this);
     this.addAdvancedSearchRow = this.addAdvancedSearchRow.bind(this);
     this.removeAdvancedSearchRow = this.removeAdvancedSearchRow.bind(this);

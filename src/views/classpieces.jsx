@@ -118,9 +118,8 @@ class Classpieces extends Component {
     this.gotoPage = this.gotoPage.bind(this);
     this.renderItems = this.renderItems.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    this.updateClasspiecesRelationship = this.updateClasspiecesRelationship.bind(
-      this
-    );
+    this.updateClasspiecesRelationship =
+      this.updateClasspiecesRelationship.bind(this);
     this.toggleHelp = this.toggleHelp.bind(this);
 
     // cancelTokens

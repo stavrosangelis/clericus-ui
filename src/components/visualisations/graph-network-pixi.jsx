@@ -253,7 +253,7 @@ const GraphNetwork = (props) => {
         width,
         height,
         antialias: true,
-        transparent: false,
+        backgroundAlpha: 1,
         resolution,
         backgroundColor: 0xffffff,
         autoResize: true,
@@ -420,7 +420,7 @@ const GraphNetwork = (props) => {
           console.log(error);
         });
       if (typeof responseData !== 'undefined') {
-        const nodeType = selectedNode.type;
+        const nodeType = selectedNode.type || '';
         setNodeLink(
           <Link
             href={`/${nodeType}/${selectedNode.id}`}
@@ -778,6 +778,7 @@ const GraphNetwork = (props) => {
       <Spinner className="node-details-loader" color="info" size="sm" />
     );
   }
+
   const detailsCard = (
     <div className={`card graph-details-card${detailsCardVisibleClass}`}>
       <div
@@ -790,92 +791,98 @@ const GraphNetwork = (props) => {
       >
         <i className="fa fa-times" />
       </div>
-      <div className="card-title">
-        <h4>Node details {detailsLoader}</h4>
-      </div>
+      {loadingNode ? (
+        []
+      ) : (
+        <div>
+          <div className="card-title">
+            <h4>Node details {detailsLoader}</h4>
+          </div>
 
-      <div className="card-body">
-        <div className="card-content">
-          <div className="node-relations-title">
-            <div>
-              <Label>Entity: </Label> {nodeLink}
+          <div className="card-body">
+            <div className="card-content">
+              <div className="node-relations-title">
+                <div>
+                  <Label>Entity: </Label> {nodeLink}
+                </div>
+                <div>
+                  <Label>Steps:</Label>{' '}
+                  <Badge
+                    color={step1Color}
+                    pill
+                    size="sm"
+                    onClick={() => setSteps(1)}
+                  >
+                    1
+                  </Badge>{' '}
+                  <Badge
+                    color={step2Color}
+                    pill
+                    size="sm"
+                    onClick={() => setSteps(2)}
+                  >
+                    2
+                  </Badge>{' '}
+                  <Badge
+                    color={step3Color}
+                    pill
+                    size="sm"
+                    onClick={() => setSteps(3)}
+                  >
+                    3
+                  </Badge>{' '}
+                  <Badge
+                    color={step4Color}
+                    pill
+                    size="sm"
+                    onClick={() => setSteps(4)}
+                  >
+                    4
+                  </Badge>{' '}
+                  <Badge
+                    color={step5Color}
+                    pill
+                    size="sm"
+                    onClick={() => setSteps(5)}
+                  >
+                    5
+                  </Badge>{' '}
+                  <Badge
+                    color={step6Color}
+                    pill
+                    size="sm"
+                    onClick={() => setSteps(6)}
+                  >
+                    6
+                  </Badge>
+                </div>
+              </div>
+              <div>
+                <Label>
+                  Related nodes [<b>{relatedNodesItems.length}</b>]
+                </Label>
+              </div>
+              <LazyList
+                limit={30}
+                range={15}
+                items={relatedNodesItems}
+                containerClass="node-relations-list"
+                listClass="entries-list"
+                renderItem={renderRelatedNodeHTMLItem}
+              />
             </div>
-            <div>
-              <Label>Steps:</Label>{' '}
-              <Badge
-                color={step1Color}
-                pill
-                size="sm"
-                onClick={() => setSteps(1)}
+            <div className="card-footer">
+              <button
+                type="button"
+                className="btn btn-xs btn-outline btn-secondary"
+                onClick={() => toggleDetailsCard()}
               >
-                1
-              </Badge>{' '}
-              <Badge
-                color={step2Color}
-                pill
-                size="sm"
-                onClick={() => setSteps(2)}
-              >
-                2
-              </Badge>{' '}
-              <Badge
-                color={step3Color}
-                pill
-                size="sm"
-                onClick={() => setSteps(3)}
-              >
-                3
-              </Badge>{' '}
-              <Badge
-                color={step4Color}
-                pill
-                size="sm"
-                onClick={() => setSteps(4)}
-              >
-                4
-              </Badge>{' '}
-              <Badge
-                color={step5Color}
-                pill
-                size="sm"
-                onClick={() => setSteps(5)}
-              >
-                5
-              </Badge>{' '}
-              <Badge
-                color={step6Color}
-                pill
-                size="sm"
-                onClick={() => setSteps(6)}
-              >
-                6
-              </Badge>
+                Close
+              </button>
             </div>
           </div>
-          <div>
-            <Label>
-              Related nodes [<b>{relatedNodesItems.length}</b>]
-            </Label>
-          </div>
-          <LazyList
-            limit={30}
-            range={15}
-            items={relatedNodesItems}
-            containerClass="node-relations-list"
-            listClass="entries-list"
-            renderItem={renderRelatedNodeHTMLItem}
-          />
         </div>
-        <div className="card-footer">
-          <button
-            type="button"
-            className="btn btn-xs btn-outline btn-secondary"
-            onClick={() => toggleDetailsCard()}
-          >
-            Close
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
   let searchContainerVisibleClass = '';

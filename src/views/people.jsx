@@ -78,9 +78,8 @@ class People extends Component {
     this.simpleSearch = this.simpleSearch.bind(this);
     this.advancedSearchSubmit = this.advancedSearchSubmit.bind(this);
     this.clearAdvancedSearch = this.clearAdvancedSearch.bind(this);
-    this.updateAdvancedSearchInputs = this.updateAdvancedSearchInputs.bind(
-      this
-    );
+    this.updateAdvancedSearchInputs =
+      this.updateAdvancedSearchInputs.bind(this);
     this.clearSearch = this.clearSearch.bind(this);
     this.toggleSearch = this.toggleSearch.bind(this);
     this.updatePage = this.updatePage.bind(this);
@@ -485,10 +484,8 @@ class People extends Component {
   }
 
   updateSort(orderField) {
-    const {
-      orderField: stateOrderField,
-      orderDesc: stateOrderDesc,
-    } = this.state;
+    const { orderField: stateOrderField, orderDesc: stateOrderDesc } =
+      this.state;
     let orderDesc = false;
     if (orderField === stateOrderField) {
       orderDesc = !stateOrderDesc;

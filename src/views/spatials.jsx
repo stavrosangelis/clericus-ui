@@ -72,9 +72,8 @@ class Spatials extends Component {
     this.handleChange = this.handleChange.bind(this);
     this.toggleSearch = this.toggleSearch.bind(this);
     this.toggleMap = this.toggleMap.bind(this);
-    this.updateSpatialsRelationship = this.updateSpatialsRelationship.bind(
-      this
-    );
+    this.updateSpatialsRelationship =
+      this.updateSpatialsRelationship.bind(this);
     this.renderMap = this.renderMap.bind(this);
 
     // cancelTokens

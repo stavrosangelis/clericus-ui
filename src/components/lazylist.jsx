@@ -4,13 +4,16 @@ import PropTypes from 'prop-types';
 const LazyList = (props) => {
   // props
   const {
-    limit,
-    range,
-    items: propsItems,
-    reload,
-    scrollIndex,
     containerClass,
+    items: propsItems,
+    limit,
     listClass,
+    ordered,
+    onScroll: propsOnScroll,
+    range,
+    reload,
+    renderItem,
+    scrollIndex,
   } = props;
   const itemsLength = propsItems.length;
   const [loading, setLoading] = useState(true);
@@ -85,8 +88,8 @@ const LazyList = (props) => {
   }, [scrollIndex, range]);
 
   const onScroll = () => {
-    if (props.onScroll !== null) {
-      return props.onScroll();
+    if (propsOnScroll !== null) {
+      return propsOnScroll();
     }
     return false;
   };
@@ -136,13 +139,13 @@ const LazyList = (props) => {
       if (typeof item !== 'undefined' && item !== null) {
         const index = i + startIndex;
         let order = '';
-        if (props.ordered) {
+        if (ordered) {
           order = `${i + startIndex + 1}. `;
         }
         list.push(
           <li key={index} data-lazylist-index={index}>
             {order}
-            {props.renderItem(item)}
+            {renderItem(item)}
           </li>
         );
       }

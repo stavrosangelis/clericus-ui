@@ -126,8 +126,9 @@ const Articles = (props) => {
       const featuredImage = article.featuredImageDetails;
       let thumbPath = null;
       if (featuredImage !== null) {
-        thumbPath = featuredImage.paths.find((p) => p.pathType === 'thumbnail')
-          .path;
+        thumbPath = featuredImage.paths.find(
+          (p) => p.pathType === 'thumbnail'
+        ).path;
       }
       const newDate = new Date(article.updatedAt);
       const y = newDate.getFullYear();

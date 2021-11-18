@@ -247,17 +247,20 @@ const Timeline = () => {
 
   const groupByYear = useCallback(() => groupItemsByYear(items), [items]);
 
-  const groupBy10 = useCallback(() => groupItemsByYears(items, 1850, 10), [
-    items,
-  ]);
+  const groupBy10 = useCallback(
+    () => groupItemsByYears(items, 1850, 10),
+    [items]
+  );
 
-  const groupBy50 = useCallback(() => groupItemsByYears(items, 1850, 50), [
-    items,
-  ]);
+  const groupBy50 = useCallback(
+    () => groupItemsByYears(items, 1850, 50),
+    [items]
+  );
 
-  const groupBy100 = useCallback(() => groupItemsByYears(items, 1800, 100), [
-    items,
-  ]);
+  const groupBy100 = useCallback(
+    () => groupItemsByYears(items, 1800, 100),
+    [items]
+  );
 
   const toggleEventsContainer = (val = null) => {
     const visible = val || !eventsContainerVisible;

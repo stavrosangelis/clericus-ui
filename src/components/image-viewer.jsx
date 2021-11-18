@@ -33,7 +33,7 @@ const Viewer = (props) => {
   const [searchInput, setSearchInput] = useState('');
 
   // props
-  const { item: propsItem, visible, path, label } = props;
+  const { item: propsItem, visible, path, label, toggle } = props;
   const toggleSearchContainerVisible = () => {
     setSearchContainerVisible(!searchContainerVisible);
   };
@@ -679,7 +679,7 @@ const Viewer = (props) => {
     <div style={visibilityStyle} className="classpiece-viewer">
       <div
         className="classpiece-viewer-bg"
-        onClick={() => props.toggle()}
+        onClick={() => toggle()}
         onKeyDown={() => false}
         role="button"
         tabIndex={0}
@@ -690,7 +690,7 @@ const Viewer = (props) => {
         <div className="classpiece-viewer-close">
           <i
             className="pe-7s-close"
-            onClick={() => props.toggle()}
+            onClick={() => toggle()}
             onKeyDown={() => false}
             role="button"
             tabIndex={0}

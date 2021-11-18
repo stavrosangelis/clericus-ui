@@ -51,9 +51,8 @@ class Temporals extends Component {
     this.gotoPage = this.gotoPage.bind(this);
     this.renderItems = this.renderItems.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    this.updateTemporalsRelationship = this.updateTemporalsRelationship.bind(
-      this
-    );
+    this.updateTemporalsRelationship =
+      this.updateTemporalsRelationship.bind(this);
 
     // cancelTokens
     const cancelToken1 = axios.CancelToken;

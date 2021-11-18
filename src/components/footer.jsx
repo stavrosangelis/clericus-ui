@@ -7,7 +7,7 @@ import ccImg from '../assets/images/by-nc-nd.jpg';
 import BottomMenu from './bottom-menu';
 import { renderLoader } from '../helpers';
 
-const Twitter = lazy(() => import('../components/home/twitter'));
+const Twitter = lazy(() => import('./home/twitter'));
 
 const Footer = () => (
   <div className="footer-container">

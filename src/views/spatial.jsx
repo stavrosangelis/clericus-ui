@@ -146,11 +146,8 @@ class Spatial extends Component {
 
   renderSpatialDetails(stateData = null) {
     const { item } = stateData;
-    const {
-      descriptionVisible,
-      eventsVisible,
-      organisationsVisible,
-    } = this.state;
+    const { descriptionVisible, eventsVisible, organisationsVisible } =
+      this.state;
 
     // 1. SpatialDetails
     const meta = [];

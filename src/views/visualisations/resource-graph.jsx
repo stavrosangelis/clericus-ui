@@ -84,7 +84,7 @@ const ResourceGraph = (props) => {
   let heading = '';
   if (!loading && resource !== null) {
     const dataType = getSystemType();
-    let _idGraph = props.match.params._id;
+    let _idGraph = match.params._id;
     if (dataType === 'Thumbnail') {
       if (resource.status === 'private') {
         _idGraph = resource.people[0].ref._id;
@@ -97,7 +97,7 @@ const ResourceGraph = (props) => {
         label,
         icon: 'pe-7s-photo',
         active: false,
-        path: `/resource/${props.match.params._id}`,
+        path: `/resource/${match.params._id}`,
       },
       { label: 'Network', icon: 'pe-7s-graph1', active: true, path: '' }
     );

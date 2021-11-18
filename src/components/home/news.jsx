@@ -55,8 +55,9 @@ const News = () => {
       let thumbPath = [];
       const featuredImage = article.featuredImageDetails;
       if (featuredImage !== null) {
-        thumbPath = featuredImage.paths.find((p) => p.pathType === 'thumbnail')
-          .path;
+        thumbPath = featuredImage.paths.find(
+          (p) => p.pathType === 'thumbnail'
+        ).path;
       }
       const newDate = new Date(article.updatedAt);
       const y = newDate.getFullYear();
