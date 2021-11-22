@@ -5,7 +5,7 @@ import dompurify from 'dompurify';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
-const About = () => {
+const Welcome = () => {
   const [loading, setLoading] = useState(true);
   const [articles, setArticles] = useState([]);
   const [visibleIndex, setVisibleIndex] = useState(0);
@@ -190,4 +190,4 @@ const About = () => {
   return content;
 };
 
-export default About;
+export default Welcome;

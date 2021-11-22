@@ -47,14 +47,14 @@ const Search = (props) => {
       if (typeof responseData !== 'undefined') {
         if (responseData.status) {
           const { data } = responseData;
-          setArticles(data.articles);
-          setClasspieces(data.classpieces);
-          setEvents(data.events);
-          setOrganisations(data.organisations);
-          setPeople(data.people);
-          setResources(data.resources);
-          setSpatial(data.spatial);
-          setTemporal(data.temporal);
+          setArticles(data.articles || []);
+          setClasspieces(data.classpieces || []);
+          setEvents(data.events || []);
+          setOrganisations(data.organisations || []);
+          setPeople(data.people || []);
+          setResources(data.resources || []);
+          setSpatial(data.spatial || []);
+          setTemporal(data.temporal || []);
         }
         setLoading(false);
       }

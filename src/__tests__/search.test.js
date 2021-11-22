@@ -1,0 +1,86 @@
+import React from 'react';
+import {
+  act,
+  render,
+  screen,
+  cleanup,
+  waitForElementToBeRemoved,
+  waitFor,
+} from '@testing-library/react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import server from '../__mocks/mock-server';
+
+import Search from '../views/generic-search';
+
+const defaultProps = {
+  match: {
+    params: {
+      term: 'john',
+    },
+  },
+};
+
+const Wrapper = (props) => (
+  <Router>
+    <Search {...defaultProps} {...props}/>
+  </Router>
+);
+
+// Enable API mocking before tests.
+beforeAll(() => server.listen());
+
+// Reset any runtime request handlers we may add during the tests.
+afterEach(() => {
+  server.resetHandlers();
+  cleanup();
+});
+
+// Disable API mocking after the tests are done.
+afterAll(() => server.close());
+
+describe('Render Search view', () => {
+  it('renders search view', async () => {
+    await act(async () => {
+      render(<Wrapper />);
+      screen.findAllByText('Search');
+    });
+  });
+  it('renders articles results view', async () => {
+    await act(async () => {
+      render(<Wrapper />);
+      // await waitFor(() => screen.getByText('Articles'));
+      await waitFor(() => {
+        screen.getByText('Articles');
+        screen.getByText('John Harty');
+      });
+
+    });
+  });
+  it('renders events results view', async () => {
+    await act(async () => {
+      render(<Wrapper />);
+      await waitFor(() => {
+        screen.getByText('Events');
+        screen.getByText('Scholarship');
+      });
+    });
+  });
+  it('renders people results view', async () => {
+    await act(async () => {
+      render(<Wrapper />);
+      await waitFor(() => {
+        screen.getByText('People');
+        screen.getByText('John Carr');
+      });
+    });
+  });
+  it('renders resources results view', async () => {
+    await act(async () => {
+      render(<Wrapper />);
+      await waitFor(() => {
+        screen.getByText('Resources');
+        screen.getByText('John Fitzgibbon');
+      });
+    });
+  });
+});

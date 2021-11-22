@@ -192,8 +192,9 @@ const ContactForm = () => {
         {errorContainer}
         <Form onSubmit={(e) => submitForm(e)}>
           <FormGroup>
-            <Label>Full Name*</Label>
+            <Label for="name">Full Name*</Label>
             <Input
+              id="name"
               onChange={handleChange}
               type="text"
               name="name"
@@ -203,8 +204,9 @@ const ContactForm = () => {
             />
           </FormGroup>
           <FormGroup>
-            <Label>Email*</Label>
+            <Label for="email">Email*</Label>
             <Input
+              id="email"
               onChange={handleChange}
               type="email"
               name="email"
@@ -214,8 +216,9 @@ const ContactForm = () => {
             />
           </FormGroup>
           <FormGroup>
-            <Label>Subject*</Label>
+            <Label for="subject">Subject*</Label>
             <Input
+              id="subject"
               onChange={handleChange}
               type="text"
               name="subject"
@@ -225,8 +228,9 @@ const ContactForm = () => {
             />
           </FormGroup>
           <FormGroup>
-            <Label>Message*</Label>
+            <Label for="message">Message*</Label>
             <Input
+              id="message"
               onChange={handleChange}
               type="textarea"
               name="message"

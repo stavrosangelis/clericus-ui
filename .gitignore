@@ -23,7 +23,8 @@ _.env.production.local
 .env.prod.dev
 
 # tests
-/src/__tests__
+# /src/__mocks
+# /src/__tests__
 
 npm-debug.log*
 yarn-debug.log*
