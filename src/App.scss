@@ -1050,6 +1050,13 @@ section {
   max-height: 60px;
   margin: 8px;
 }
+.footer-logo {
+  border-radius: 4px;
+  max-height: 60px;
+  background-color: #fff;
+  padding: 5px;
+  margin: 5px;
+}
 .footer-2 {
   background-color: $darker-grey;
   padding: 20px 0;
@@ -1239,12 +1246,18 @@ section {
   text-align: center;
   font-size: 12px;
 }
-.person-thumbnailImage {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  cursor: pointer;
+.person-thumbnail-container {
+  height: 400px;
+  width: 100%;
+  display: flex;
   margin-bottom: 15px;
+  align-items: center;
+  justify-content: center;
+}
+.person-thumbnailImage {
+  cursor: pointer;
+  max-width: 100%;
+  max-height: 100%;
 }
 .person-label {
   text-align: center;
@@ -1354,7 +1367,7 @@ section {
   border: 1px solid #ddd;
   border-radius: 4px;
   background-color: #fff;
-  height: 660px;
+  height: 400px;
   position: relative;
   overflow: hidden;
 }
@@ -2701,6 +2714,7 @@ section {
   width: 80px;
   height: 100%;
   transition: 0.7s background-color;
+  z-index: 1;
 }
 .img-viewer-actions:hover {
   cursor: pointer;

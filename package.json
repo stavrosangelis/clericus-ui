@@ -1,6 +1,6 @@
 {
   "name": "clericus-ui",
-  "version": "1.12.20",
+  "version": "1.12.24",
   "description": "This is the Clericus public user interface",
   "author": "Stavros Angelis",
   "license": "ISC",
@@ -39,7 +39,7 @@
   "scripts": {
     "start": "NODE_ENV=production react-app-rewired start",
     "dev": "NODE_ENV=development react-app-rewired start",
-    "build:dev": "REACT_APP_ENV=prod.dev DOMAIN=http://51.124.178.181 BUILD_PATH='./build-dev' react-app-rewired build",
+    "build:dev": "REACT_APP_ENV=prod.dev DOMAIN=http://devel.clericus.ie BUILD_PATH='./build-dev' react-app-rewired build",
     "build": "react-app-rewired build",
     "test": "REACT_APP_APIPATH=http://localhost:5100/api/ react-scripts test --verbose",
     "eject": "react-scripts eject"

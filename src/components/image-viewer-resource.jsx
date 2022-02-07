@@ -65,7 +65,6 @@ const Viewer = (props) => {
       if (currentHeight < windowHeight) {
         newTop = `${(windowHeight - newHeight) / 2}px`;
       }
-
       setLeft(newLeft);
       setTop(newTop);
       setScale(newScale);
@@ -198,6 +197,15 @@ const Viewer = (props) => {
     }
   }, [visible, top, left]);
 
+  useEffect(() => {
+    // reset image position and dimension if index is updated
+    if (visible) {
+      setTimeout(() => {
+        imgDimensions();
+      }, 150);
+    }
+  }, [visible, index]);
+
   const updateIndex = (type) => {
     let prevIndex = index - 1;
     let nextIndex = index + 1;
@@ -216,6 +224,7 @@ const Viewer = (props) => {
     }
     setIndex(newIndex);
   };
+
   // render
   let visibilityStyle = { visibility: 'hidden' };
   if (visible) {

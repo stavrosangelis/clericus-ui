@@ -21,8 +21,8 @@ let container;
 let nodes;
 let links;
 let width = 600;
-const height = 660;
-const resolution = window.devicePixelRatio || 1;
+const height = 400;
+const resolution = window.devicePixelRatio || 0.75;
 const transform = { s: 1, x: 0, y: 0 };
 let associatedNodes = [];
 let associatedLinks = [];
@@ -70,8 +70,8 @@ const drawNodes = async () => {
     for (let i = 0; i < length; i += 1) {
       const d = nodes[i];
       const { x, y } = d;
-      let radius = d.size || 30;
       if (leftX < x && rightX > x && topY < y && bottomY > y) {
+        let radius = d.size || 30;
         d.visible = true;
         d.gfx = new PIXI.Graphics();
         d.gfx.interactive = true;
@@ -95,7 +95,7 @@ const drawNodes = async () => {
         }
         d.gfx.drawCircle(x, y, radius);
         nodesContainer.addChild(d.gfx);
-        if (d.label !== '' && container.scaled > 0.7) {
+        if (d.label !== '' && container.scaled > 0.3) {
           const label = d.label.trim().replace(/  +/g, ' ');
           const spaces = label.split(' ');
           const minusY = spaces.length / 2;
@@ -128,7 +128,16 @@ const drawLines = () => {
     const d = links[i];
     const { x: sx, y: sy } = d.source;
     const { x: tx, y: ty } = d.target;
-    if (leftX < sx && rightX > sx && topY < sy && bottomY > sy) {
+    if (
+      leftX < sx &&
+      rightX > sx &&
+      topY < sy &&
+      bottomY > sy &&
+      leftX < tx &&
+      rightX > tx &&
+      topY < ty &&
+      bottomY > ty
+    ) {
       const line = new PIXI.Graphics();
       let lWidth = 0.5;
       let strokeStyle = 0x666666;
@@ -248,7 +257,6 @@ const GraphNetwork = (props) => {
           'WebGL unsupported in this browser, use "pixi.js-legacy" for fallback canvas2d support.'
         );
       };
-
       app = new PIXI.Application({
         width,
         height,
@@ -267,7 +275,7 @@ const GraphNetwork = (props) => {
         screenWidth: width,
         screenHeight: height,
         worldWidth: width,
-        worldHeight: 660,
+        worldHeight: height,
         interaction: app.renderer.plugins.interaction,
         ticker: PIXI.Ticker.shared,
         bounce: false,

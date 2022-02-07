@@ -398,10 +398,11 @@ class Person extends Component {
           role="button"
           tabIndex={0}
           aria-label="toggle image viewer"
+          className={`person-thumbnail-container${visible}`}
         >
           <img
             src={t}
-            className={`people-thumbnail img-fluid img-thumbnail person-thumbnailImage${visible}`}
+            className="people-thumbnail img-fluid img-thumbnail person-thumbnailImage"
             alt={label}
           />
         </div>

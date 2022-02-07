@@ -10,7 +10,11 @@ import {
   welcome,
 } from './home-data';
 import { articlesData } from './articles-data';
-import { classpieceData, classpiecesData, classpiecesFiltersData } from './classpieces-data';
+import {
+  classpieceData,
+  classpiecesData,
+  classpiecesFiltersData,
+} from './classpieces-data';
 import { eventData, eventsData } from './events-data';
 import { searchData } from './search-data';
 import { organisationsData, organisationData } from './organisations-data';
@@ -82,8 +86,10 @@ const handlers = [
   rest.get('http://localhost:5100/api/classpieces', (req, res, ctx) =>
     res(ctx.status(200), ctx.json(classpiecesData), ctx.delay(150))
   ),
-  rest.get('http://localhost:5100/api/classpieces-active-filters', (req, res, ctx) =>
-    res(ctx.status(200), ctx.json(classpiecesFiltersData), ctx.delay(150))
+  rest.get(
+    'http://localhost:5100/api/classpieces-active-filters',
+    (req, res, ctx) =>
+      res(ctx.status(200), ctx.json(classpiecesFiltersData), ctx.delay(150))
   ),
   rest.get('http://localhost:5100/api/ui-events', (req, res, ctx) =>
     res(ctx.status(200), ctx.json(eventsData), ctx.delay(150))
@@ -106,8 +112,10 @@ const handlers = [
   rest.get('http://localhost:5100/api/ui-person', (req, res, ctx) =>
     res(ctx.status(200), ctx.json(personData), ctx.delay(150))
   ),
-  rest.post('http://localhost:5100/api/ui-person-active-filters', (req, res, ctx) =>
-    res(ctx.status(200), ctx.json(peopleFilters), ctx.delay(150))
+  rest.post(
+    'http://localhost:5100/api/ui-person-active-filters',
+    (req, res, ctx) =>
+      res(ctx.status(200), ctx.json(peopleFilters), ctx.delay(150))
   ),
   rest.get('http://localhost:5100/api/ui-resources', (req, res, ctx) =>
     res(ctx.status(200), ctx.json(resourcesData), ctx.delay(150))
