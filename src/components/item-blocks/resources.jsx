@@ -59,7 +59,8 @@ const Block = (props) => {
       p.ref.label.toLowerCase().includes(simpleSearchSet.toLowerCase())
     );
     const resourcesData = [];
-    for (let i = 0; i < resources.length; i += 1) {
+    const { length: rLength } = resources;
+    for (let i = 0; i < rLength; i += 1) {
       if (i > firstIndex) {
         if (i > lastIndex) {
           break;
@@ -67,10 +68,20 @@ const Block = (props) => {
         const resource = resources[i];
         const url = `/resource/${resource.ref._id}`;
         const termLabel = outputRelationTypes(resource.term.label);
+        const role =
+          typeof resource.term?.role !== 'undefined' &&
+          resource.term?.role !== '' ? (
+            <i>as {resource.term?.role}</i>
+          ) : (
+            ''
+          );
+        const roleSpace = role !== '' ? ' ' : '';
         resourcesData.push(
           <li key={resource.ref._id}>
             <Link className="tag-bg tag-item" href={url} to={url}>
               <i>{termLabel}</i> {resource.ref.label}
+              {roleSpace}
+              {role}
             </Link>
           </li>
         );

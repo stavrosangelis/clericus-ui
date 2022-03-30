@@ -325,7 +325,6 @@ export function updateFilters(type, params) {
     if (payload === null) {
       return false;
     }
-    console.log(payload);
     dispatch({
       type: 'GENERIC_UPDATE',
       payload,

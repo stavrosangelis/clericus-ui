@@ -63,7 +63,8 @@ const Block = (props) => {
       p.ref.label.toLowerCase().includes(simpleSearchSet.toLowerCase())
     );
     const organisationsData = [];
-    for (let i = 0; i < organisations.length; i += 1) {
+    const { length: oLength } = organisations;
+    for (let i = 0; i < oLength; i += 1) {
       if (i > firstIndex) {
         if (i > lastIndex) {
           break;
@@ -75,11 +76,22 @@ const Block = (props) => {
           organisation.ref.organisationType !== ''
             ? ` [${organisation.ref.organisationType}]`
             : '';
+        const role =
+          typeof organisation.term?.role !== 'undefined' &&
+          organisation.term?.role !== '' ? (
+            <i>as {organisation.term?.role}</i>
+          ) : (
+            ''
+          );
+        const roleSpace = role !== '' ? ' ' : '';
+        const oKey = `${i}-${organisation.ref.label}`;
         organisationsData.push(
-          <li key={organisation.ref.label}>
+          <li key={oKey}>
             <Link className="tag-bg tag-item" href={url} to={url}>
               <i>{termLabel}</i> {organisation.ref.label}
               {organisationType}
+              {roleSpace}
+              {role}
             </Link>
           </li>
         );

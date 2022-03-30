@@ -75,7 +75,8 @@ const Block = (props) => {
     const people = peopleItem.filter((p) =>
       p.ref.label.toLowerCase().includes(simpleSearchSet.toLowerCase())
     );
-    for (let i = 0; i < people.length; i += 1) {
+    const { length: pLength } = people;
+    for (let i = 0; i < pLength; i += 1) {
       if (i > firstIndex) {
         if (i > lastIndex) {
           break;
@@ -86,10 +87,20 @@ const Block = (props) => {
         ) {
           const url = `/person/${person.ref._id}`;
           const termLabel = outputRelationTypes(person.term.label);
+          const role =
+            typeof person.term?.role !== 'undefined' &&
+            person.term?.role !== '' ? (
+              <i>as {person.term?.role}</i>
+            ) : (
+              ''
+            );
+          const roleSpace = role !== '' ? ' ' : '';
           peopleData.push(
             <li key={`${i}-${person.ref._id}`}>
               <Link className="tag-bg tag-item" href={url} to={url}>
                 <i>{termLabel}</i> {person.ref.label}
+                {roleSpace}
+                {role}
               </Link>
             </li>
           );

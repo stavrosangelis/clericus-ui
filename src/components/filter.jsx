@@ -1,7 +1,36 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FormGroup, Label, Input, Card, CardBody } from 'reactstrap';
 import PropTypes from 'prop-types';
 import LazyList from './lazylist';
+
+const prepareOptions = (itemsParam = [], sepParam = '', filtersType = '') => {
+  let output = [];
+  itemsParam.forEach((item) => {
+    const { children = [], _id, label, labelId } = item;
+    let sep = sepParam !== '' ? `${sepParam}- ` : sepParam;
+    const optionLabel = `${sep}${label}`;
+    let value = _id;
+    if (
+      filtersType === 'organisations' ||
+      filtersType === 'organisationType' ||
+      filtersType === 'personType'
+    ) {
+      value = labelId;
+    }
+    const option = (
+      <option key={_id} value={value}>
+        {optionLabel}
+      </option>
+    );
+    output.push(option);
+    if (children.length > 0) {
+      sep += '-';
+      const childrenItems = prepareOptions(children, sep);
+      output = [...output, ...childrenItems];
+    }
+  });
+  return output;
+};
 
 const Filter = (props) => {
   // state
@@ -32,7 +61,8 @@ const Filter = (props) => {
     const load = () => {
       const flattenItems = (itemsParam, parentId = null) => {
         let newItems = [];
-        for (let i = 0; i < itemsParam.length; i += 1) {
+        const { length } = itemsParam;
+        for (let i = 0; i < length; i += 1) {
           const item = itemsParam[i];
           if (parentId !== null) {
             item.parentId = parentId;
@@ -56,13 +86,15 @@ const Filter = (props) => {
       };
 
       const flatItems = flattenItems(items);
+
       const parentIds = [];
       if (Array.isArray(filtersSet)) {
         const selectedItems = flatItems.filter(
           (i) => filtersSet?.indexOf(i._id) > -1
         );
         if (typeof selectedItems !== 'undefined') {
-          for (let skey = 0; skey < selectedItems.length; skey += 1) {
+          const { length: sLength } = selectedItems;
+          for (let skey = 0; skey < sLength; skey += 1) {
             const selectedItem = selectedItems[skey];
             if (typeof selectedItem.parentId !== 'undefined') {
               for (
@@ -79,9 +111,10 @@ const Filter = (props) => {
           }
         }
       }
-
       const newFilterItems = [];
-      for (let i = 0; i < flatItems.length; i += 1) {
+      const newFilterItemsIds = [];
+      const { length: fLength } = flatItems;
+      for (let i = 0; i < fLength; i += 1) {
         const item = flatItems[i];
         if (Array.isArray(filtersSet) && filtersSet.indexOf(item._id) > -1) {
           item.checked = true;
@@ -106,7 +139,22 @@ const Filter = (props) => {
           skip = true;
         }
         if (!skip) {
+          if (label === 'Events Types') {
+            const { parentRef } = item || null;
+            if (
+              newFilterItemsIds.indexOf(parentRef) === -1 &&
+              parentRef !== null
+            ) {
+              const parentItem =
+                flatItems.find((f) => f._id === parentRef) || null;
+              if (parentItem !== null) {
+                newFilterItems.push(parentItem);
+                newFilterItemsIds.push(parentItem._id);
+              }
+            }
+          }
           newFilterItems.push(item);
+          newFilterItemsIds.push(item._id);
         }
       }
 
@@ -128,6 +176,7 @@ const Filter = (props) => {
     itemsType,
     relationshipSet,
     filterType,
+    label,
   ]);
 
   useEffect(() => {
@@ -352,21 +401,7 @@ const Filter = (props) => {
       </option>,
     ];
 
-    const filtersTypesOptions = filtersTypes.map((item) => {
-      let value = item._id;
-      if (
-        filtersType === 'organisations' ||
-        filtersType === 'organisationType' ||
-        filtersType === 'personType'
-      ) {
-        value = item.labelId;
-      }
-      return (
-        <option key={value} value={value}>
-          {item.label}
-        </option>
-      );
-    });
+    const filtersTypesOptions = prepareOptions(filtersTypes, '', filtersType);
     const options = [...defaultOption, ...filtersTypesOptions];
     filtersTypesHTML = (
       <Input

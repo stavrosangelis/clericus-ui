@@ -58,7 +58,8 @@ const Block = (props) => {
       p.ref.label.toLowerCase().includes(simpleSearchSet.toLowerCase())
     );
     const eventsData = [];
-    for (let i = 0; i < events.length; i += 1) {
+    const { length: eLength } = events;
+    for (let i = 0; i < eLength; i += 1) {
       if (i > firstIndex) {
         if (i > lastIndex) {
           break;
@@ -66,10 +67,22 @@ const Block = (props) => {
         const event = events[i];
         const termLabel = outputRelationTypes(event.term.label);
         const br = event.people?.length > 0 ? <span>,</span> : [];
+        const role =
+          typeof event.term?.role !== 'undefined' && event.term?.role !== '' ? (
+            <i>as {event.term?.role}</i>
+          ) : (
+            ''
+          );
+        const roleSpace = role !== '' ? ' ' : '';
         const label = [
           <div key="label" className="event-label">
             <span>
-              <i key="type">{termLabel}</i> <b>{event.ref.label}</b>
+              <i key="type">{termLabel}</i>{' '}
+              <b>
+                {event.ref.label}
+                {roleSpace}
+                {role}
+              </b>
             </span>
             {br}
           </div>,
