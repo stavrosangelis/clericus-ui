@@ -9,7 +9,8 @@ import {
   news,
   welcome,
 } from './home-data';
-import { articlesData } from './articles-data';
+import articlesData from './articles-data';
+import contactFormArticle from './contact.form-data';
 import {
   classpieceData,
   classpiecesData,
@@ -38,6 +39,9 @@ const handlers = [
     switch (permalink) {
       case 'about':
         output = about;
+        break;
+      case 'contact':
+        output = contactFormArticle;
         break;
       default:
         output = about;

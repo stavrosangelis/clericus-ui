@@ -1,15 +1,29 @@
-/* globals describe, it */
+/* globals afterAll, afterEach, beforeAll, describe, it */
 import React from 'react';
 import {
   act,
   fireEvent,
   render,
   screen,
+  cleanup,
   waitFor,
 } from '@testing-library/react';
 import { BrowserRouter as Router } from 'react-router-dom';
+import server from '../__mocks/mock-server';
 
 import ContactForm from '../views/Contact.form';
+
+// Enable API mocking before tests.
+beforeAll(() => server.listen());
+
+// Reset any runtime request handlers we may add during the tests.
+afterEach(() => {
+  server.resetHandlers();
+  cleanup();
+});
+
+// Disable API mocking after the tests are done.
+afterAll(() => server.close());
 
 function Wrapper() {
   return (
@@ -23,7 +37,7 @@ describe('Contact form view', () => {
   it('renders contact form view', async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.getByText('Full Name*'));
+      await screen.findAllByText('Full Name*');
     });
   });
 

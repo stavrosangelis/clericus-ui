@@ -17,6 +17,7 @@ import { updateDocumentTitle } from '../helpers';
 const Breadcrumbs = lazy(() => import('../components/Breadcrumbs'));
 
 const { REACT_APP_APIPATH: APIPath } = process.env;
+
 function ContactForm() {
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
