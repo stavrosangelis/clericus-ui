@@ -1,6 +1,7 @@
 /* globals afterAll, afterEach, beforeAll, describe, expect, it */
 import React from 'react';
 import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
+
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import store from '../redux/store';

@@ -1,8 +1,8 @@
 /* globals afterAll, afterEach, beforeAll, describe, it */
 import React from 'react';
-import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
+import { act, render, screen, cleanup } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import store from '../redux/store';
 import server from '../__mocks/mock-server';
 
@@ -20,20 +20,15 @@ afterEach(() => {
 // Disable API mocking after the tests are done.
 afterAll(() => server.close());
 
-const defaultProps = {
-  match: {
-    params: {
-      _id: '72063',
-    },
-  },
-};
 function Wrapper(props) {
   return (
     <Provider store={store()}>
-      <Router>
-        {/* eslint-disable-next-line */}
-        <Spatial {...defaultProps} {...props}/>
-      </Router>
+      <MemoryRouter initialEntries={['/spatial/72063']}>
+        <Routes>
+          {/* eslint-disable-next-line */}
+          <Route path='/spatial/:_id' element={<Spatial {...props} />} />
+        </Routes>
+      </MemoryRouter>
     </Provider>
   );
 }
@@ -41,24 +36,22 @@ describe('Spatial view', () => {
   it('renders a spatial view', async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findAllByText(`Ahascragh`));
+      await screen.findAllByText(`Ahascragh`);
     });
   });
   it("renders a spatial's details", async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findByText(`Details`));
-      await waitFor(() =>
-        screen.findAllByText(`Ballinasloe Municipal District`)
-      );
+      await screen.findByText(`Details`);
+      await screen.findAllByText(`Ballinasloe Municipal District`);
     });
   });
   it("renders a spatial's organisations", async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findByText(`Organisations`));
-      await waitFor(() => screen.findAllByText(`is location of`));
-      await waitFor(() => screen.findAllByText(`Ahascragh`));
+      await screen.findByText(`Organisations`);
+      await screen.findAllByText(`is location of`);
+      await screen.findAllByText(`Ahascragh`);
     });
   });
 });

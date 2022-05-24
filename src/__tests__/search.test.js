@@ -1,25 +1,19 @@
 /* globals afterAll, afterEach, beforeAll, describe, it */
 import React from 'react';
 import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import server from '../__mocks/mock-server';
 
 import Search from '../views/Generic.search';
 
-const defaultProps = {
-  match: {
-    params: {
-      term: 'john',
-    },
-  },
-};
-
 function Wrapper(props) {
   return (
-    <Router>
-      {/* eslint-disable-next-line */}
-      <Search {...defaultProps} {...props}/>
-    </Router>
+    <MemoryRouter initialEntries={['/search/john']}>
+      <Routes>
+        {/* eslint-disable-next-line */}
+        <Route path='/search/:term' element={<Search {...props} />} />
+      </Routes>
+    </MemoryRouter>
   );
 }
 

@@ -1,6 +1,6 @@
 /* globals afterAll, afterEach, beforeAll, describe, it */
 import React from 'react';
-import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
+import { act, render, screen, cleanup } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import store from '../redux/store';
@@ -36,19 +36,19 @@ describe('Spatials view', () => {
   it('renders spatials view', async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findAllByText(`Locations`));
+      await screen.findAllByText(`Locations`);
     });
   });
   it('renders spatials count', async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findAllByText('Total: 537'));
+      await screen.findAllByText('Total: 537');
     });
   });
   it('renders spatials list', async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findByText('Ahascragh'));
+      await screen.findByText('Ahascragh');
     });
   });
 });

@@ -1,6 +1,6 @@
 /* globals afterAll, afterEach, beforeAll, describe, it */
 import React from 'react';
-import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
+import { act, render, screen, cleanup } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import store from '../redux/store';
@@ -34,19 +34,19 @@ describe('Temporals view', () => {
   it('renders temporals view', async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findAllByText(`Dates`));
+      await screen.findAllByText(`Dates`);
     });
   });
   it('renders temporals count', async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findAllByText('Total: 10003'));
+      await screen.findAllByText('Total: 10003');
     });
   });
   it('renders temporals list', async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findByText('21-09-1782'));
+      await screen.findByText('21-09-1782');
     });
   });
 });

@@ -1,6 +1,6 @@
 /* globals afterAll, afterEach, beforeAll, describe, it */
 import React from 'react';
-import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
+import { act, render, screen, cleanup } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import store from '../redux/store';
@@ -34,25 +34,25 @@ describe('People view', () => {
   it('renders people view', async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findAllByText(`People`));
+      await screen.findAllByText(`People`);
     });
   });
   it('renders people count', async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findAllByText('Total: 23683'));
+      await screen.findAllByText('Total: 23683');
     });
   });
   it('renders people filters', async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findByText('Filters'));
+      await screen.findByText('Filters');
     });
   });
   it('renders people list', async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findByText('Mahony Thomas'));
+      await screen.findByText('Mahony Thomas');
     });
   });
 });

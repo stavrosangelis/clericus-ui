@@ -1,6 +1,6 @@
 /* globals afterAll, afterEach, beforeAll, describe, it */
 import React from 'react';
-import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
+import { act, render, screen, cleanup } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import store from '../redux/store';
@@ -34,19 +34,19 @@ describe('Classpieces view', () => {
   it('renders classpieces view', async () => {
     await act(async () => {
       render(<ClasspiecesWrapper />);
-      await waitFor(() => screen.findAllByText('SPCM 1861'));
+      await screen.findAllByText('SPCM 1861');
     });
   });
   it('renders classpieces count', async () => {
     await act(async () => {
       render(<ClasspiecesWrapper />);
-      await waitFor(() => screen.findAllByText('Total: 70'));
+      await screen.findAllByText('Total: 70');
     });
   });
   it('renders classpieces filters', async () => {
     await act(async () => {
       render(<ClasspiecesWrapper />);
-      await waitFor(() => screen.findAllByText('Filters'));
+      await screen.findAllByText('Filters');
     });
   });
 });

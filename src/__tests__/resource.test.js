@@ -1,8 +1,8 @@
 /* globals afterAll, afterEach, beforeAll, describe, it */
 import React from 'react';
-import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
+import { act, render, screen, cleanup } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import store from '../redux/store';
 import server from '../__mocks/mock-server';
 
@@ -20,20 +20,15 @@ afterEach(() => {
 // Disable API mocking after the tests are done.
 afterAll(() => server.close());
 
-const defaultProps = {
-  match: {
-    params: {
-      _id: '9199',
-    },
-  },
-};
 function Wrapper(props) {
   return (
     <Provider store={store()}>
-      <Router>
-        {/* eslint-disable-next-line */}
-        <Resource {...defaultProps} {...props}/>
-      </Router>
+      <MemoryRouter initialEntries={['/resource/20896']}>
+        <Routes>
+          {/* eslint-disable-next-line */}
+          <Route path='/resource/:_id' element={<Resource {...props} />} />
+        </Routes>
+      </MemoryRouter>
     </Provider>
   );
 }
@@ -41,22 +36,22 @@ describe('Resource view', () => {
   it('renders an resource view', async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findAllByText(`Abracham Ua Fúraigh`));
+      await screen.findAllByText(`Abracham Ua Fúraigh`);
     });
   });
   it("renders an resource's people", async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findByText(`People`));
-      await waitFor(() => screen.findAllByText(`is representation of`));
+      await screen.findByText(`People`);
+      await screen.findAllByText(`is representation of`);
     });
   });
   it("renders an resource's classpieces", async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findByText(`Classpieces`));
-      await waitFor(() => screen.findAllByText(`is part of`));
-      await waitFor(() => screen.findByText(`SPCM 1935-1936`));
+      await screen.findByText(`Classpieces`);
+      await screen.findAllByText(`is part of`);
+      await screen.findByText(`SPCM 1935-1936`);
     });
   });
 });
