@@ -1,38 +1,51 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
-const Block = (props) => {
-  const { toggleTable, hidden, description } = props;
-  return (
-    <div key="description" style={{ minHeight: '25px' }}>
-      <h5>
-        Description
-        <div
-          className="btn btn-default btn-xs pull-right toggle-info-btn"
-          onClick={(e) => {
-            toggleTable(e, 'description');
-          }}
-          onKeyDown={() => false}
-          role="button"
-          tabIndex={0}
-          aria-label="toggle description visibility"
-        >
-          <i className={`fa fa-angle-down${hidden}`} />
+function Block(props) {
+  // state
+  const [visible, setVisible] = useState(true);
+
+  const toggleVisible = () => {
+    setVisible(!visible);
+  };
+
+  // props
+  const { description } = props;
+
+  let visibleClass = '';
+  let visibleIcon = '';
+  if (!visible) {
+    visibleClass = ' item-hidden';
+    visibleIcon = ' closed';
+  }
+  const output =
+    description === '' ? null : (
+      <>
+        <h5>
+          Description
+          <div
+            className="btn btn-default btn-xs pull-right toggle-info-btn"
+            onClick={toggleVisible}
+            onKeyDown={() => false}
+            role="button"
+            tabIndex={0}
+            aria-label="toggle description visibility"
+          >
+            <i className={`fa fa-angle-down${visibleIcon}`} />
+          </div>
+        </h5>
+        <div className={`item-block${visibleClass}`}>
+          <div style={{ marginBottom: '10px' }}>{description}</div>
         </div>
-      </h5>
-      <div className={`people-info-container ${hidden}`}>{description}</div>
-    </div>
-  );
-};
+      </>
+    );
+  return output;
+}
 
 Block.defaultProps = {
-  hidden: '',
   description: '',
-  toggleTable: () => {},
 };
 Block.propTypes = {
-  hidden: PropTypes.string,
   description: PropTypes.string,
-  toggleTable: PropTypes.func,
 };
 export default Block;

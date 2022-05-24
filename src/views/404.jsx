@@ -4,9 +4,9 @@ import { Card, CardBody } from 'reactstrap';
 
 import { updateDocumentTitle } from '../helpers';
 
-const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
+const Breadcrumbs = lazy(() => import('../components/Breadcrumbs'));
 
-const NotFound = () => {
+function NotFound() {
   const heading = 'Error 404 page not found';
   updateDocumentTitle(heading);
   const breadcrumbsItems = [
@@ -44,6 +44,6 @@ const NotFound = () => {
       {content}
     </div>
   );
-};
+}
 
 export default NotFound;

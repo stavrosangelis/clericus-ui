@@ -1,35 +1,28 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import axios from 'axios';
 import { Spinner, Card, CardBody } from 'reactstrap';
-import { Link } from 'react-router-dom';
-import PropTypes from 'prop-types';
+import { Link, useParams } from 'react-router-dom';
 import { updateDocumentTitle } from '../helpers';
 
 import '../scss/articles.scss';
 
-const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
+const Breadcrumbs = lazy(() => import('../components/Breadcrumbs'));
 
-const APIPath = process.env.REACT_APP_APIPATH;
+const { REACT_APP_APIPATH: APIPath } = process.env;
 
-const Articles = (props) => {
+function Articles() {
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState(null);
   const [articles, setArticles] = useState([]);
 
-  const { match } = props;
-  const prevPermalink = useRef(match.params.permalink);
+  const { permalink } = useParams();
+  const prevPermalink = useRef(permalink);
 
   useEffect(() => {
-    const cancelToken = axios.CancelToken;
-    const source = cancelToken.source();
-
-    const { permalink } = match.params;
-    if (prevPermalink.current !== permalink) {
-      prevPermalink.current = permalink;
-      setLoading(true);
-    }
+    let unmounted = false;
+    const controller = new AbortController();
     const load = async () => {
-      setLoading(false);
+      prevPermalink.current = permalink;
       const params = { permalink };
       if (permalink === 'news' || permalink === 'archive') {
         params.orderField = 'createdAt';
@@ -40,24 +33,37 @@ const Articles = (props) => {
         url: `${APIPath}content-category`,
         crossDomain: true,
         params,
-        cancelToken: source.token,
+        signal: controller.signal,
       })
         .then((response) => response.data)
         .catch((error) => console.log(error));
-      if (typeof responseData !== 'undefined' && responseData.status) {
-        setCategory(responseData.data.data.category);
-        setArticles(responseData.data.data.articles);
+      if (!unmounted) {
+        setLoading(false);
+        const { data: respData = null } = responseData;
+        const { data = null } = respData;
+        if (data !== null) {
+          setCategory(data.category);
+          setArticles(data.articles);
+        }
       }
     };
     if (loading) {
       load();
     }
     return () => {
-      if (!loading) {
-        source.cancel('api request cancelled');
-      }
+      unmounted = true;
+      controller.abort();
     };
-  }, [loading, match, articles, category, prevPermalink]);
+  }, [loading, permalink, articles, category, prevPermalink]);
+
+  useEffect(() => {
+    if (!loading && prevPermalink.current !== permalink) {
+      prevPermalink.current = permalink;
+      setLoading(true);
+      setArticles([]);
+      setCategory(null);
+    }
+  }, [permalink, loading]);
 
   let breadcrumbsItems = [];
 
@@ -224,13 +230,6 @@ const Articles = (props) => {
       {content}
     </div>
   );
-};
-
-Articles.defaultProps = {
-  match: null,
-};
-Articles.propTypes = {
-  match: PropTypes.object,
-};
+}
 
 export default Articles;

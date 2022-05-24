@@ -1,18 +1,12 @@
+/* globals afterAll, afterEach, beforeAll, describe, it */
 import React from 'react';
-import {
-  act,
-  render,
-  screen,
-  cleanup,
-  waitForElementToBeRemoved,
-  waitFor,
-} from '@testing-library/react';
+import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import store from '../redux/store';
 import server from '../__mocks/mock-server';
 
-import Resource from '../views/resource';
+import Resource from '../views/Resource';
 
 // Enable API mocking before tests.
 beforeAll(() => server.listen());
@@ -33,13 +27,16 @@ const defaultProps = {
     },
   },
 };
-const Wrapper = (props) => (
-  <Provider store={store()}>
-    <Router>
-      <Resource {...defaultProps} {...props} />
-    </Router>
-  </Provider>
-);
+function Wrapper(props) {
+  return (
+    <Provider store={store()}>
+      <Router>
+        {/* eslint-disable-next-line */}
+        <Resource {...defaultProps} {...props}/>
+      </Router>
+    </Provider>
+  );
+}
 describe('Resource view', () => {
   it('renders an resource view', async () => {
     await act(async () => {
@@ -47,14 +44,14 @@ describe('Resource view', () => {
       await waitFor(() => screen.findAllByText(`Abracham Ua Fúraigh`));
     });
   });
-  it('renders an resource\'s people', async () => {
+  it("renders an resource's people", async () => {
     await act(async () => {
       render(<Wrapper />);
       await waitFor(() => screen.findByText(`People`));
       await waitFor(() => screen.findAllByText(`is representation of`));
     });
   });
-  it('renders an resource\'s classpieces', async () => {
+  it("renders an resource's classpieces", async () => {
     await act(async () => {
       render(<Wrapper />);
       await waitFor(() => screen.findByText(`Classpieces`));

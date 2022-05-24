@@ -1,18 +1,12 @@
+/* globals afterAll, afterEach, beforeAll, describe, it */
 import React from 'react';
-import {
-  act,
-  render,
-  screen,
-  cleanup,
-  waitForElementToBeRemoved,
-  waitFor,
-} from '@testing-library/react';
+import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import store from '../redux/store';
 import server from '../__mocks/mock-server';
 
-import Classpiece from '../views/classpiece';
+import Classpiece from '../views/Classpiece';
 
 // Enable API mocking before tests.
 beforeAll(() => server.listen());
@@ -33,13 +27,16 @@ const defaultProps = {
     },
   },
 };
-const ClasspieceWrapper = (props) => (
-  <Provider store={store()}>
-    <Router>
-      <Classpiece {...defaultProps} {...props} />
-    </Router>
-  </Provider>
-);
+function ClasspieceWrapper(props) {
+  return (
+    <Provider store={store()}>
+      <Router>
+        {/* eslint-disable-next-line */}
+        <Classpiece {...defaultProps} {...props}/>
+      </Router>
+    </Provider>
+  );
+}
 describe('Classpiece view', () => {
   it('renders a classpiece view', async () => {
     await act(async () => {

@@ -1,18 +1,12 @@
+/* globals afterAll, afterEach, beforeAll, describe, it */
 import React from 'react';
-import {
-  act,
-  render,
-  screen,
-  cleanup,
-  waitForElementToBeRemoved,
-  waitFor,
-} from '@testing-library/react';
+import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import store from '../redux/store';
 import server from '../__mocks/mock-server';
 
-import Spatials from '../views/spatials';
+import Spatials from '../views/Spatials';
 
 // Enable API mocking before tests.
 beforeAll(() => server.listen());
@@ -26,13 +20,18 @@ afterEach(() => {
 // Disable API mocking after the tests are done.
 afterAll(() => server.close());
 
-const Wrapper = (props) => (
-  <Provider store={store()}>
-    <Router>
-      <Spatials {...props} />
-    </Router>
-  </Provider>
-);
+function Wrapper(props) {
+  return (
+    <Provider store={store()}>
+      <MemoryRouter initialEntries={['/spatials']}>
+        <Routes>
+          {/* eslint-disable-next-line */}
+          <Route path='/spatials' element={<Spatials {...props} />} />
+        </Routes>
+      </MemoryRouter>
+    </Provider>
+  );
+}
 describe('Spatials view', () => {
   it('renders spatials view', async () => {
     await act(async () => {

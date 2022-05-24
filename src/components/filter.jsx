@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FormGroup, Label, Input, Card, CardBody } from 'reactstrap';
 import PropTypes from 'prop-types';
-import LazyList from './lazylist';
+import LazyList from './Lazylist';
 
 const prepareOptions = (itemsParam = [], sepParam = '', filtersType = '') => {
   let output = [];
@@ -32,14 +32,40 @@ const prepareOptions = (itemsParam = [], sepParam = '', filtersType = '') => {
   return output;
 };
 
-const Filter = (props) => {
+const flattenItems = (itemsParam = [], parentId = null) => {
+  let newItems = [];
+  const { length } = itemsParam;
+  for (let i = 0; i < length; i += 1) {
+    const item = itemsParam[i];
+    if (parentId !== null) {
+      item.parentId = parentId;
+    }
+    const itemCopy = { ...item };
+    if (typeof item.children !== 'undefined') {
+      delete itemCopy.children;
+    }
+    newItems.push(itemCopy);
+    let parentIds = [];
+    if (parentId === null) {
+      parentIds.push(item._id);
+    } else {
+      parentIds = [...parentId, item._id];
+    }
+    if (item.children?.length > 0) {
+      newItems = [...newItems, ...flattenItems(item.children, parentIds)];
+    }
+  }
+  return newItems;
+};
+
+function Filter(props) {
   // state
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState([]);
   const [filterItems, setFilterItems] = useState([]);
   const [filtersTypes, setFiltersTypes] = useState([]);
   const [filterType, setFilterType] = useState('');
-  const prevFiltersSetRef = useRef(null);
+  const prevFiltersSetRef = useRef(0);
   const [scrollIndex, setScrollIndex] = useState(0);
   const prevId = useRef(null);
   const prevRelationshipSet = useRef([]);
@@ -59,34 +85,8 @@ const Filter = (props) => {
 
   useEffect(() => {
     const load = () => {
-      const flattenItems = (itemsParam, parentId = null) => {
-        let newItems = [];
-        const { length } = itemsParam;
-        for (let i = 0; i < length; i += 1) {
-          const item = itemsParam[i];
-          if (parentId !== null) {
-            item.parentId = parentId;
-          }
-          const itemCopy = { ...item };
-          if (typeof item.children !== 'undefined') {
-            delete itemCopy.children;
-          }
-          newItems.push(itemCopy);
-          let parentIds = [];
-          if (parentId === null) {
-            parentIds.push(item._id);
-          } else {
-            parentIds = [...parentId, item._id];
-          }
-          if (item.children?.length > 0) {
-            newItems = [...newItems, ...flattenItems(item.children, parentIds)];
-          }
-        }
-        return newItems;
-      };
-
+      setLoading(false);
       const flatItems = flattenItems(items);
-
       const parentIds = [];
       if (Array.isArray(filtersSet)) {
         const selectedItems = flatItems.filter(
@@ -157,57 +157,66 @@ const Filter = (props) => {
           newFilterItemsIds.push(item._id);
         }
       }
-
+      prevRelationshipSet.current = relationshipSet;
+      prevFiltersSetRef.current = filtersSet.length;
       setFilterItems(newFilterItems);
       if (typeof itemsType !== 'undefined') {
         setFiltersTypes(itemsType);
       }
-      setLoading(false);
+      if (filtersType === 'personType') {
+        setFilterType(filtersSet.personType);
+      }
+      if (filtersType === 'eventType') {
+        setFilterType(filtersSet.eventType);
+      }
+      if (filtersType === 'resourcesType') {
+        setFilterType(filtersSet.resourcesType);
+      }
     };
+
     if (!propsLoading && loading) {
       load();
     }
   }, [
-    loading,
-    propsLoading,
-    items,
+    filterType,
     filtersType,
     filtersSet,
+    items,
     itemsType,
-    relationshipSet,
-    filterType,
     label,
+    loading,
+    propsLoading,
+    relationshipSet,
   ]);
 
   useEffect(() => {
-    if (
-      relationshipSet.length > 0 &&
-      relationshipSet.length !== prevRelationshipSet.current.length &&
-      !loading
-    ) {
+    const { length: rLength = 0 } = relationshipSet;
+    const { length: pLength = 0 } = prevRelationshipSet.current;
+    if (rLength > 0 && rLength !== pLength && !loading) {
       prevRelationshipSet.current = relationshipSet;
       setLoading(true);
     }
   }, [relationshipSet, loading]);
 
+  // clear filters array
   useEffect(() => {
     if (prevFiltersSetRef.current > 0 && filtersSet.length === 0) {
-      const newFilterItems = Object.assign([], filterItems);
-      for (let i = 0; i < newFilterItems.length; i += 1) {
+      prevFiltersSetRef.current = filtersSet.length;
+      const newFilterItems = [...filterItems];
+      const { length } = newFilterItems;
+      for (let i = 0; i < length; i += 1) {
         newFilterItems[i].checked = false;
       }
       setFilterItems(newFilterItems);
       setFilters([]);
-      updateFilters(filtersType, []);
     }
-    prevFiltersSetRef.current = filtersSet.length;
-  }, [updateFilters, filtersSet, filterItems, filtersType]);
+  }, [filtersSet, filterItems, filtersType]);
 
   const over = (e) => {
     e.stopPropagation();
-    const elem = e.currentTarget;
+    const { currentTarget: elem } = e;
     const bbox = elem.getBoundingClientRect();
-    const id = elem.dataset.target;
+    const { target: id } = elem.dataset;
     prevId.current = id;
     const titleElem = document.getElementById(id);
 
@@ -271,11 +280,19 @@ const Filter = (props) => {
     ) {
       setFilterType('');
     }
+    if (
+      filtersType === 'resourcesType' &&
+      filtersSet.resourcesType === '' &&
+      filterType !== filtersSet.resourcesType
+    ) {
+      setFilterType('');
+    }
   }, [filtersType, filtersSet, filterType]);
 
   const clearFilters = () => {
-    if (filters.length > 0) {
-      for (let i = 0; i < filterItems.length; i += 1) {
+    if (filtersSet.length > 0) {
+      const { length } = filterItems;
+      for (let i = 0; i < length; i += 1) {
         filterItems[i].checked = false;
       }
       setFilters([]);
@@ -284,6 +301,7 @@ const Filter = (props) => {
     if (
       (filtersType === 'organisationType' ||
         filtersType === 'eventType' ||
+        filtersType === 'resourcesType' ||
         filtersType === 'personType') &&
       filterType !== ''
     ) {
@@ -357,19 +375,20 @@ const Filter = (props) => {
   const renderFilterItem = (item) => {
     const sepIcon = [];
     let sepClass = '';
-    let spanWidthStyle = { width: 'calc(100% - 5px)' };
-    const parentId = item.parentId || null;
+    let spanWidthStyle = { width: 'calc(100% - 20px)' };
+    const { parentId = null } = item;
     if (parentId !== null) {
-      let spanWidth = 15;
-      for (let i = 0; i < item.parentId.length; i += 1) {
+      let spanWidth = 16;
+      const { length } = parentId;
+      for (let i = 0; i < length; i += 1) {
         sepIcon.push(<div className="filter-separator" key={i} />);
       }
-      spanWidth += 15 * item.parentId.length;
+      spanWidth += 16 * length;
       spanWidthStyle = { width: `calc(100% - ${spanWidth}px)` };
-      sepClass = `sep-${item.parentId.length}`;
+      sepClass = ` sep-${length}`;
     }
     const output = (
-      <FormGroup key={item._id} className={`filter-item ${sepClass}`}>
+      <FormGroup key={item._id} className={`filter-item${sepClass}`}>
         <Label
           onMouseOver={(e) => over(e)}
           data-target={`${filtersType}-fi-${item._id}`}
@@ -400,7 +419,6 @@ const Filter = (props) => {
         -- All --
       </option>,
     ];
-
     const filtersTypesOptions = prepareOptions(filtersTypes, '', filtersType);
     const options = [...defaultOption, ...filtersTypesOptions];
     filtersTypesHTML = (
@@ -450,7 +468,7 @@ const Filter = (props) => {
       </Card>
     </div>
   );
-};
+}
 
 Filter.defaultProps = {
   relationshipSet: [],

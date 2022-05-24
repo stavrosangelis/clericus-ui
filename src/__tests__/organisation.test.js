@@ -1,18 +1,12 @@
+/* globals afterAll, afterEach, beforeAll, describe, expect, it */
 import React from 'react';
-import {
-  act,
-  render,
-  screen,
-  cleanup,
-  waitForElementToBeRemoved,
-  waitFor,
-} from '@testing-library/react';
+import { act, render, screen, cleanup } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import store from '../redux/store';
 import server from '../__mocks/mock-server';
 
-import Organisation from '../views/organisation';
+import Organisation from '../views/Organisation';
 
 // Enable API mocking before tests.
 beforeAll(() => server.listen());
@@ -26,60 +20,60 @@ afterEach(() => {
 // Disable API mocking after the tests are done.
 afterAll(() => server.close());
 
-const defaultProps = {
-  match: {
-    params: {
-      _id: '189',
-    },
-  },
-};
-const Wrapper = (props) => (
-  <Provider store={store()}>
-    <Router>
-      <Organisation {...defaultProps} {...props} />
-    </Router>
-  </Provider>
-);
+function Wrapper(props) {
+  return (
+    <Provider store={store()}>
+      <MemoryRouter initialEntries={['/organisation/189']}>
+        <Routes>
+          {/* eslint-disable-next-line */}
+          <Route path='/organisation/:_id' element={<Organisation {...props} />} />
+        </Routes>
+      </MemoryRouter>
+    </Provider>
+  );
+}
+
 describe('Organisation view', () => {
   it('renders an organisation view', async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findByText(`Dublin [Diocese]`));
+      const items = await screen.findAllByText(`Dublin`);
+      expect(items).toHaveLength(2);
     });
   });
-  it('renders an organisation\'s alternate appellations', async () => {
+  it("renders an organisation's alternate appellations", async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findByText('Dublinensis'));
+      await screen.findByText('Dublinensis');
     });
   });
-  it('renders an organisation\'s locations', async () => {
+  it("renders an organisation's locations", async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findByText('Locations'));
-      await waitFor(() => screen.findByText('hasItsEpiscopalSeeIn'));
+      await screen.findByText('Locations');
+      await screen.findByText('hasItsEpiscopalSeeIn');
     });
   });
-  it('renders an organisation\'s events', async () => {
+  it("renders an organisation's events", async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findByText(`Events`));
-      await waitFor(() => screen.findAllByText(`is related to`));
+      await screen.findByText(`Events`);
+      await screen.findAllByText(`is related to`);
     });
   });
-  it('renders an organisation\'s people', async () => {
+  it("renders an organisation's people", async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findByText(`People`));
-      await waitFor(() => screen.findAllByText(`is affiliation of`));
+      await screen.findByText(`People`);
+      await screen.findAllByText(`is affiliation of`);
     });
   });
-  it('renders an organisation\'s organisations', async () => {
+  it("renders an organisation's organisations", async () => {
     await act(async () => {
       render(<Wrapper />);
-      await waitFor(() => screen.findByText(`Organisations`));
-      await waitFor(() => screen.findAllByText(`has part`));
-      await waitFor(() => screen.findByText(`Inch [Parish]`));
+      await screen.findByText(`Organisations`);
+      await screen.findAllByText(`has part`);
+      await screen.findByText(`Inch [Parish]`);
     });
   });
 });

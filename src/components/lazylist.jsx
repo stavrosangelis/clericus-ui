@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 
-const LazyList = (props) => {
+function LazyList(props) {
   // props
   const {
     containerClass,
@@ -96,15 +96,16 @@ const LazyList = (props) => {
 
   const reDrawList = () => {
     const wrapper = container.current;
+    const { scrollHeight = 0, scrollTop = 0, clientHeight = 0 } = wrapper;
     let newStartIndex = startIndex;
     let update = false;
-    if (wrapper.scrollHeight === wrapper.scrollTop + wrapper.clientHeight) {
+    if (scrollHeight < scrollTop + clientHeight + 5) {
       if (startIndex + range <= itemsLength - limit + range) {
         newStartIndex = startIndex + range;
         update = true;
       }
     }
-    if (wrapper.scrollTop === 0) {
+    if (scrollTop === 0) {
       if (startIndex > range) {
         newStartIndex = startIndex - range;
         update = true;
@@ -129,10 +130,11 @@ const LazyList = (props) => {
   };
 
   const list = [];
-  if (!loading && items.length > 0) {
+  const { length: iLength } = items;
+  if (!loading && iLength > 0) {
     let length = limit;
-    if (length > items.length) {
-      length = items.length;
+    if (length > iLength) {
+      length = iLength;
     }
     for (let i = 0; i <= length; i += 1) {
       const item = items[i];
@@ -176,7 +178,7 @@ const LazyList = (props) => {
       <ul className={listClassName}>{list}</ul>
     </div>
   );
-};
+}
 
 LazyList.defaultProps = {
   limit: 50,

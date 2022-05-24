@@ -1,0 +1,57 @@
+@import 'colors';
+
+.search-toggle {
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding-bottom: 10px;
+  color: $dark-brown;
+}
+.search-toggle:hover {
+  color: $dark-brown-hover
+}
+.search-toggle:active {
+  color: $dark-brown-active
+}
+.search-dropdown-inputgroup {
+  position: relative;
+}
+.simple-search-input {
+  border-right: 0 none;
+  padding-right: 25px !important;
+  z-index: 1;
+}
+.search-dropdown-inputgroup > .input-group-append {
+  z-index: 5;
+}
+.clear-search {
+  border-color: #ced4da;
+  top: 0;
+  height: 32px;
+  line-height: 24px;
+  background-color: #fff;
+}
+.clear-search:focus {
+  border-color: #ced4da;
+  outline: none !important;
+  box-shadow: none !important;
+  background-color: #fff !important;
+}
+.clear-search:hover {
+  border-color: #ced4da;
+  color: #444;
+  background-color: #fff;
+}
+.clear-search:active {
+  background-color: #eee !important;
+  color: #222 !important;
+  border-color: #ced4da;
+}
+.toggle-search {
+  text-decoration: underline;
+  color: #333 !important;
+  cursor: pointer;
+  text-align: center;
+  margin: 10px 0;
+  font-size: 13px;
+}

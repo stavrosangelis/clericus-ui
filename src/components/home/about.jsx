@@ -5,34 +5,37 @@ import dompurify from 'dompurify';
 
 const APIPath = process.env.REACT_APP_APIPATH;
 
-const About = () => {
+function About() {
   const [loading, setLoading] = useState(true);
   const [article, setArticle] = useState(null);
 
   useEffect(() => {
-    const cancelToken = axios.CancelToken;
-    const source = cancelToken.source();
-
+    let unmounted = false;
+    const controller = new AbortController();
     const load = async () => {
       const responseData = await axios({
         method: 'get',
         url: `${APIPath}content-article`,
         crossDomain: true,
         params: { permalink: 'about' },
-        cancelToken: source.token,
+        signal: controller.signal,
       })
         .then((response) => response.data)
         .catch((error) => console.log(error));
-      if (typeof responseData !== 'undefined') {
-        setArticle(responseData.data);
+      if (!unmounted) {
         setLoading(false);
+        const { data = null } = responseData;
+        if (data !== null) {
+          setArticle(responseData.data);
+        }
       }
     };
     if (loading) {
       load();
     }
     return () => {
-      source.cancel('api request cancelled');
+      unmounted = true;
+      controller.abort();
     };
   }, [loading]);
 
@@ -58,7 +61,7 @@ const About = () => {
       }
     }
     content = (
-      <div>
+      <>
         <h3 className="section-title">
           <span>
             <span>{titleFirst}</span>
@@ -83,11 +86,11 @@ const About = () => {
             </span>
           </Link>
         </div>
-      </div>
+      </>
     );
   }
 
   return <div style={{ padding: '0 15px' }}>{content}</div>;
-};
+}
 
 export default About;

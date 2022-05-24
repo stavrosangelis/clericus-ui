@@ -1,16 +1,10 @@
+/* globals afterAll, afterEach, beforeAll, describe, it */
 import React from 'react';
-import {
-  act,
-  render,
-  screen,
-  cleanup,
-  waitForElementToBeRemoved,
-  waitFor,
-} from '@testing-library/react';
+import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import server from '../__mocks/mock-server';
 
-import Search from '../views/generic-search';
+import Search from '../views/Generic.search';
 
 const defaultProps = {
   match: {
@@ -20,11 +14,14 @@ const defaultProps = {
   },
 };
 
-const Wrapper = (props) => (
-  <Router>
-    <Search {...defaultProps} {...props}/>
-  </Router>
-);
+function Wrapper(props) {
+  return (
+    <Router>
+      {/* eslint-disable-next-line */}
+      <Search {...defaultProps} {...props}/>
+    </Router>
+  );
+}
 
 // Enable API mocking before tests.
 beforeAll(() => server.listen());
@@ -53,7 +50,6 @@ describe('Render Search view', () => {
         screen.getByText('Articles');
         screen.getByText('John Harty');
       });
-
     });
   });
   it('renders events results view', async () => {

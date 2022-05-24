@@ -1,4 +1,4 @@
-import React, { Component, lazy, Suspense } from 'react';
+import React, { useCallback, useEffect, useState, lazy, Suspense } from 'react';
 import axios from 'axios';
 import {
   Spinner,
@@ -10,358 +10,260 @@ import {
   Tooltip,
 } from 'reactstrap';
 import { Link } from 'react-router-dom';
-import { connect } from 'react-redux';
-import { compose } from 'redux';
-import PropTypes from 'prop-types';
+import { useDispatch, useSelector } from 'react-redux';
 import { updateDocumentTitle, renderLoader } from '../helpers';
-import HelpArticle from '../components/help-article';
 
-import {
-  setPaginationParams,
-  setRelationshipParams,
-  updateFilters,
-} from '../redux/actions';
+import { setPaginationParams, updateFilters } from '../redux/actions';
 
-const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
-const Filters = lazy(() => import('../components/filters'));
-const SearchForm = lazy(() => import('../components/search-form'));
-const PageActions = lazy(() => import('../components/page-actions'));
+const { REACT_APP_APIPATH: APIPath } = process.env;
 
-const mapStateToProps = (state) => ({
-  organisationsPagination: state.organisationsPagination,
-  organisationsFilters: state.organisationsFilters,
-  organisationsRelationship: state.organisationsRelationship,
-});
+const Breadcrumbs = lazy(() => import('../components/Breadcrumbs'));
+const HelpArticle = lazy(() => import('../components/Help.article'));
+const Filters = lazy(() => import('../components/Filters'));
+const SearchForm = lazy(() => import('../components/Search.form'));
+const PageActions = lazy(() => import('../components/Page.actions'));
 
-function mapDispatchToProps(dispatch) {
-  return {
-    setPaginationParams: (type, params) =>
-      dispatch(setPaginationParams(type, params)),
-    setRelationshipParams: (type, params) =>
-      dispatch(setRelationshipParams(type, params)),
-    updateFilters: (type, params) => dispatch(updateFilters(type, params)),
-  };
-}
+const heading = 'Organisations';
+const defaultLimit = 25;
 
-class Organisations extends Component {
-  constructor(props) {
-    super(props);
-    const { organisationsPagination } = this.props;
-    this.state = {
-      loading: true,
-      organisationsLoading: true,
-      items: [],
-      page: organisationsPagination.page,
-      gotoPage: organisationsPagination.page,
-      limit: organisationsPagination.limit,
-      totalPages: 0,
-      totalItems: 0,
-      searchVisible: true,
-      simpleSearchTerm: organisationsPagination.simpleSearchTerm,
-      helpVisible: false,
-    };
+const searchElements = [
+  {
+    element: 'label',
+    label: 'Label',
+    inputType: 'text',
+    inputData: null,
+  },
+];
+const filterType = ['organisationType'];
 
-    this.load = this.load.bind(this);
-    this.simpleSearch = this.simpleSearch.bind(this);
-    this.clearSearch = this.clearSearch.bind(this);
-    this.updatePage = this.updatePage.bind(this);
-    this.updateStorePagination = this.updateStorePagination.bind(this);
-    this.updateLimit = this.updateLimit.bind(this);
-    this.gotoPage = this.gotoPage.bind(this);
-    this.renderItems = this.renderItems.bind(this);
-    this.handleChange = this.handleChange.bind(this);
-    this.toggleSearch = this.toggleSearch.bind(this);
-    this.updateType = this.updateType.bind(this);
-    this.toggleHelp = this.toggleHelp.bind(this);
+function Organisations() {
+  // redux
+  const dispatch = useDispatch();
+  const {
+    organisationsPagination,
+    organisationsFilters,
+    organisationsRelationship,
+  } = useSelector((state) => state);
 
-    // cancelTokens
-    const cancelToken1 = axios.CancelToken;
-    this.cancelSource1 = cancelToken1.source();
+  const {
+    limit,
+    page,
+    simpleSearchTerm,
+    orderField,
+    orderDesc,
+    totalItems,
+    totalPages,
+  } = organisationsPagination;
 
-    const cancelToken2 = axios.CancelToken;
-    this.cancelSource2 = cancelToken2.source();
+  const { organisationType: fOrganisationType } = organisationsFilters;
 
-    const cancelToken3 = axios.CancelToken;
-    this.cancelSource3 = cancelToken3.source();
-  }
+  // state
+  const [loading, setLoading] = useState(true);
+  const [loadComplete, setLoadComplete] = useState(false);
+  const [items, setItems] = useState([]);
+  const [gotoPage, setGotoPage] = useState(page);
+  const [searchVisible, setSearchVisible] = useState(true);
+  const [helpVisible, setHelpVisible] = useState(false);
 
-  componentDidMount() {
-    this.load();
-  }
+  const updateStorePagination = useCallback(
+    ({
+      limitParam = null,
+      pageParam = null,
+      simpleSearchTermParam = null,
+      orderFieldParam = null,
+      orderDescParam = null,
+      totalItemsParam = null,
+      totalPagesParam = null,
+    }) => {
+      const payload = {};
+      if (limitParam !== null) {
+        payload.limit = limitParam;
+      }
+      if (pageParam !== null) {
+        payload.page = pageParam;
+      }
+      if (simpleSearchTermParam !== null) {
+        payload.simpleSearchTerm = simpleSearchTermParam;
+      }
+      if (orderFieldParam !== null) {
+        payload.orderField = orderFieldParam;
+      }
+      if (orderDescParam !== null) {
+        payload.orderDesc = orderDescParam;
+      }
+      if (totalItemsParam !== null) {
+        payload.totalItems = totalItemsParam;
+      }
+      if (totalPagesParam !== null) {
+        payload.totalPages = totalPagesParam;
+      }
+      dispatch(setPaginationParams('organisations', payload));
+    },
+    [dispatch]
+  );
 
-  componentDidUpdate(prevProps) {
-    const { organisationsFilters } = this.props;
-    if (
-      prevProps.organisationsFilters.organisationType !==
-      organisationsFilters.organisationType
-    ) {
-      this.load();
+  const reload = (e = null) => {
+    if (e !== null) {
+      e.preventDefault();
     }
-  }
+    setLoading(true);
+  };
 
-  componentWillUnmount() {
-    this.cancelSource1.cancel('api request cancelled');
-    this.cancelSource2.cancel('api request cancelled');
-    this.cancelSource3.cancel('api request cancelled');
-  }
+  const updatePage = useCallback(
+    (value) => {
+      if (value > 0 && value !== page) {
+        updateStorePagination({ pageParam: value });
+        reload();
+      }
+    },
+    [page, updateStorePagination]
+  );
 
-  handleChange(e) {
-    const { target } = e;
-    const value = target.type === 'checkbox' ? target.checked : target.value;
-    const { name } = target;
-    this.setState({
-      [name]: value,
-    });
-  }
+  const gotoPageFn = (e) => {
+    e.preventDefault();
+    if (gotoPage > 0 && gotoPage !== page) {
+      updateStorePagination({ pageParam: gotoPage });
+      reload();
+    }
+  };
 
-  toggleHelp() {
-    const { helpVisible } = this.state;
-    this.setState({
-      helpVisible: !helpVisible,
-    });
-  }
+  const updateLimit = (limitParam) => {
+    updateStorePagination({ limitParam });
+    reload();
+  };
 
-  updateType(val) {
-    const { updateFilters: updateFiltersFn } = this.props;
+  const updateSort = (orderFieldParam) => {
+    const orderDescParam = orderField === orderFieldParam ? !orderDesc : false;
+    updateStorePagination({ orderFieldParam, orderDescParam });
+    reload();
+  };
+
+  useEffect(() => {
+    let unmounted = false;
+    const controller = new AbortController();
+    const load = async () => {
+      const loadData = async () => {
+        const params = {
+          limit,
+          page,
+          organisationType: fOrganisationType,
+          orderField,
+          orderDesc,
+        };
+        if (simpleSearchTerm !== '' && simpleSearchTerm.length > 1) {
+          params.label = simpleSearchTerm;
+        }
+        const responseData = await axios({
+          method: 'get',
+          url: `${APIPath}ui-organisations`,
+          crossDomain: true,
+          params,
+          signal: controller.signal,
+        })
+          .then((response) => {
+            const { data: rData = null } = response;
+            return rData;
+          })
+          .catch((error) => {
+            console.log(error);
+            return { data: null };
+          });
+        const { data = null } = responseData;
+        return data;
+      };
+      const data = await loadData();
+      if (!unmounted) {
+        setLoading(false);
+        setItems([]);
+        updateDocumentTitle(heading);
+        setLoadComplete(true);
+        if (data !== null) {
+          const {
+            currentPage = 0,
+            data: events = [],
+            totalItems: totalItemsResp,
+            totalPages: totalPagesResp,
+          } = data;
+          const cPage = currentPage > 0 ? currentPage : 1;
+          if (cPage !== 1 && cPage > totalPages && totalPages > 0) {
+            updatePage(totalPages);
+          } else {
+            updateStorePagination({
+              totalItemsParam: totalItemsResp,
+              totalPagesParam: totalPagesResp,
+            });
+            setItems(events);
+          }
+        }
+      }
+    };
+    if (loading) {
+      load();
+    }
+    return () => {
+      unmounted = true;
+      controller.abort();
+    };
+  }, [
+    dispatch,
+    fOrganisationType,
+    limit,
+    loading,
+    orderDesc,
+    orderField,
+    simpleSearchTerm,
+    page,
+    totalPages,
+    updatePage,
+    updateStorePagination,
+  ]);
+
+  const clearSearch = () => {
+    if (simpleSearchTerm !== '') {
+      updateStorePagination({ simpleSearchTermParam: '', pageParam: 1 });
+      reload();
+    }
+  };
+
+  const toggleSearch = () => {
+    setSearchVisible(!searchVisible);
+  };
+
+  const toggleHelp = () => {
+    setHelpVisible(!helpVisible);
+  };
+
+  const updateType = (val = '') => {
     const payload = {
       organisationType: val,
     };
-    updateFiltersFn('organisations', payload);
-  }
+    dispatch(updateFilters('organisations', payload));
+    reload();
+  };
 
-  async load() {
-    this.setState({
-      organisationsLoading: true,
-    });
-    const { organisationsFilters: filters } = this.props;
-    const { page, limit, simpleSearchTerm } = this.state;
-    const params = {
-      page,
-      limit,
-      organisationType: filters.organisationType,
-    };
-    if (simpleSearchTerm !== '') {
-      params.label = simpleSearchTerm;
+  const handleChange = (e) => {
+    const { name, value = '' } = e.target;
+    switch (name) {
+      case 'gotoPage':
+        setGotoPage(value);
+        break;
+      case 'simpleSearchTerm':
+        updateStorePagination({ simpleSearchTermParam: value });
+        break;
+      default:
+        break;
     }
-    const url = `${process.env.REACT_APP_APIPATH}ui-organisations`;
-    const responseData = await axios({
-      method: 'get',
-      url,
-      crossDomain: true,
-      params,
-      cancelToken: this.cancelSource1.token,
-    })
-      .then((response) => response.data.data)
-      .catch((error) => {
-        console.log(error);
-      });
-    if (typeof responseData !== 'undefined') {
-      const organisations = responseData.data;
-      let currentPage = 1;
-      if (responseData.currentPage > 0) {
-        currentPage = responseData.currentPage;
-      }
-      if (
-        currentPage !== 1 &&
-        currentPage > responseData.totalPages &&
-        responseData.totalPages > 0
-      ) {
-        this.updatePage(responseData.totalPages);
-      } else {
-        this.setState({
-          loading: false,
-          organisationsLoading: false,
-          page: responseData.currentPage,
-          totalPages: responseData.totalPages,
-          totalItems: responseData.totalItems,
-          items: organisations,
-        });
-        // this.updateOrganisationsRelationship(organisations);
-      }
-    }
-  }
+  };
 
-  async simpleSearch(e) {
-    e.preventDefault();
-    const { simpleSearchTerm, page, limit } = this.state;
-    const { organisationsFilters: filters } = this.props;
-    if (simpleSearchTerm.length < 2) {
-      return false;
-    }
-    this.updateStorePagination({
-      simpleSearchTerm,
-    });
-    this.setState({
-      organisationsLoading: true,
-    });
-    const params = {
-      label: simpleSearchTerm,
-      page,
-      limit,
-      organisationType: filters.organisationType,
-    };
-    const url = `${process.env.REACT_APP_APIPATH}ui-organisations`;
-    const responseData = await axios({
-      method: 'get',
-      url,
-      crossDomain: true,
-      params,
-      cancelToken: this.cancelSource2.token,
-    })
-      .then((response) => response.data.data)
-      .catch((error) => {
-        console.log(error);
-      });
-    if (typeof responseData !== 'undefined') {
-      const organisations = responseData.data;
-      let currentPage = 1;
-      if (responseData.currentPage > 0) {
-        currentPage = responseData.currentPage;
-      }
-      if (
-        currentPage !== 1 &&
-        currentPage > responseData.totalPages &&
-        responseData.totalPages > 0
-      ) {
-        this.updatePage(responseData.totalPages);
-      } else {
-        this.setState({
-          loading: false,
-          organisationsLoading: false,
-          page: responseData.currentPage,
-          totalPages: responseData.totalPages,
-          totalItems: responseData.totalItems,
-          items: organisations,
-        });
-        // this.updateOrganisationsRelationship(organisations);
-      }
-    }
-    return false;
-  }
-
-  clearSearch() {
-    this.updateStorePagination({ simpleSearchTerm: '', page: 1 });
-    this.setState(
-      {
-        simpleSearchTerm: '',
-        page: 1,
-      },
-      () => {
-        this.load();
-      }
-    );
-  }
-
-  toggleSearch() {
-    const { searchVisible } = this.state;
-    this.setState({
-      searchVisible: !searchVisible,
-    });
-  }
-
-  async updateOrganisationsRelationship() {
-    const {
-      organisationsFilters: filters,
-      setRelationshipParams: setRelationshipParamsFn,
-    } = this.props;
-    const { page, limit } = this.state;
-    const params = {
-      page,
-      limit,
-      organisationTypes: filters.organisations,
-    };
-    const url = `${process.env.REACT_APP_APIPATH}ui-organisations-active-filters`;
-    const responseData = await axios({
-      method: 'post',
-      url,
-      crossDomain: true,
-      params,
-      cancelToken: this.cancelSource3.token,
-    })
-      .then((response) => response.data)
-      .catch((error) => console.log(error));
-    if (typeof responseData !== 'undefined' && responseData.status) {
-      const payload = {
-        organisationTypes: responseData.data.organisations.map((item) => item),
-      };
-      setRelationshipParamsFn('organisations', payload);
-    }
-  }
-
-  updatePage(e) {
-    const { page } = this.state;
-    if (e > 0 && e !== page) {
-      this.updateStorePagination({ page: e });
-      this.setState(
-        {
-          page: e,
-          gotoPage: e,
-        },
-        () => {
-          this.load();
-        }
-      );
-    }
-  }
-
-  gotoPage(e) {
-    e.preventDefault();
-    const { gotoPage } = this.state;
-    const { page } = this.state;
-    if (gotoPage > 0 && gotoPage !== page) {
-      this.updateStorePagination({ page: e });
-      this.setState(
-        {
-          page: gotoPage,
-        },
-        () => {
-          this.load();
-        }
-      );
-    }
-  }
-
-  updateLimit(limit) {
-    this.setState(
-      {
-        limit,
-      },
-      () => {
-        this.load();
-      }
-    );
-    this.updateStorePagination({ limit });
-  }
-
-  updateStorePagination({
-    limit = null,
-    page = null,
-    simpleSearchTerm = null,
-  }) {
-    const { setPaginationParams: setPaginationParamsFn } = this.props;
-    const payload = {};
-    if (limit !== null) {
-      payload.limit = limit;
-    }
-    if (page !== null) {
-      payload.page = page;
-    }
-    if (simpleSearchTerm !== null) {
-      payload.simpleSearchTerm = simpleSearchTerm;
-    }
-    setPaginationParamsFn('organisations', payload);
-  }
-
-  renderItems() {
-    const { items, simpleSearchTerm } = this.state;
-    const { organisationsPagination } = this.props;
+  const renderItems = useCallback(() => {
+    const { length } = items;
     let outputObj = [];
     const output = [];
-    if (items.length > 0) {
-      for (let i = 0; i < items.length; i += 1) {
+    if (length > 0) {
+      for (let i = 0; i < length; i += 1) {
         const item = items[i];
-        const { label, organisationType } = item;
-        const link = `/organisation/${item._id}`;
+        const { _id = '', label = '', organisationType = '' } = item;
+        const link = `/organisation/${_id}`;
         let thumbnailImage = [];
         const thumbnailURL = null;
         if (thumbnailURL !== null) {
@@ -397,17 +299,14 @@ class Organisations extends Component {
           <ListGroup>{output}</ListGroup>
         </div>
       );
-    } else {
-      let query = '';
-      if (simpleSearchTerm !== '') {
-        query = <b>&quot;{organisationsPagination.simpleSearchTerm}&quot;</b>;
-      }
+    } else if (simpleSearchTerm !== '' && simpleSearchTerm.length > 1) {
+      const queryText = <b>&quot;{simpleSearchTerm}&quot;</b>;
       const item = (
         <div key="no-results" className="col-12">
           <Card style={{ marginBottom: '15px' }}>
             <CardBody>
               <h5>No results found</h5>
-              <p>There are no organisations matching your query {query}</p>
+              <p>There are no organisations matching your query {queryText}</p>
             </CardBody>
           </Card>
         </div>
@@ -415,220 +314,128 @@ class Organisations extends Component {
       outputObj.push(item);
     }
     return outputObj;
-  }
+  }, [items, simpleSearchTerm]);
 
-  render() {
-    const {
-      loading,
-      limit,
-      page,
-      gotoPage,
-      totalPages,
-      organisationsLoading,
-      searchVisible,
-      simpleSearchTerm,
-      totalItems,
-      helpVisible,
-    } = this.state;
-    const { organisationsFilters, organisationsRelationship } = this.props;
-    const heading = 'Organisations';
-    const breadcrumbsItems = [
-      { label: heading, icon: 'pe-7s-users', active: true, path: '' },
-    ];
-    updateDocumentTitle(heading);
-    let content = (
-      <div>
-        <div className="row">
-          <div className="col-xs-12 col-sm-4">
-            <h4>Filters</h4>
-          </div>
-          <div className="col-xs-12 col-sm-8">
-            <h2>{heading}</h2>
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-12">
-            <div style={{ padding: '40pt', textAlign: 'center' }}>
-              <Spinner type="grow" color="info" /> <i>loading...</i>
-            </div>
-          </div>
-        </div>
+  const breadcrumbsItems = [
+    {
+      label: 'Organisations',
+      icon: 'pe-7s-culture',
+      active: true,
+      path: '',
+    },
+  ];
+
+  const pageActions = (
+    <Suspense fallback={renderLoader()}>
+      <PageActions
+        defaultLimit={defaultLimit}
+        limit={limit}
+        sort
+        orderField={orderField}
+        orderDesc={orderDesc}
+        current_page={page}
+        gotoPageValue={Number(gotoPage)}
+        total_pages={totalPages}
+        updatePage={updatePage}
+        gotoPage={gotoPageFn}
+        handleChange={handleChange}
+        updateLimit={updateLimit}
+        updateSort={updateSort}
+        pageType="organisations"
+      />
+    </Suspense>
+  );
+
+  const searchBox = (
+    <Collapse isOpen={searchVisible} style={{ paddingBottom: '15px' }}>
+      <Suspense fallback={null}>
+        <SearchForm
+          searchElements={searchElements}
+          simpleSearchTerm={simpleSearchTerm}
+          simpleSearch={reload}
+          clearSearch={clearSearch}
+          handleChange={handleChange}
+          adadvancedSearchEnable={false}
+        />
+      </Suspense>
+    </Collapse>
+  );
+
+  const organisationsOutput =
+    !loading && loadComplete ? (
+      renderItems()
+    ) : (
+      <div style={{ padding: '40pt', textAlign: 'center' }}>
+        <Spinner type="grow" color="info" /> <i>loading...</i>
       </div>
     );
 
-    if (!loading) {
-      const pageActions = (
-        <Suspense fallback={renderLoader()}>
-          <PageActions
-            limit={limit}
-            current_page={page}
-            gotoPageValue={gotoPage}
-            total_pages={totalPages}
-            updatePage={this.updatePage}
-            gotoPage={this.gotoPage}
-            handleChange={this.handleChange}
-            updateLimit={this.updateLimit}
-            pageType="organisations"
-          />
-        </Suspense>
-      );
-      let organisations = (
-        <div className="row">
-          <div className="col-12">
-            <div style={{ padding: '40pt', textAlign: 'center' }}>
-              <Spinner type="grow" color="info" /> <i>loading...</i>
-            </div>
-          </div>
-        </div>
-      );
-      if (!organisationsLoading) {
-        organisations = this.renderItems();
-      }
-      const searchElements = [
-        {
-          element: 'label',
-          label: 'Label',
-          inputType: 'text',
-          inputData: null,
-        },
-      ];
-
-      const searchBox = (
-        <Collapse isOpen={searchVisible}>
-          <Suspense fallback={renderLoader()}>
-            <SearchForm
+  return (
+    <div className="container">
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
+      <div className="row">
+        <div className="col-xs-12 col-sm-4">
+          <Suspense fallback={<h4>Filters</h4>}>
+            <Filters
               name="organisations"
-              searchElements={searchElements}
-              simpleSearchTerm={simpleSearchTerm}
-              simpleSearch={this.simpleSearch}
-              clearSearch={this.clearSearch}
-              handleChange={this.handleChange}
-              adadvancedSearchEnable={false}
-              advancedSearch={this.advancedSearchSubmit}
-              updateAdvancedSearchRows={this.updateAdvancedSearchRows}
-              clearAdvancedSearch={this.clearAdvancedSearch}
-              updateAdvancedSearchInputs={this.updateAdvancedSearchInputs}
+              filterType={filterType}
+              filtersSet={organisationsFilters}
+              relationshipSet={organisationsRelationship}
+              updateType={updateType}
+              updatedata={reload}
             />
           </Suspense>
-        </Collapse>
-      );
-
-      const filterType = ['organisationType'];
-      content = (
-        <div>
-          <div className="row">
-            <div className="col-xs-12 col-sm-4">
-              <Suspense fallback={renderLoader()}>
-                <Filters
-                  name="organisations"
-                  filterType={filterType}
-                  filtersSet={organisationsFilters}
-                  relationshipSet={organisationsRelationship}
-                  updateType={this.updateType}
-                  updatedata={this.load}
-                />
-              </Suspense>
-            </div>
-            <div className="col-xs-12 col-sm-8">
-              <h2>
-                {heading}
-                <Tooltip placement="top" target="search-tooltip">
-                  Search
-                </Tooltip>
-                <div className="tool-box">
-                  <div className="tool-box-text">Total: {totalItems}</div>
-                  <div
-                    className="action-trigger"
-                    onClick={() => this.toggleSearch()}
-                    id="search-tooltip"
-                    onKeyDown={() => false}
-                    role="button"
-                    tabIndex={0}
-                    aria-label="toggle search"
-                  >
-                    <i className="fa fa-search" />
-                  </div>
-                  <div
-                    className="action-trigger"
-                    onClick={() => this.toggleHelp()}
-                    title="Help"
-                    onKeyDown={() => false}
-                    role="button"
-                    tabIndex={0}
-                    aria-label="toggle help"
-                  >
-                    <i className="fa fa-question-circle" />
-                  </div>
-                </div>
-              </h2>
-              {searchBox}
-              {pageActions}
-              {organisations}
-              {pageActions}
-              <HelpArticle
-                permalink="organisations-help"
-                visible={helpVisible}
-                toggle={this.toggleHelp}
-              />
-            </div>
-          </div>
         </div>
-      );
-    }
-    return (
-      <div className="container">
-        <Suspense fallback={[]}>
-          <Breadcrumbs items={breadcrumbsItems} />
-        </Suspense>
-        {content}
+        <div className="col-xs-12 col-sm-8">
+          <h2>
+            {heading}
+            <Tooltip placement="top" target="search-tooltip">
+              Search
+            </Tooltip>
+            <div className="tool-box">
+              <div className="tool-box-text">Total: {totalItems}</div>
+              <div
+                className="action-trigger"
+                onClick={() => toggleSearch()}
+                id="search-tooltip"
+                onKeyDown={() => false}
+                role="button"
+                tabIndex={0}
+                aria-label="toggle search"
+              >
+                <i className="fa fa-search" />
+              </div>
+              <div
+                className="action-trigger"
+                onClick={() => toggleHelp()}
+                title="Help"
+                onKeyDown={() => false}
+                role="button"
+                tabIndex={0}
+                aria-label="toggle help"
+              >
+                <i className="fa fa-question-circle" />
+              </div>
+            </div>
+          </h2>
+          {searchBox}
+          {pageActions}
+          {organisationsOutput}
+          {pageActions}
+        </div>
       </div>
-    );
-  }
+
+      <Suspense fallback={[]}>
+        <HelpArticle
+          permalink="events-help"
+          visible={helpVisible}
+          toggle={toggleHelp}
+        />
+      </Suspense>
+    </div>
+  );
 }
 
-Organisations.defaultProps = {
-  organisationsPagination: {
-    limit: 25,
-    page: 1,
-    simpleSearchTerm: '',
-  },
-  organisationsFilters: {
-    organisationType: '',
-  },
-  updateFilters: () => {},
-  setRelationshipParams: () => {},
-  setPaginationParams: () => {},
-  organisationsRelationship: {
-    classpieces: [],
-    events: [],
-    organisations: [],
-    people: [],
-    temporals: [],
-    spatials: [],
-  },
-};
-Organisations.propTypes = {
-  organisationsPagination: PropTypes.shape({
-    limit: PropTypes.number,
-    page: PropTypes.number,
-    simpleSearchTerm: PropTypes.string,
-  }),
-  organisationsFilters: PropTypes.shape({
-    organisationType: PropTypes.string,
-  }),
-  updateFilters: PropTypes.func,
-  setRelationshipParams: PropTypes.func,
-  setPaginationParams: PropTypes.func,
-  organisationsRelationship: PropTypes.shape({
-    classpieces: PropTypes.array,
-    events: PropTypes.array,
-    organisations: PropTypes.array,
-    people: PropTypes.array,
-    temporals: PropTypes.array,
-    spatials: PropTypes.array,
-  }),
-};
-
-export default compose(connect(mapStateToProps, mapDispatchToProps))(
-  Organisations
-);
+export default Organisations;

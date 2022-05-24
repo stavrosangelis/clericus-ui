@@ -1,25 +1,18 @@
+/* globals afterAll, afterEach, beforeAll, describe, expect, it */
 import React from 'react';
-import {
-  act,
-  render,
-  screen,
-  cleanup,
-  waitForElementToBeRemoved,
-  waitFor,
-} from '@testing-library/react';
+import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import store from '../redux/store';
 import server from '../__mocks/mock-server';
 
-import HomeSlider from '../components/home/carousel';
-import SectionNumbers from '../components/home/section-numbers';
-import About from '../components/home/about';
-import HighLights from '../components/home/highLights';
-import News from '../components/home/news';
-import Welcome from '../components/home/welcome';
-import Visualisations from '../components/home/visualisations';
-
+import HomeSlider from '../components/home/Carousel';
+import SectionNumbers from '../components/home/Section.numbers';
+import About from '../components/home/About';
+import HighLights from '../components/home/Highlights';
+import News from '../components/home/News';
+import Welcome from '../components/home/Welcome';
+import Visualisations from '../components/home/Visualisations';
 
 // Enable API mocking before tests.
 beforeAll(() => server.listen());
@@ -58,12 +51,14 @@ describe('HomeSlider component', () => {
 });
 
 // section numbers
-const SectionNumbersWrapper = (props) => (
-  <Provider store={store()}>
-    {/* eslint-disable-next-line */}
-    <SectionNumbers  {...props} />
-  </Provider>
-);
+function SectionNumbersWrapper(props) {
+  return (
+    <Provider store={store()}>
+      {/* eslint-disable-next-line */}
+      <SectionNumbers  {...props} />
+    </Provider>
+  );
+}
 describe('SectionNumbers component', () => {
   it('renders section numbers', async () => {
     await act(async () => {
@@ -75,11 +70,14 @@ describe('SectionNumbers component', () => {
 });
 
 // about
-const AboutWrapper = (props) => (
-  <Router>
-    <About />
-  </Router>
-);
+function AboutWrapper() {
+  return (
+    <Router>
+      <About />
+    </Router>
+  );
+}
+
 describe('About component', () => {
   it('renders about', async () => {
     await act(async () => {
@@ -90,15 +88,17 @@ describe('About component', () => {
 });
 
 // highlights
-const HighlightsWrapper = (props) => (
-  <Router>
-    <HighLights />
-  </Router>
-);
+function HighlightsWrapper() {
+  return (
+    <Router>
+      <HighLights />
+    </Router>
+  );
+}
 describe('Highlights component', () => {
   it('renders highlights', async () => {
     await act(async () => {
-      const { container } = render(<HighlightsWrapper />);
+      render(<HighlightsWrapper />);
       const items = await screen.findAllByText('Peter Yorke');
       expect(items).toHaveLength(2);
     });
@@ -106,11 +106,13 @@ describe('Highlights component', () => {
 });
 
 // news
-const NewsWrapper = (props) => (
-  <Router>
-    <News />
-  </Router>
-);
+function NewsWrapper() {
+  return (
+    <Router>
+      <News />
+    </Router>
+  );
+}
 describe('News component', () => {
   it('renders news', async () => {
     await act(async () => {
@@ -121,11 +123,13 @@ describe('News component', () => {
 });
 
 // welcome
-const WelcomeWrapper = (props) => (
-  <Router>
-    <Welcome />
-  </Router>
-);
+function WelcomeWrapper() {
+  return (
+    <Router>
+      <Welcome />
+    </Router>
+  );
+}
 describe('Welcome component', () => {
   it('renders welcome', async () => {
     await act(async () => {
@@ -136,11 +140,13 @@ describe('Welcome component', () => {
 });
 
 // visualisations
-const VisualisationsWrapper = (props) => (
-  <Router>
-    <Visualisations />
-  </Router>
-);
+function VisualisationsWrapper() {
+  return (
+    <Router>
+      <Visualisations />
+    </Router>
+  );
+}
 describe('Visualisations component', () => {
   it('renders visualisations', async () => {
     await act(async () => {

@@ -1,5 +1,5 @@
 .home-carousel {
-  margin: -30px -15px 0 -15px;
+  margin: -30px 0 0 0;
 }
 .carousel-default-item {
   position: absolute;
@@ -52,8 +52,15 @@
   text-shadow: none;
   color: #fff !important;
 }
+.carousel-indicators {
+  z-index: 5;
+}
 .carousel-control-prev, .carousel-control-next {
   z-index: 4;
+  text-decoration: none;
+}
+a.carousel-control-prev:hover, a.carousel-control-next:hover, a.carousel-control-prev:active, a.carousel-control-next:active {
+  text-decoration: none;
 }
 .carousel-control-next-icon, .carousel-control-prev-icon {
   background-image: none;

@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
-import { Button, Form, Input, InputGroup, InputGroupAddon } from 'reactstrap';
+import React, { useState, useRef } from 'react';
+import { Button, Form, Input, InputGroup } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import Pagination from '../pagination';
+import Pagination from '../Pagination';
 import { outputRelationTypes } from '../../helpers';
 
 const Block = (props) => {
   // state
+  const [visible, setVisible] = useState(true);
   const [searchVisible, setSearchVisible] = useState(false);
   const [simpleSearchSet, setSimpleSearchSet] = useState('');
   const [simpleSearchTerm, setSimpleSearchTerm] = useState('');
@@ -17,12 +18,17 @@ const Block = (props) => {
   const lastIndex = firstIndex + limit;
 
   // props
-  const {
-    organisations: propsOrganisations,
-    toggleTable,
-    hidden,
-    visible,
-  } = props;
+  const { items } = props;
+  const { length } = items;
+
+  const searchInputRef = useRef(null);
+
+  const toggleVisible = () => {
+    if (visible && searchVisible) {
+      setSearchVisible(false);
+    }
+    setVisible(!visible);
+  };
 
   const handleSearchTermChange = (e) => {
     const { target } = e;
@@ -44,11 +50,10 @@ const Block = (props) => {
   };
 
   const toggleSearch = () => {
-    if (searchVisible) {
-      setSearchVisible(!searchVisible);
-    } else {
-      setSearchVisible(!searchVisible);
+    if (!searchVisible) {
+      searchInputRef.current.focus();
     }
+    setSearchVisible(!searchVisible);
   };
 
   const updatePage = (e) => {
@@ -57,9 +62,9 @@ const Block = (props) => {
     }
   };
 
-  let organisationsRow = [];
-  if (propsOrganisations.length > 0) {
-    const organisations = propsOrganisations.filter((p) =>
+  let organisationsRow = null;
+  if (length > 0) {
+    const organisations = items.filter((p) =>
       p.ref.label.toLowerCase().includes(simpleSearchSet.toLowerCase())
     );
     const organisationsData = [];
@@ -70,37 +75,37 @@ const Block = (props) => {
           break;
         }
         const organisation = organisations[i];
-        const url = `/organisation/${organisation.ref._id}`;
-        const termLabel = outputRelationTypes(organisation.term.label);
-        const organisationType =
-          organisation.ref.organisationType !== ''
-            ? ` [${organisation.ref.organisationType}]`
-            : '';
-        const role =
-          typeof organisation.term?.role !== 'undefined' &&
-          organisation.term?.role !== '' ? (
-            <i>as {organisation.term?.role}</i>
-          ) : (
-            ''
+        const { ref = null, term = null } = organisation;
+        if (ref !== null) {
+          const {
+            _id: rId = '',
+            label: rLabel = '',
+            organisationType: tOrganisationType = '',
+          } = ref;
+          const { label: tLabel = '', role: tRole = '' } = term;
+          const url = `/organisation/${rId}`;
+          const termLabel = outputRelationTypes(tLabel);
+          const organisationType =
+            tOrganisationType !== ''
+              ? ` [${organisation.ref.organisationType}]`
+              : '';
+          const role = tRole !== '' ? <i>as {tRole}</i> : '';
+          const roleSpace = role !== '' ? ' ' : '';
+          const refLabel = rLabel.trim();
+          organisationsData.push(
+            <li key={`${i}-${refLabel}`}>
+              <Link className="tag-bg tag-item" href={url} to={url}>
+                <i>{termLabel}</i> {refLabel}
+                {organisationType}
+                {roleSpace}
+                {role}
+              </Link>
+            </li>
           );
-        const roleSpace = role !== '' ? ' ' : '';
-        const oKey = `${i}-${organisation.ref.label}`;
-        organisationsData.push(
-          <li key={oKey}>
-            <Link className="tag-bg tag-item" href={url} to={url}>
-              <i>{termLabel}</i> {organisation.ref.label}
-              {organisationType}
-              {roleSpace}
-              {role}
-            </Link>
-          </li>
-        );
+        }
       }
     }
-    let searchVisibleClass = '';
-    if (searchVisible) {
-      searchVisibleClass = 'visible';
-    }
+    const searchVisibleClass = searchVisible ? 'visible' : '';
     const searchBar = (
       <div className={`tags-search-container ${searchVisibleClass}`}>
         <Form onSubmit={(e) => simpleSearch(e)}>
@@ -115,24 +120,23 @@ const Block = (props) => {
               onChange={handleSearchTermChange}
               placeholder="Search..."
               value={simpleSearchTerm}
+              innerRef={searchInputRef}
             />
-            <InputGroupAddon addonType="append">
-              <Button
-                size="sm"
-                outline
-                type="button"
-                onClick={clearSearch}
-                className="clear-search"
-              >
-                <i className="fa fa-times-circle" />
-              </Button>
-            </InputGroupAddon>
+            <Button
+              size="sm"
+              outline
+              type="button"
+              onClick={clearSearch}
+              className="clear-search"
+            >
+              <i className="fa fa-times-circle" />
+            </Button>
           </InputGroup>
         </Form>
       </div>
     );
 
-    let totalPages = Math.ceil(organisations.length / limit);
+    let totalPages = Math.ceil(oLength / limit);
     let newPage = page;
     if (totalPages < newPage) {
       if (totalPages === 0) {
@@ -140,37 +144,40 @@ const Block = (props) => {
       }
       newPage = totalPages;
     }
-    let pagination = [];
-    if (totalPages > 1) {
-      pagination = (
+    const pagination =
+      totalPages > 1 ? (
         <div className="tag-list-pagination">
           <Pagination
             limit={limit}
-            current_page={newPage}
-            total_pages={totalPages}
-            pagination_function={updatePage}
+            currentPage={newPage}
+            totalPages={totalPages}
+            paginationFn={updatePage}
             className="mini people-tags-pagination"
           />
           <span>of {totalPages}</span>
         </div>
-      );
+      ) : null;
+
+    let visibleClass = '';
+    let visibleIcon = '';
+    if (!visible) {
+      visibleClass = ' item-hidden';
+      visibleIcon = ' closed';
     }
 
     organisationsRow = (
-      <div key="organisations">
+      <>
         <h5>
-          Organisations <small>[{propsOrganisations.length}]</small>
+          Organisations <small>[{length}]</small>
           <div
             className="btn btn-default btn-xs pull-right toggle-info-btn pull-icon-middle"
-            onClick={(e) => {
-              toggleTable(e, 'organisations');
-            }}
+            onClick={toggleVisible}
             onKeyDown={() => false}
             role="button"
             tabIndex={0}
             aria-label="toggle organisations visibility"
           >
-            <i className={`fa fa-angle-down${hidden}`} />
+            <i className={`fa fa-angle-down${visibleIcon}`} />
           </div>
           <div className="tool-box pull-right classpiece-search">
             <div
@@ -186,12 +193,12 @@ const Block = (props) => {
             </div>
           </div>
         </h5>
-        <div className={visible}>
+        <div className={`item-block ${visibleClass}`}>
           {searchBar}
           <ul className="tag-list">{organisationsData}</ul>
           {pagination}
         </div>
-      </div>
+      </>
     );
   }
 
@@ -199,16 +206,10 @@ const Block = (props) => {
 };
 
 Block.defaultProps = {
-  hidden: '',
-  visible: '',
-  organisations: [],
-  toggleTable: () => {},
+  items: [],
 };
 Block.propTypes = {
-  hidden: PropTypes.string,
-  visible: PropTypes.string,
-  organisations: PropTypes.array,
-  toggleTable: PropTypes.func,
+  items: PropTypes.array,
 };
 
 export default Block;

@@ -1,0 +1,29 @@
+.pagination-container .page-link {
+  color: #666;
+  min-width: 36px;
+  padding: 0.4rem 0.5rem;
+  font-size: 13px;
+}
+.pagination-container li.active .page-link {
+  background-color: #51cbce;
+  border-color: #51cbce;
+}
+.page-link:focus {
+  box-shadow: none;
+}
+.pagination-container.mini .page-link {
+  color: #666;
+  min-width: 24px;
+  padding: 0.2rem 0.2rem;
+  font-size: 10px;
+}
+.pagination li:first-child > button {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  margin-right: -1px;
+}
+.pagination {
+  display: flex;
+  flex-flow: row wrap;
+  margin-bottom: 0;
+}

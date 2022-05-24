@@ -11,45 +11,52 @@ import axios from 'axios';
 
 import '../../scss/carousel.scss';
 
-const APIPath = process.env.REACT_APP_APIPATH;
+const { REACT_APP_APIPATH: APIPath } = process.env;
 
-const HomeSlider = () => {
+function HomeSlider() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [animating, setAnimating] = useState(false);
   const [items, setItems] = useState([]);
+  const [indicators, setIndicators] = useState([]);
   const [loading, setLoading] = useState([]);
   const [imgPaths, setImgPaths] = useState([]);
   const prevImgPaths = useRef(null);
 
   useEffect(() => {
-    const cancelToken = axios.CancelToken;
-    const source = cancelToken.source();
-
+    let unmounted = false;
+    const controller = new AbortController();
     const load = async () => {
       const responseData = await axios({
         method: 'get',
         url: `${APIPath}carousel`,
         crossDomain: true,
-        cancelToken: source.token,
+        signal: controller.signal,
       })
         .then((response) => response.data.data)
         .catch((error) => console.log(error));
-      if (typeof responseData !== 'undefined') {
-        const newItems = responseData.data;
-        const newPaths = newItems.map(
-          (i) =>
-            i.imageDetails.paths.find((p) => p.pathType === 'thumbnail').path
-        );
-        setItems(newItems);
-        setImgPaths(newPaths);
+      if (!unmounted) {
         setLoading(false);
+        const { data: newItems = [] } = responseData;
+        if (newItems.length > 0) {
+          const newPaths = newItems.map(
+            (i) =>
+              i.imageDetails.paths.find((p) => p.pathType === 'thumbnail').path
+          );
+          const newIndicators = newItems.map((i) => ({
+            key: i._id,
+          }));
+          setItems(newItems);
+          setIndicators(newIndicators);
+          setImgPaths(newPaths);
+        }
       }
     };
     if (loading) {
       load();
     }
     return () => {
-      source.cancel('api request cancelled');
+      unmounted = true;
+      controller.abort();
     };
   }, [loading]);
 
@@ -157,6 +164,7 @@ const HomeSlider = () => {
       </CarouselItem>
     );
   }
+
   return (
     <Carousel
       activeIndex={activeIndex}
@@ -164,9 +172,10 @@ const HomeSlider = () => {
       previous={previous}
       pause="hover"
       className="home-carousel"
+      ride="carousel"
     >
       <CarouselIndicators
-        items={items}
+        items={indicators}
         activeIndex={activeIndex}
         onClickHandler={goToIndex}
       />
@@ -183,6 +192,6 @@ const HomeSlider = () => {
       />
     </Carousel>
   );
-};
+}
 
 export default HomeSlider;

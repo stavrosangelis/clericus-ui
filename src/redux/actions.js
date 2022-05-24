@@ -360,6 +360,15 @@ export function clearFilters(type) {
     if (typeof newValues.personType !== 'undefined') {
       newValues.personType = '';
     }
+    if (typeof newValues.sources !== 'undefined') {
+      newValues.sources = [];
+    }
+    if (typeof newValues.resourcesType !== 'undefined') {
+      newValues.resourcesType = '';
+    }
+    if (typeof newValues.spatials !== 'undefined') {
+      newValues.spatials = [];
+    }
     payload = {
       [filtersName]: newValues,
     };

@@ -1,133 +1,87 @@
-import React from 'react';
-import ScrollEvent from 'react-onscroll';
-
+import React, { Fragment, useEffect, useState, useRef } from 'react';
 import { Collapse, Navbar } from 'reactstrap';
-import { Link, Redirect } from 'react-router-dom';
-import TopMenu from './top-menu';
+import { Link, useNavigate } from 'react-router-dom';
+
+import Topbar from './Topbar';
+import TopMenu from './Top.menu';
+
 import logosrc from '../assets/images/cos-logo-bw.png';
 
-export default class Header extends React.Component {
-  constructor(props) {
-    super(props);
+function Header() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
 
-    this.oldOffsetTop = 0;
+  const topRef = useRef(null);
+  const navRef = useRef(null);
+  const searchRef = useRef(null);
 
-    this.state = {
-      isOpen: false,
-      searchVisible: false,
-      search: '',
-      redirect: false,
-    };
+  const navigate = useNavigate();
 
-    this.stopRedirect = this.stopRedirect.bind(this);
-    this.toggle = this.toggle.bind(this);
-    this.toggleSearch = this.toggleSearch.bind(this);
-    this.handleScrollCallback = this.handleScrollCallback.bind(this);
-    this.handleChange = this.handleChange.bind(this);
-    this.searchSubmit = this.searchSubmit.bind(this);
+  const handleChange = (e) => {
+    const { value } = e.target;
+    setSearchInput(value);
+  };
 
-    this.myRef = React.createRef();
-    this.searchRef = React.createRef();
-  }
-
-  componentDidUpdate() {
-    const { redirect } = this.state;
-    if (redirect) {
-      this.stopRedirect();
-    }
-  }
-
-  handleChange(e) {
-    const { target } = e;
-    const value = target.type === 'checkbox' ? target.checked : target.value;
-    const { name } = target;
-    this.setState({
-      [name]: value,
-    });
-  }
-
-  handleScrollCallback() {
-    if (
-      this.myRef.current.offsetTop > 0 &&
-      this.oldOffsetTop !== this.myRef.current.offsetTop
-    ) {
-      this.oldOffsetTop = this.myRef.current.offsetTop;
-    }
-    if (window.pageYOffset > this.oldOffsetTop) {
-      document
-        .getElementById('headerNavbar')
-        .classList.add('headerNavbar-container');
-    } else if (
-      document
-        .getElementById('headerNavbar')
-        .classList.contains('headerNavbar-container')
-    )
-      document
-        .getElementById('headerNavbar')
-        .classList.remove('headerNavbar-container');
-  }
-
-  stopRedirect() {
-    this.setState({
-      redirect: false,
-    });
-  }
-
-  toggle() {
-    const { isOpen } = this.state;
-    this.setState({
-      isOpen: !isOpen,
-    });
-  }
-
-  toggleSearch() {
-    const { searchVisible } = this.state;
-    if (!searchVisible) {
-      this.searchRef.current.focus();
-    }
-    this.setState({
-      searchVisible: !searchVisible,
-    });
-  }
-
-  searchSubmit(e) {
-    e.preventDefault();
-    this.setState(
-      {
-        redirect: true,
-      },
-      () => {
-        this.toggleSearch();
-        this.setState({
-          search: '',
-        });
+  useEffect(() => {
+    const windowScroll = () => {
+      if (topRef.current !== null) {
+        const { height } = topRef.current.getBoundingClientRect();
+        const scrollYPosition = document.documentElement.scrollTop;
+        const headerNavbar = navRef.current || null;
+        if (headerNavbar !== null) {
+          if (
+            scrollYPosition > height &&
+            !headerNavbar.classList.contains('headerNavbar-container')
+          ) {
+            headerNavbar.classList.add('headerNavbar-container');
+          } else if (
+            scrollYPosition <= height &&
+            headerNavbar.classList.contains('headerNavbar-container')
+          ) {
+            headerNavbar.classList.remove('headerNavbar-container');
+          }
+        }
       }
-    );
-  }
+    };
+    window.addEventListener('scroll', windowScroll);
+    return () => {
+      window.removeEventListener('scroll', windowScroll);
+    };
+  }, []);
 
-  render() {
-    const {
-      searchVisible,
-      redirect: stateRedirect,
-      search,
-      isOpen,
-    } = this.state;
-    let searchClass = '';
-    if (searchVisible) {
-      searchClass = 'visible';
+  const toggle = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const closeMenu = () => {
+    setIsOpen(false);
+  };
+
+  const toggleSearch = () => {
+    if (!searchVisible) {
+      searchRef.current.focus();
     }
-    let redirect = [];
-    if (stateRedirect) {
-      redirect = <Redirect to={`/search/${search}`} />;
-    }
-    return (
+    setSearchVisible(!searchVisible);
+  };
+
+  const searchSubmit = (e) => {
+    e.preventDefault();
+    toggleSearch();
+    navigate(`/search/${searchInput}`);
+    setSearchInput('');
+  };
+
+  const searchClass = searchVisible ? 'visible' : '';
+
+  return (
+    <>
+      <Topbar pRef={topRef} />
       <div
         id="headerNavbar"
-        ref={this.myRef}
+        ref={navRef}
         className="container-fluid header main-nav"
       >
-        {redirect}
-        <ScrollEvent handleScrollCallback={this.handleScrollCallback} />
         <div className="container">
           <Navbar expand="md">
             <Link to="/" href="/" className="logo-container">
@@ -139,7 +93,7 @@ export default class Header extends React.Component {
             <button
               type="button"
               className="navbar-toggler navbar-toggler-nopadding"
-              onClick={this.toggle}
+              onClick={() => toggle()}
               aria-label="Toggle navigation"
             >
               <span className="navbar-toggler-icon">
@@ -147,10 +101,10 @@ export default class Header extends React.Component {
               </span>
             </button>
             <Collapse isOpen={isOpen} navbar>
-              <TopMenu toggle={this.toggle} />
+              <TopMenu toggle={closeMenu} />
               <div className="search-trigger">
                 <span
-                  onClick={() => this.toggleSearch()}
+                  onClick={() => toggleSearch()}
                   onKeyDown={() => false}
                   role="button"
                   tabIndex={0}
@@ -163,18 +117,18 @@ export default class Header extends React.Component {
           </Navbar>
         </div>
         <div className={`generic-search-input ${searchClass}`}>
-          <form onSubmit={this.searchSubmit}>
+          <form onSubmit={(e) => searchSubmit(e)}>
             <input
-              ref={this.searchRef}
+              ref={searchRef}
               name="search"
               type="text"
               placeholder="Search..."
-              value={search}
-              onChange={this.handleChange}
+              value={searchInput}
+              onChange={(e) => handleChange(e)}
             />
             <i
               className="fa fa-search search-submit"
-              onClick={this.searchSubmit}
+              onClick={(e) => searchSubmit(e)}
               onKeyDown={() => false}
               role="button"
               tabIndex={0}
@@ -183,6 +137,8 @@ export default class Header extends React.Component {
           </form>
         </div>
       </div>
-    );
-  }
+    </>
+  );
 }
+
+export default Header;

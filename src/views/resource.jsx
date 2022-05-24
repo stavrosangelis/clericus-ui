@@ -1,376 +1,196 @@
-import React, { Component, lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { Label, Spinner, Card, CardBody } from 'reactstrap';
-import { Link } from 'react-router-dom';
-import PropTypes from 'prop-types';
+import { Link, useParams } from 'react-router-dom';
 
-import Breadcrumbs from '../components/breadcrumbs';
 import {
   getResourceThumbnailURL,
   getResourceFullsizeURL,
   renderLoader,
   updateDocumentTitle,
 } from '../helpers';
-import parseMetadata from '../helpers/parse-metadata';
+import '../scss/classpiece.viewer.scss';
 
-const Viewer = lazy(() => import('../components/image-viewer-resource'));
+const { REACT_APP_APIPATH: APIPath } = process.env;
+const Breadcrumbs = lazy(() => import('../components/Breadcrumbs'));
 const DescriptionBlock = lazy(() =>
-  import('../components/item-blocks/description')
-);
-const ResourcesBlock = lazy(() =>
-  import('../components/item-blocks/resources')
+  import('../components/item-blocks/Description')
 );
 const ClasspiecesBlock = lazy(() =>
-  import('../components/item-blocks/classpieces')
+  import('../components/item-blocks/Classpieces')
 );
-const EventsBlock = lazy(() => import('../components/item-blocks/events'));
+const EventsBlock = lazy(() => import('../components/item-blocks/Events'));
+const MetadataBlock = lazy(() => import('../components/item-blocks/Metadata'));
 const OrganisationsBlock = lazy(() =>
-  import('../components/item-blocks/organisations')
+  import('../components/item-blocks/Organisations')
 );
-const PeopleBlock = lazy(() => import('../components/item-blocks/people'));
+const PeopleBlock = lazy(() => import('../components/item-blocks/People'));
+const ResourcesBlock = lazy(() =>
+  import('../components/item-blocks/Resources')
+);
+const Viewer = lazy(() => import('../components/Image.viewer.resource'));
 
-export default class Resource extends Component {
-  constructor(props) {
-    super(props);
+function Resource() {
+  const { _id } = useParams();
+  const [loading, setLoading] = useState(true);
+  const [item, setItem] = useState(null);
+  const [viewerVisible, setViewerVisible] = useState(false);
 
-    this.state = {
-      loading: true,
-      item: null,
-      viewerVisible: false,
-      descriptionVisible: true,
-      eventsVisible: true,
-      peopleVisible: true,
-      classpiecesVisible: true,
-      resourcesVisible: true,
-      organisationsVisible: true,
-      metadataDataVisible: false,
-      error: {
-        visible: false,
-        text: [],
-      },
-    };
+  const prevId = useRef(null);
 
-    this.load = this.load.bind(this);
-    this.renderItem = this.renderItem.bind(this);
-    this.renderResourceDetails = this.renderResourceDetails.bind(this);
-    this.renderThumbnailMetadata = this.renderThumbnailMetadata.bind(this);
-
-    this.toggleViewer = this.toggleViewer.bind(this);
-    this.toggleTable = this.toggleTable.bind(this);
-
-    const cancelToken = axios.CancelToken;
-    this.cancelSource = cancelToken.source();
-  }
-
-  componentDidMount() {
-    this.load();
-  }
-
-  componentDidUpdate(prevProps) {
-    const { match: prevMatch } = prevProps;
-    const { _id: prevId } = prevMatch.params;
-    const { match } = this.props;
-    const { _id } = match.params;
-    if (prevId !== _id) {
-      this.load();
-    }
-  }
-
-  componentWillUnmount() {
-    this.cancelSource.cancel('api request cancelled');
-  }
-
-  async load() {
-    const { match } = this.props;
-    const { _id } = match.params;
-    if (typeof _id === 'undefined' || _id === null || _id === '') {
-      return false;
-    }
-    this.setState({
-      loading: true,
-    });
-    const params = {
-      _id,
-    };
-    const url = `${process.env.REACT_APP_APIPATH}ui-resource`;
-    const responseData = await axios({
-      method: 'get',
-      url,
-      crossDomain: true,
-      params,
-      cancelToken: this.cancelSource.token,
-    })
-      .then((response) => response.data)
-      .catch((error) => {
-        console.log(error);
-      });
-    if (typeof responseData !== 'undefined') {
-      if (responseData.status) {
-        this.setState({
-          loading: false,
-          item: responseData.data,
-        });
-      } else {
-        this.setState({
-          loading: false,
-          error: {
-            visible: true,
-            text: responseData.msg,
-          },
-        });
+  useEffect(() => {
+    let unmounted = false;
+    const controller = new AbortController();
+    const load = async () => {
+      prevId.current = _id;
+      const responseData = await axios({
+        method: 'get',
+        url: `${APIPath}ui-resource`,
+        crossDomain: true,
+        params: { _id },
+        signal: controller.signal,
+      })
+        .then((response) => response.data)
+        .catch((error) => console.log(error));
+      if (!unmounted) {
+        setLoading(false);
+        const { data = null } = responseData;
+        if (data !== null) {
+          setItem(data);
+        }
       }
-    }
-    return false;
-  }
-
-  toggleTable(e, dataType = null) {
-    const { [`${dataType}Visible`]: value } = this.state;
-    const payload = {
-      [`${dataType}Visible`]: !value,
     };
-    this.setState(payload);
-  }
+    if (loading) {
+      load();
+    }
+    return () => {
+      unmounted = true;
+      controller.abort();
+    };
+  }, [loading, _id]);
 
-  toggleViewer() {
-    const { viewerVisible } = this.state;
-    this.setState({
-      viewerVisible: !viewerVisible,
-    });
-  }
+  useEffect(() => {
+    if (!loading && prevId.current !== _id) {
+      prevId.current = _id;
+      setLoading(true);
+      setItem(null);
+    }
+  }, [_id, loading]);
 
-  renderResourceDetails(stateData = null) {
-    const { item } = stateData;
+  const toggleViewer = () => {
+    setViewerVisible(!viewerVisible);
+  };
+
+  const renderDetails = () => {
     const {
-      descriptionVisible,
-      classpiecesVisible,
-      resourcesVisible,
-      eventsVisible,
-      organisationsVisible,
-    } = this.state;
-
-    // 1. resourceDetails
-    const detailsOutput = [];
+      classpieces = [],
+      description = '',
+      events = [],
+      metadata = [],
+      organisations = [],
+      originalLocation = '',
+      people = [],
+      resources = [],
+    } = item;
 
     // description
-    let descriptionRow = [];
-    let descriptionHidden = '';
-    let descriptionVisibleClass = '';
-    if (!descriptionVisible) {
-      descriptionHidden = ' closed';
-      descriptionVisibleClass = 'hidden';
-    }
-    if (
-      typeof item.description !== 'undefined' &&
-      item.description !== null &&
-      item.description !== ''
-    ) {
-      descriptionRow = (
+    const descriptionRow =
+      description !== '' ? (
         <Suspense fallback={renderLoader()} key="description">
-          <DescriptionBlock
-            toggleTable={this.toggleTable}
-            hidden={descriptionHidden}
-            visible={descriptionVisibleClass}
-            description={item.description}
-          />
+          <DescriptionBlock description={description} />
         </Suspense>
-      );
-    }
+      ) : null;
 
-    let originalLocation = [];
-    if (
-      typeof item.originalLocation !== 'undefined' &&
-      item.originalLocation !== null &&
-      item.originalLocation !== ''
-    ) {
-      originalLocation = (
+    // original location
+    const originalLocationRow =
+      originalLocation !== '' ? (
         <div className="original-location" key="original-location">
           Original location:{' '}
-          <a
-            href={item.originalLocation}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
+          <a href={originalLocation} rel="noopener noreferrer" target="_blank">
             URL
           </a>
         </div>
-      );
-    }
-
-    // classpieces
-    let classpiecesRow = [];
-    let classpiecesHidden = '';
-    let classpiecesVisibleClass = '';
-    if (!classpiecesVisible) {
-      classpiecesHidden = ' closed';
-      classpiecesVisibleClass = 'hidden';
-    }
-    if (
-      typeof item.classpieces !== 'undefined' &&
-      item.classpieces !== null &&
-      item.classpieces !== ''
-    ) {
-      classpiecesRow = (
-        <Suspense fallback={renderLoader()} key="classpieces">
-          <ClasspiecesBlock
-            toggleTable={this.toggleTable}
-            hidden={classpiecesHidden}
-            visible={classpiecesVisibleClass}
-            items={item.classpieces}
-          />
-        </Suspense>
-      );
-    }
-
-    // resources
-    let resourcesRow = [];
-    let resourcesHidden = '';
-    let resourcesVisibleClass = '';
-    if (!resourcesVisible) {
-      resourcesHidden = ' closed';
-      resourcesVisibleClass = 'hidden';
-    }
-    if (
-      typeof item.resources !== 'undefined' &&
-      item.resources !== null &&
-      item.resources !== ''
-    ) {
-      resourcesRow = (
-        <Suspense fallback={renderLoader()} key="resources">
-          <ResourcesBlock
-            toggleTable={this.toggleTable}
-            hidden={resourcesHidden}
-            visible={resourcesVisibleClass}
-            resources={item.resources}
-          />
-        </Suspense>
-      );
-    }
+      ) : null;
 
     // events
-    let eventsRow = [];
-    let eventsHidden = '';
-    let eventsVisibleClass = '';
-    if (!eventsVisible) {
-      eventsHidden = ' closed';
-      eventsVisibleClass = 'hidden';
-    }
-    if (
-      typeof item.events !== 'undefined' &&
-      item.events !== null &&
-      item.events !== ''
-    ) {
-      eventsRow = (
+    const eventsRow =
+      events.length > 0 ? (
         <Suspense fallback={renderLoader()} key="events">
-          <EventsBlock
-            toggleTable={this.toggleTable}
-            hidden={eventsHidden}
-            visible={eventsVisibleClass}
-            events={item.events}
-          />
+          <EventsBlock items={events} _id={_id} />
         </Suspense>
-      );
-    }
+      ) : null;
+
+    // classpieces
+    const classpiecesRow =
+      classpieces.length > 0 ? (
+        <Suspense fallback={renderLoader()} key="classpieces">
+          <ClasspiecesBlock items={classpieces} />
+        </Suspense>
+      ) : null;
 
     // organisations
-    let organisationsRow = [];
-    let organisationsHidden = '';
-    let organisationsVisibleClass = '';
-    if (!organisationsVisible) {
-      organisationsHidden = ' closed';
-      organisationsVisibleClass = 'hidden';
-    }
-    if (
-      typeof item.organisations !== 'undefined' &&
-      item.organisations !== null &&
-      item.organisations !== ''
-    ) {
-      organisationsRow = (
+    const organisationsRow =
+      organisations.length > 0 ? (
         <Suspense fallback={renderLoader()} key="organisations">
-          <OrganisationsBlock
-            toggleTable={this.toggleTable}
-            hidden={organisationsHidden}
-            visible={organisationsVisibleClass}
-            organisations={item.organisations}
-          />
+          <OrganisationsBlock items={organisations} />
         </Suspense>
-      );
-    }
+      ) : null;
 
     // people
-    const peopleRow = (
-      <Suspense fallback={renderLoader()} key="people">
-        <PeopleBlock name="resource" peopleItem={item.people} />
-      </Suspense>
+    const peopleRow =
+      people.length > 0 ? (
+        <Suspense fallback={renderLoader()} key="people">
+          <PeopleBlock items={people} />
+        </Suspense>
+      ) : null;
+
+    // resources
+    const resourcesRow =
+      resources.length > 0 ? (
+        <Suspense fallback={renderLoader()} key="resources">
+          <ResourcesBlock items={resources} />
+        </Suspense>
+      ) : null;
+
+    // technical metadata
+    const technicalMetadataRow =
+      Object.keys(metadata).length > 0 ? (
+        <Suspense fallback={renderLoader()} key="technical-metadata">
+          <MetadataBlock metadata={metadata} />
+        </Suspense>
+      ) : null;
+
+    return (
+      <>
+        {descriptionRow}
+        {originalLocationRow}
+        {eventsRow}
+        {peopleRow}
+        {classpiecesRow}
+        {resourcesRow}
+        {organisationsRow}
+        {technicalMetadataRow}
+      </>
     );
+  };
 
-    detailsOutput.push(descriptionRow);
-    detailsOutput.push(originalLocation);
-    detailsOutput.push(eventsRow);
-    detailsOutput.push(peopleRow);
-    detailsOutput.push(classpiecesRow);
-    detailsOutput.push(resourcesRow);
-    detailsOutput.push(organisationsRow);
-
-    // 1.5 technical metadata
-    let technicalMetadata = [];
-    if (Object.keys(stateData.item.metadata).length > 0) {
-      technicalMetadata = this.renderThumbnailMetadata(
-        stateData.item.metadata,
-        stateData.metadataDataVisible
-      );
-      detailsOutput.push(technicalMetadata);
-    }
-    return <div className="classpiece-details-container">{detailsOutput}</div>;
-  }
-
-  renderThumbnailMetadata(metadata = null, visible) {
-    let metadataDataHidden = '';
-    let metadataVisibleClass = '';
-    if (!visible) {
-      metadataDataHidden = ' closed';
-      metadataVisibleClass = 'hidden';
-    }
-    const metadataOutput = (
-      <div key="metadata">
-        <h5>
-          Technical metadata
-          <div
-            className="btn btn-default btn-xs pull-right toggle-info-btn"
-            onClick={(e) => {
-              this.toggleTable(e, 'metadataData');
-            }}
-            onKeyDown={() => false}
-            role="button"
-            tabIndex={0}
-            aria-label="toggle metadata table"
-          >
-            <i className={`fa fa-angle-down${metadataDataHidden}`} />
-          </div>
-        </h5>
-        <div className={metadataVisibleClass}>
-          {parseMetadata(metadata.image)}
-        </div>
-      </div>
-    );
-    return metadataOutput;
-  }
-
-  renderItem(stateData = null) {
-    const { item } = stateData;
-    const { label } = item;
-
-    // 1 resourceDetails - resourceDetails include description, events, organisations, and people
-    const resourceDetails = this.renderResourceDetails(stateData);
+  const renderItem = () => {
+    const { label = '' } = item;
+    const resourceDetails = renderDetails();
 
     // 2. thumbnailImage
-    let thumbnailImage = [];
+    let thumbnailImage = null;
     const thumbnailURL = getResourceThumbnailURL(item);
     if (thumbnailURL !== null) {
       thumbnailImage = (
         <div
           key="thumbnailImage"
           className="show-resource"
-          onClick={() => this.toggleViewer()}
+          onClick={() => toggleViewer()}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            return false;
+          }}
           onKeyDown={() => false}
           role="button"
           tabIndex={0}
@@ -425,167 +245,128 @@ export default class Resource extends Component {
       </div>
     );
     return output;
-  }
+  };
 
-  render() {
-    const { loading, item, viewerVisible, error } = this.state;
-    const { match } = this.props;
-    let content = (
-      <div>
-        <div className="row">
-          <div className="col-12">
-            <div style={{ padding: '40pt', textAlign: 'center' }}>
-              <Spinner type="grow" color="info" /> <i>loading...</i>
-            </div>
+  let content = (
+    <div>
+      <div className="row">
+        <div className="col-12">
+          <div style={{ padding: '40pt', textAlign: 'center' }}>
+            <Spinner type="grow" color="info" /> <i>loading...</i>
           </div>
         </div>
       </div>
+    </div>
+  );
+
+  const breadcrumbsItems = [
+    {
+      label: 'Resources',
+      icon: 'pe-7s-photo',
+      active: false,
+      path: '/resources',
+    },
+  ];
+
+  if (!loading && item !== null) {
+    const { events = [], label = '', resourceType = '' } = item;
+    const resourceCard = renderItem();
+    let timelineLink = null;
+    if (events.length > 0) {
+      const timelinkURL = `/item-timeline/resource/${_id}`;
+      timelineLink = (
+        <div className="col-xs-12 col-sm-4">
+          <Link
+            href={timelinkURL}
+            to={timelinkURL}
+            className="person-component-link"
+            title="Resource graph timeline"
+          >
+            <i className="pe-7s-hourglass" />
+          </Link>
+          <Link
+            href={timelinkURL}
+            to={timelinkURL}
+            className="person-component-link-label"
+            title="Resource graph timeline"
+          >
+            <Label>Timeline</Label>
+          </Link>
+        </div>
+      );
+    }
+    const networkGraphLinkURL = `/item-graph/resource/${_id}`;
+    const networkGraphLink = (
+      <div className="col-xs-12 col-sm-4">
+        <Link
+          href={networkGraphLinkURL}
+          to={networkGraphLinkURL}
+          className="person-component-link"
+          title="Resource graph network"
+        >
+          <i className="pe-7s-graph1" />
+        </Link>
+        <Link
+          href={networkGraphLinkURL}
+          to={networkGraphLinkURL}
+          className="person-component-link-label"
+          title="Resource graph network"
+        >
+          <Label>Network graph</Label>
+        </Link>
+      </div>
     );
 
-    let label = '';
-    let breadcrumbsItems = [
-      {
-        label: 'Resources',
-        icon: 'pe-7s-photo',
-        active: false,
-        path: '/resources',
-      },
-    ];
-
-    let imgViewer = [];
-    if (!loading) {
-      if (item !== null) {
-        const itemCard = this.renderItem(this.state);
-
-        const labelGraph = 'resource-graph';
-        const { _id } = match.params;
-
-        let timelineLink = [];
-        if (item.events.length > 0) {
-          const timelinkURL = `/item-timeline/resource/${match.params._id}`;
-          timelineLink = (
-            <div className="col-xs-12 col-sm-4">
-              <Link
-                href={timelinkURL}
-                to={timelinkURL}
-                className="person-component-link"
-                title="Resource graph timeline"
-              >
-                <i className="pe-7s-hourglass" />
-              </Link>
-              <Link
-                href={timelinkURL}
-                to={timelinkURL}
-                className="person-component-link-label"
-                title="Resource graph timeline"
-              >
-                <Label>Timeline</Label>
-              </Link>
-            </div>
-          );
-        }
-        const networkGraphLinkURL = `/${labelGraph}/${_id}`;
-        const networkGraphLink = (
-          <div className="col-xs-12 col-sm-4">
-            <Link
-              href={networkGraphLinkURL}
-              to={networkGraphLinkURL}
-              className="person-component-link"
-              title="Resource graph network"
-            >
-              <i className="pe-7s-graph1" />
-            </Link>
-            <Link
-              href={networkGraphLinkURL}
-              to={networkGraphLinkURL}
-              className="person-component-link-label"
-              title="Resource graph network"
-            >
-              <Label>Network graph</Label>
-            </Link>
-          </div>
-        );
-        content = (
-          <div>
-            <Card>
-              <CardBody>
-                <div className="row">
-                  <div className="col-12">{itemCard}</div>
-                </div>
-                <div className="row timelink-row">
-                  {timelineLink}
-                  {networkGraphLink}
-                </div>
-              </CardBody>
-            </Card>
-          </div>
-        );
-        const resource = item;
-        label = resource.label;
-        let icon = 'pe-7s-photo';
-        if (resource.resourceType === 'document') {
-          icon = 'fa fa-file-pdf-o';
-        }
-        breadcrumbsItems = [
-          { label: 'Resources', icon, active: false, path: '/resources' },
-          { label, icon, active: true, path: '' },
-        ];
-        const documentTitle = breadcrumbsItems.map((i) => i.label).join(' / ');
-        updateDocumentTitle(documentTitle);
-        const fullsizePath = getResourceFullsizeURL(resource);
-        if (fullsizePath !== null && resource.resourceType === 'image') {
-          if (resource.resourceType !== 'document') {
-            imgViewer = (
-              <Suspense fallback={renderLoader()}>
-                <Viewer
-                  visible={viewerVisible}
-                  path={fullsizePath}
-                  label={label}
-                  toggle={this.toggleViewer}
-                  item={resource}
-                />
-              </Suspense>
-            );
-          }
-        }
-      } else if (error.visible) {
-        breadcrumbsItems.push({
-          label: error.text,
-          icon: 'fa fa-times',
-          active: true,
-          path: '',
-        });
-        const documentTitle = breadcrumbsItems.map((i) => i.label).join(' / ');
-        updateDocumentTitle(documentTitle);
-        content = (
-          <div>
-            <Card>
-              <CardBody>
-                <div className="row">
-                  <div className="col-12">
-                    <h3>Error</h3>
-                    <p>{error.text}</p>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-          </div>
+    breadcrumbsItems.push({
+      label,
+      icon: 'pe-7s-photo',
+      active: true,
+      path: '',
+    });
+    const documentTitle = breadcrumbsItems.map((i) => i.label).join(' / ');
+    updateDocumentTitle(documentTitle);
+    const fullsizePath = getResourceFullsizeURL(item);
+    let imgViewer = null;
+    if (fullsizePath !== null && resourceType === 'image') {
+      if (resourceType !== 'document') {
+        imgViewer = (
+          <Suspense fallback={renderLoader()}>
+            <Viewer
+              visible={viewerVisible}
+              path={fullsizePath}
+              label={label}
+              toggle={toggleViewer}
+              item={item}
+            />
+          </Suspense>
         );
       }
     }
-    return (
-      <div className="container">
-        <Breadcrumbs items={breadcrumbsItems} />
-        {content}
+    content = (
+      <div>
+        <Card>
+          <CardBody>
+            <div className="row">
+              <div className="col-12">{resourceCard}</div>
+            </div>
+            <div className="row">
+              {timelineLink}
+              {networkGraphLink}
+            </div>
+          </CardBody>
+        </Card>
         {imgViewer}
       </div>
     );
   }
-}
 
-Resource.defaultProps = {
-  match: null,
-};
-Resource.propTypes = {
-  match: PropTypes.object,
-};
+  return (
+    <div className="container">
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
+      {content}
+    </div>
+  );
+}
+export default Resource;

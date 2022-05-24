@@ -1,18 +1,12 @@
+/* globals afterAll, afterEach, beforeAll, describe, it */
 import React from 'react';
-import {
-  act,
-  render,
-  screen,
-  cleanup,
-  waitForElementToBeRemoved,
-  waitFor,
-} from '@testing-library/react';
+import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import store from '../redux/store';
 import server from '../__mocks/mock-server';
 
-import Spatial from '../views/spatial';
+import Spatial from '../views/Spatial';
 
 // Enable API mocking before tests.
 beforeAll(() => server.listen());
@@ -33,28 +27,33 @@ const defaultProps = {
     },
   },
 };
-const Wrapper = (props) => (
-  <Provider store={store()}>
-    <Router>
-      <Spatial {...defaultProps} {...props} />
-    </Router>
-  </Provider>
-);
+function Wrapper(props) {
+  return (
+    <Provider store={store()}>
+      <Router>
+        {/* eslint-disable-next-line */}
+        <Spatial {...defaultProps} {...props}/>
+      </Router>
+    </Provider>
+  );
+}
 describe('Spatial view', () => {
-  it('renders an spatial view', async () => {
+  it('renders a spatial view', async () => {
     await act(async () => {
       render(<Wrapper />);
       await waitFor(() => screen.findAllByText(`Ahascragh`));
     });
   });
-  it('renders an spatial\'s details', async () => {
+  it("renders a spatial's details", async () => {
     await act(async () => {
       render(<Wrapper />);
       await waitFor(() => screen.findByText(`Details`));
-      await waitFor(() => screen.findAllByText(`Ballinasloe Municipal District`));
+      await waitFor(() =>
+        screen.findAllByText(`Ballinasloe Municipal District`)
+      );
     });
   });
-  it('renders an spatial\'s organisations', async () => {
+  it("renders a spatial's organisations", async () => {
     await act(async () => {
       render(<Wrapper />);
       await waitFor(() => screen.findByText(`Organisations`));

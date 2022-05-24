@@ -1,15 +1,15 @@
 import React, { useEffect, lazy, Suspense } from 'react';
 import { updateDocumentTitle, renderLoader } from '../helpers';
 
-const HomeSlider = lazy(() => import('../components/home/carousel'));
-const SectionNumbers = lazy(() => import('../components/home/section-numbers'));
-const About = lazy(() => import('../components/home/about'));
-const HighLights = lazy(() => import('../components/home/highlights'));
-const News = lazy(() => import('../components/home/news'));
-const Welcome = lazy(() => import('../components/home/welcome'));
-const Visualisations = lazy(() => import('../components/home/visualisations'));
+const HomeSlider = lazy(() => import('../components/home/Carousel'));
+const SectionNumbers = lazy(() => import('../components/home/Section.numbers'));
+const About = lazy(() => import('../components/home/About'));
+const HighLights = lazy(() => import('../components/home/Highlights'));
+const News = lazy(() => import('../components/home/News'));
+const Welcome = lazy(() => import('../components/home/Welcome'));
+const Visualisations = lazy(() => import('../components/home/Visualisations'));
 
-const Home = () => {
+function Home() {
   useEffect(() => {
     updateDocumentTitle();
   }, []);
@@ -75,6 +75,6 @@ const Home = () => {
       </section>
     </div>
   );
-};
+}
 
 export default Home;

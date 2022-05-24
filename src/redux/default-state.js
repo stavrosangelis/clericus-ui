@@ -12,12 +12,14 @@ const defaultState = {
   },
 
   peoplePagination: {
+    advancedSearchInputs: [],
     limit: 25,
     page: 1,
+    simpleSearchTerm: '',
     orderField: 'lastName',
     orderDesc: false,
-    simpleSearchTerm: '',
-    advancedSearchInputs: [],
+    totalItems: 0,
+    totalPages: 0,
   },
   peopleRelationship: {
     classpieces: [],
@@ -39,9 +41,11 @@ const defaultState = {
   },
 
   classpiecesPagination: {
-    limit: 50,
+    limit: 24,
     page: 1,
     simpleSearchTerm: '',
+    totalItems: 0,
+    totalPages: 0,
   },
   classpiecesRelationship: {
     classpieces: [],
@@ -63,10 +67,13 @@ const defaultState = {
     limit: 25,
     page: 1,
     simpleSearchTerm: '',
+    orderField: 'label',
+    orderDesc: false,
+    totalItems: 0,
+    totalPages: 0,
   },
-
   resourcesFilters: {
-    resourcesTypes: [],
+    resourcesType: '',
     events: [],
     temporals: {
       startDate: '',
@@ -79,6 +86,10 @@ const defaultState = {
     limit: 25,
     page: 1,
     simpleSearchTerm: '',
+    orderField: 'label',
+    orderDesc: false,
+    totalItems: 0,
+    totalPages: 0,
   },
   organisationsRelationship: {
     classpieces: [],
@@ -96,6 +107,10 @@ const defaultState = {
     limit: 25,
     page: 1,
     simpleSearchTerm: '',
+    orderField: 'label',
+    orderDesc: false,
+    totalItems: 0,
+    totalPages: 0,
   },
   eventsFilters: {
     eventType: '',
@@ -117,7 +132,6 @@ const defaultState = {
   temporalsPagination: {
     limit: 25,
     page: 1,
-    simpleSearchTerm: '',
   },
   temporalsRelationship: {
     classpieces: [],
@@ -139,6 +153,10 @@ const defaultState = {
     limit: 25,
     page: 1,
     simpleSearchTerm: '',
+    orderField: 'label',
+    orderDesc: false,
+    totalItems: 0,
+    totalPages: 0,
   },
 
   loadingClasspiecesRelationship: true,

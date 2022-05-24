@@ -1,263 +1,164 @@
-import React, { Component, lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { Spinner, Card, CardBody } from 'reactstrap';
-import PropTypes from 'prop-types';
-
-import Breadcrumbs from '../components/breadcrumbs';
+import { useParams } from 'react-router-dom';
 import { updateDocumentTitle, outputDate, renderLoader } from '../helpers';
 
-const EventsBlock = lazy(() => import('../components/item-blocks/events'));
+const { REACT_APP_APIPATH: APIPath } = process.env;
+const Breadcrumbs = lazy(() => import('../components/Breadcrumbs'));
+const EventsBlock = lazy(() => import('../components/item-blocks/Events'));
 
-class Temporal extends Component {
-  constructor(props) {
-    super(props);
+function Temporal() {
+  const { _id } = useParams();
+  const [loading, setLoading] = useState(true);
+  const [item, setItem] = useState(null);
 
-    this.state = {
-      loading: true,
-      item: null,
-      eventsVisible: true,
-      error: {
-        visible: false,
-        text: '',
-      },
-    };
+  const prevId = useRef(null);
 
-    this.load = this.load.bind(this);
-    this.toggleTable = this.toggleTable.bind(this);
-    this.renderItem = this.renderItem.bind(this);
-    this.renderTemporalDetails = this.renderTemporalDetails.bind(this);
-
-    const cancelToken = axios.CancelToken;
-    this.cancelSource = cancelToken.source();
-  }
-
-  componentDidMount() {
-    this.load();
-  }
-
-  componentDidUpdate(prevProps) {
-    const { match: prevMatch } = prevProps;
-    const { _id: prevId } = prevMatch.params;
-    const { match } = this.props;
-    const { _id } = match.params;
-    if (prevId !== _id) {
-      this.load();
-    }
-  }
-
-  componentWillUnmount() {
-    this.cancelSource.cancel('api request cancelled');
-  }
-
-  async load() {
-    const { match } = this.props;
-    const { _id } = match.params;
-    if (typeof _id === 'undefined' || _id === null || _id === '') {
-      return false;
-    }
-    this.setState({
-      loading: true,
-    });
-    const params = {
-      _id,
-    };
-    const url = `${process.env.REACT_APP_APIPATH}ui-temporal`;
-    const responseData = await axios({
-      method: 'get',
-      url,
-      crossDomain: true,
-      params,
-      cancelToken: this.cancelSource.token,
-    })
-      .then((response) => response.data)
-      .catch((error) => console.log(error));
-    if (typeof responseData !== 'undefined') {
-      if (responseData.status) {
-        this.setState({
-          loading: false,
-          item: responseData.data,
-        });
-      } else {
-        this.setState({
-          loading: false,
-          error: {
-            visible: true,
-            text: responseData.msg,
-          },
-        });
+  useEffect(() => {
+    let unmounted = false;
+    const controller = new AbortController();
+    const load = async () => {
+      prevId.current = _id;
+      const responseData = await axios({
+        method: 'get',
+        url: `${APIPath}ui-temporal`,
+        crossDomain: true,
+        params: { _id },
+        signal: controller.signal,
+      })
+        .then((response) => response.data)
+        .catch((error) => console.log(error));
+      if (!unmounted) {
+        setLoading(false);
+        const { data = null } = responseData;
+        if (data !== null) {
+          setItem(data);
+        }
       }
-    }
-    return false;
-  }
-
-  toggleTable(e, dataType = null) {
-    const { [`${dataType}Visible`]: value } = this.state;
-    const payload = {
-      [`${dataType}Visible`]: !value,
     };
-    this.setState(payload);
-  }
+    if (loading) {
+      load();
+    }
+    return () => {
+      unmounted = true;
+      controller.abort();
+    };
+  }, [loading, _id]);
 
-  renderTemporalDetails(stateData = null) {
-    const { item } = stateData;
-    const { eventsVisible } = this.state;
-    // 1. TemporalDetails
-    const meta = [];
-    let eventsRow = [];
-    let eventsHidden = '';
-    let eventsVisibleClass = '';
-    if (!eventsVisible) {
-      eventsHidden = ' closed';
-      eventsVisibleClass = 'hidden';
+  useEffect(() => {
+    if (!loading && prevId.current !== _id) {
+      prevId.current = _id;
+      setLoading(true);
+      setItem(null);
     }
-    if (
-      typeof item.events !== 'undefined' &&
-      item.events !== null &&
-      item.events !== ''
-    ) {
-      eventsRow = (
+  }, [_id, loading]);
+
+  const renderDetails = () => {
+    const { events = [], startDate = '', endDate = '' } = item;
+
+    // events
+    const eventsRow =
+      events.length > 0 ? (
         <Suspense fallback={renderLoader()} key="events">
-          <EventsBlock
-            toggleTable={this.toggleTable}
-            hidden={eventsHidden}
-            visible={eventsVisibleClass}
-            events={item.events}
-          />
+          <EventsBlock items={events} _id={_id} />
         </Suspense>
-      );
-    }
+      ) : null;
 
     // dates
-    let datesRow = [];
-    if (typeof item.startDate !== 'undefined' && item.startDate !== '') {
-      let endDate = '';
-      if (
-        typeof item.endDate !== 'undefined' &&
-        item.endDate !== '' &&
-        item.endDate !== item.startDate
-      ) {
-        endDate = ` - ${outputDate(item.endDate, false)}`;
-      }
+    let datesRow = null;
+    if (startDate !== '') {
+      const endDateOutput =
+        endDate !== '' && endDate !== startDate
+          ? ` - ${outputDate(endDate, false)}`
+          : '';
       datesRow = (
         <div key="datesRow">
           <h5>Dates</h5>
           <div style={{ paddingBottom: '10px' }}>
             <span className="tag-bg tag-item">
-              {outputDate(item.startDate, false)}
-              {endDate}
+              {outputDate(startDate, false)}
+              {endDateOutput}
             </span>
           </div>
         </div>
       );
     }
 
-    meta.push(datesRow);
-    meta.push(eventsRow);
+    return (
+      <>
+        {eventsRow}
+        {datesRow}
+      </>
+    );
+  };
 
-    return meta;
-  }
+  const renderItem = () => {
+    const { label = '' } = item;
 
-  renderItem(stateData = null) {
-    const { item } = stateData;
-
-    const { label } = item;
-
-    const metaTable = this.renderTemporalDetails(stateData);
+    // meta
+    const metaTable = renderDetails();
 
     const output = (
       <div className="item-container">
         <h3>{label}</h3>
         <div className="row">
-          <div className="col-12">
-            <div className="item-details-container">{metaTable}</div>
-          </div>
+          <div className="col-12">{metaTable}</div>
         </div>
       </div>
     );
     return output;
-  }
+  };
 
-  render() {
-    const { loading, item, error } = this.state;
-    let content = (
-      <div>
-        <div className="row">
-          <div className="col-12">
-            <div style={{ padding: '40pt', textAlign: 'center' }}>
-              <Spinner type="grow" color="info" /> <i>loading...</i>
-            </div>
+  let content = (
+    <div>
+      <div className="row">
+        <div className="col-12">
+          <div style={{ padding: '40pt', textAlign: 'center' }}>
+            <Spinner type="grow" color="info" /> <i>loading...</i>
           </div>
         </div>
       </div>
-    );
+    </div>
+  );
 
-    let label = '';
-    const breadcrumbsItems = [
-      { label: 'Dates', icon: 'pe-7s-date', active: false, path: '/temporals' },
-    ];
-    if (!loading) {
-      if (item !== null) {
-        const temporalCard = this.renderItem(this.state);
-        content = (
-          <div>
-            <Card>
-              <CardBody>
-                <div className="row">
-                  <div className="col-12">{temporalCard}</div>
-                </div>
-              </CardBody>
-            </Card>
-          </div>
-        );
-        label = item.label;
-        breadcrumbsItems.push({
-          label,
-          icon: 'pe-7s-date',
-          active: true,
-          path: '',
-        });
-        const documentTitle = breadcrumbsItems.map((i) => i.label).join(' / ');
-        updateDocumentTitle(documentTitle);
-      } else if (error.visible) {
-        breadcrumbsItems.push({
-          label: error.text,
-          icon: 'fa fa-times',
-          active: true,
-          path: '',
-        });
-        const documentTitle = breadcrumbsItems.map((i) => i.label).join(' / ');
-        updateDocumentTitle(documentTitle);
-        content = (
-          <div>
-            <Card>
-              <CardBody>
-                <div className="row">
-                  <div className="col-12">
-                    <h3>Error</h3>
-                    <p>{error.text}</p>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-          </div>
-        );
-      }
-    }
+  const breadcrumbsItems = [
+    { label: 'Dates', icon: 'pe-7s-date', active: false, path: '/temporals' },
+  ];
 
-    return (
-      <div className="container">
-        <Breadcrumbs items={breadcrumbsItems} />
-        {content}
+  if (!loading && item !== null) {
+    const { label = '' } = item;
+    const temporalCard = renderItem();
+
+    breadcrumbsItems.push({
+      label,
+      icon: 'pe-7s-date',
+      active: true,
+      path: '',
+    });
+    const documentTitle = breadcrumbsItems.map((i) => i.label).join(' / ');
+    updateDocumentTitle(documentTitle);
+    content = (
+      <div>
+        <Card>
+          <CardBody>
+            <div className="row">
+              <div className="col-12">{temporalCard}</div>
+            </div>
+          </CardBody>
+        </Card>
       </div>
     );
   }
-}
 
-Temporal.defaultProps = {
-  match: null,
-};
-Temporal.propTypes = {
-  match: PropTypes.object,
-};
+  return (
+    <div className="container">
+      <Suspense fallback={[]}>
+        <Breadcrumbs items={breadcrumbsItems} />
+      </Suspense>
+      {content}
+    </div>
+  );
+}
 
 export default Temporal;

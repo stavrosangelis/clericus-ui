@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import dompurify from 'dompurify';
 
-const APIPath = process.env.REACT_APP_APIPATH;
+const { REACT_APP_APIPATH: APIPath } = process.env;
 
 const Welcome = () => {
   const [loading, setLoading] = useState(true);
@@ -12,29 +12,34 @@ const Welcome = () => {
   const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
-    const cancelToken = axios.CancelToken;
-    const source = cancelToken.source();
-
+    let unmounted = false;
+    const controller = new AbortController();
     const load = async () => {
       const responseData = await axios({
         method: 'get',
         url: `${APIPath}content-category`,
         crossDomain: true,
         params: { permalink: 'welcome-filte-vale' },
-        cancelToken: source.token,
+        signal: controller.signal,
       })
-        .then((response) => response.data.data)
+        .then((response) => response.data)
         .catch((error) => console.log(error));
-      if (typeof responseData !== 'undefined') {
-        setArticles(responseData.data.articles);
+      if (!unmounted) {
         setLoading(false);
+        const { data = null } = responseData;
+        if (data !== null) {
+          const { data: respData = null } = data;
+          const { articles: newArticles = [] } = respData;
+          setArticles(newArticles);
+        }
       }
     };
     if (loading) {
       load();
     }
     return () => {
-      source.cancel('api request cancelled');
+      unmounted = true;
+      controller.abort();
     };
   }, [loading]);
 

@@ -12,191 +12,32 @@ import {
   Spinner,
   Form,
   FormGroup,
-  Collapse,
-  Badge,
   Button,
   Label,
 } from 'reactstrap';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
 import {
-  getResourceThumbnailURL,
   updateDocumentTitle,
   outputDate,
   getClosestDate,
   renderLoader,
+  initialData,
+  groupItemsByYear,
+  groupItemsByYears,
 } from '../../helpers';
+import TimelineEventView from '../../components/visualisations/Timeline.event.view';
+import LazyList from '../../components/Lazylist';
+
+import '../../scss/timeline.scss';
 import 'react-datepicker/dist/react-datepicker.css';
-import HelpArticle from '../../components/help-article';
-import LazyList from '../../components/lazylist';
 
-const Breadcrumbs = lazy(() => import('../../components/breadcrumbs'));
+const Breadcrumbs = lazy(() => import('../../components/Breadcrumbs'));
 const DatePicker = lazy(() => import('react-datepicker'));
+const HelpArticle = lazy(() => import('../../components/Help.article'));
 
-const APIPath = process.env.REACT_APP_APIPATH;
+const { REACT_APP_APIPATH: APIPath } = process.env;
 
-const timelineItem = (data, i) => {
-  let returnItem = null;
-  if (typeof data.startDate !== 'undefined' && data.startDate !== '') {
-    const { startDate: newStartDate } = data;
-    let endDate = null;
-    if (
-      typeof data.endDate !== 'undefined' &&
-      data.endDate !== '' &&
-      data.endDate !== data.startDate
-    ) {
-      endDate = data.endDate;
-    }
-    const startDateArr = newStartDate.split('-');
-    const endDateArr = [];
-    if (endDate !== null) {
-      endDate.split('-');
-    }
-    const startYear = startDateArr[2];
-    let endYear = startDateArr[2];
-    const endDatev = endDateArr[2];
-    if (endDate !== null) {
-      endYear = endDatev;
-    }
-    const newItem = {
-      startYear,
-      endYear,
-      item: data,
-      i,
-    };
-    returnItem = newItem;
-  }
-  return returnItem;
-};
-
-const reducer = (accumulator, itemParam) =>
-  Object.assign(accumulator, {
-    [itemParam.startYear]: (accumulator[itemParam.startYear] || []).concat(
-      itemParam
-    ),
-  });
-
-const initialData = (data) => {
-  const initialVal = {
-    startYear: 0,
-    endYear: 0,
-    item: null,
-  };
-  const newItems = [initialVal];
-  for (let i = 0; i < data.length; i += 1) {
-    const initItem = timelineItem(data[i], i);
-    if (initItem !== null) {
-      newItems.push(initItem);
-    }
-  }
-  const grouped = newItems.reduce(reducer);
-  const newGroup = [];
-  Object.keys(grouped).forEach((key) => {
-    const value = grouped[key];
-    if (key !== 'endYear' && key !== 'startYear' && key !== 'item') {
-      newGroup.push({
-        date: key,
-        label: key,
-        items: value,
-        i: key,
-        group: true,
-      });
-    }
-  });
-  return newGroup;
-};
-
-const groupItemsByYear = (items) => {
-  const initialVal = {
-    startYear: 0,
-    endYear: 0,
-    item: null,
-  };
-  const newItems = [initialVal];
-  for (let i = 0; i < items.length; i += 1) {
-    const newItem = timelineItem(items[i], i);
-    if (newItem !== null) {
-      newItems.push(newItem);
-    }
-  }
-  const grouped = newItems.reduce(reducer);
-  const newGroup = [];
-  Object.keys(grouped).forEach((key) => {
-    const value = grouped[key];
-    if (key !== 'endYear' && key !== 'startYear' && key !== 'item') {
-      newGroup.push({
-        date: key,
-        label: key,
-        items: value,
-        i: key,
-        group: true,
-      });
-    }
-  });
-  return newGroup;
-};
-
-const groupedYearItems = (yearItems) => {
-  const returnItems = [];
-  Object.keys(yearItems).forEach((key) => {
-    const value = yearItems[key];
-    const returnItemsItems = [];
-    Object.keys(value).forEach((key2) => {
-      const newItems2 = value[key2];
-      Object.keys(newItems2.items).forEach((key4) => {
-        const newItem = newItems2.items[key4];
-        returnItemsItems.push(newItem);
-      });
-    });
-    returnItems.push({
-      date: key,
-      label: key,
-      items: returnItemsItems,
-      i: key,
-      group: true,
-    });
-  });
-  return returnItems;
-};
-
-const groupItemsByYears = (items, yearParam = 1850, modulus = 10) => {
-  const initialVal = {
-    date: yearParam,
-    items: [],
-  };
-  const newItems = [initialVal];
-  for (let i = 0; i < items.length; i += 1) {
-    const newItem = timelineItem(items[i], i);
-    if (newItem !== null) {
-      newItems.push(newItem);
-    }
-  }
-  const grouped = newItems.reduce(reducer);
-  const newGroup = [];
-  Object.keys(grouped).forEach((key) => {
-    const value = grouped[key];
-    if (key !== 'endYear' && key !== 'startYear' && key !== 'item') {
-      newGroup.push({ date: key, label: key, items: value });
-    }
-  });
-  const yearItems = [];
-  let year = yearParam;
-  for (let i = 0; i < newGroup.length; i += 1) {
-    const newGroupItem = newGroup[i];
-    if (Number(newGroupItem.date) % modulus === 0) {
-      year = Number(newGroupItem.date);
-      yearItems[year] = [];
-    }
-    if (typeof yearItems[year] === 'undefined') {
-      yearItems[year] = [];
-    }
-    yearItems[year].push(newGroupItem);
-  }
-  const returnItems = groupedYearItems(yearItems);
-  return returnItems;
-};
-
-const Timeline = () => {
+function Timeline() {
   // state
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
@@ -211,13 +52,6 @@ const Timeline = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedEventVisible, setSelectedEventVisible] = useState(false);
   const timelineContainer = useRef(null);
-  const [relatedVisible, setRelatedVisible] = useState({
-    events: true,
-    organisations: true,
-    people: true,
-    resources: true,
-    classpieces: true,
-  });
   const [relatedOpen, setRelatedOpen] = useState({
     events: true,
     organisations: true,
@@ -268,7 +102,8 @@ const Timeline = () => {
   };
 
   const showEvents = (e, item) => {
-    let itemsNum = item.events.length;
+    const { events } = item;
+    let { length: itemsNum } = events;
     setEventsNum(itemsNum);
     if (itemsNum > 9) {
       itemsNum = 9;
@@ -287,19 +122,13 @@ const Timeline = () => {
       const diff = elemTop + bboxHeight - 500;
       elemTop -= diff;
     }
-    const elemWidth = containerBbox.width - elemLeft;
+    const elemWidth = containerBbox.width - elemLeft - 40;
     toggleEventsContainer(true);
     setSelectedItem(item);
     setEventsContainerLeft(elemLeft);
     setEventsContainerTop(elemTop);
     setEventsContainerWidth(elemWidth);
     setSelectedEventVisible(false);
-    setRelatedVisible({
-      events: true,
-      organisations: true,
-      people: true,
-      resources: true,
-    });
     setRelatedOpen({
       events: true,
       organisations: true,
@@ -307,15 +136,13 @@ const Timeline = () => {
       resources: true,
     });
     const newEventsHTML = [];
-    for (let i = 0; i < item.events.length; i += 1) {
-      const newItem = item.events[i];
-      let dateLabel = outputDate(item.startDate);
-      if (
-        typeof item.endDate !== 'undefined' &&
-        item.endDate !== '' &&
-        item.endDate !== item.startDate
-      ) {
-        dateLabel += ` - ${outputDate(item.endDate)}`;
+    const { length } = events;
+    for (let i = 0; i < length; i += 1) {
+      const newItem = events[i];
+      const { startDate: iStartDate = '', endDate: iEndDate = '' } = item;
+      let dateLabel = outputDate(iStartDate);
+      if (iEndDate !== '' && iEndDate !== iStartDate) {
+        dateLabel += ` - ${outputDate(iEndDate)}`;
       }
       newItem.i = i;
       newItem.dateLabel = dateLabel;
@@ -344,19 +171,13 @@ const Timeline = () => {
       const diff = elemTop + bboxHeight - 500;
       elemTop -= diff;
     }
-    const elemWidth = containerBbox.width - elemLeft;
+    const elemWidth = containerBbox.width - elemLeft - 40;
     toggleEventsContainer(true);
     setSelectedItem(item);
     setEventsContainerLeft(elemLeft);
     setEventsContainerTop(elemTop);
     setEventsContainerWidth(elemWidth);
     setSelectedEventVisible(false);
-    setRelatedVisible({
-      events: true,
-      organisations: true,
-      people: true,
-      resources: true,
-    });
     setRelatedOpen({
       events: true,
       organisations: true,
@@ -364,114 +185,125 @@ const Timeline = () => {
       resources: true,
     });
     const newEventsHTML = [];
-    for (let j = 0; j < item.items.length; j += 1) {
-      const newItem = item.items[j].item;
+    const { items: nItems } = item;
+    const { length } = nItems;
+    for (let j = 0; j < length; j += 1) {
+      const { item: newItem } = nItems[j];
       const { events } = newItem;
-      let dateLabel = outputDate(newItem.startDate);
-      if (
-        typeof newItem.endDate !== 'undefined' &&
-        newItem.endDate !== '' &&
-        newItem.endDate !== newItem.startDate
-      ) {
-        dateLabel += ` - ${outputDate(newItem.endDate)}`;
+      const { startDate: nStartDate = '', endDate: nEndDate = '' } = newItem;
+      let dateLabel = outputDate(nStartDate);
+      if (nEndDate !== '' && nEndDate !== nStartDate) {
+        dateLabel += ` - ${outputDate(nEndDate)}`;
       }
-      for (let i = 0; i < events.length; i += 1) {
+      const { length: eLength } = events;
+      for (let i = 0; i < eLength; i += 1) {
         const newEvent = events[i];
         newEvent.i = `${j}-${i}`;
         newEvent.dateLabel = dateLabel;
         newEventsHTML.push(newEvent);
       }
     }
-
     setEventsHTML(newEventsHTML);
   };
 
   const renderTimelineItem = (item = null) => {
-    if (item === null) {
-      return null;
-    }
-    if (typeof item.group === 'undefined' || !item.group) {
+    if (item !== null) {
+      const {
+        date: iDate = '',
+        group = false,
+        startDate: iStartDate = '',
+        label: iLabel = '',
+        events: iEvents,
+        items: iItems = [],
+      } = item;
+      if (!group) {
+        return (
+          <div
+            data-date={iStartDate}
+            className="timeline-point"
+            onClick={(e) => showEvents(e, item)}
+            onKeyDown={() => false}
+            role="button"
+            tabIndex={0}
+            aria-label="show events"
+          >
+            <Label>
+              {iLabel} <small>[{iEvents.length}]</small>
+            </Label>
+            <div className="triangle-up" />
+            <div className="triangle-down" />
+          </div>
+        );
+      }
+
+      let eventsLength = 0;
+      if (iItems.length > 0) {
+        const { length: iItemsLength } = iItems;
+        for (let i = 0; i < iItemsLength; i += 1) {
+          const child = iItems[i];
+          eventsLength += child.item.events.length;
+        }
+      }
+      let yearClass = '';
+      if (Number(iDate) % 10 === 0) {
+        yearClass = ' decade';
+      }
+      if (Number(iDate) % 50 === 0) {
+        yearClass = ' fifty';
+      }
+      if (Number(iDate) % 100 === 0) {
+        yearClass = ' century';
+      }
       return (
         <div
-          data-date={item.startDate}
-          className="timeline-point"
-          onClick={(e) => showEvents(e, item)}
+          data-date={iDate}
+          className={`timeline-point${yearClass}`}
+          onClick={(e) => showEventsGroup(e, item, eventsLength)}
           onKeyDown={() => false}
           role="button"
           tabIndex={0}
-          aria-label="show events"
+          aria-label="toggle image viewer"
         >
           <Label>
-            {item.label} <small>[{item.events.length}]</small>
+            {iDate} <small>[{eventsLength}]</small>
           </Label>
           <div className="triangle-up" />
           <div className="triangle-down" />
         </div>
       );
     }
-
-    let eventsLength = 0;
-    if (typeof item.items !== 'undefined') {
-      for (let i = 0; i < item.items.length; i += 1) {
-        const child = item.items[i];
-        eventsLength += child.item.events.length;
-      }
-    }
-    let yearClass = '';
-    if (Number(item.date) % 10 === 0) {
-      yearClass = ' decade';
-    }
-    if (Number(item.date) % 50 === 0) {
-      yearClass = ' fifty';
-    }
-    if (Number(item.date) % 100 === 0) {
-      yearClass = ' century';
-    }
-    return (
-      <div
-        data-date={item.date}
-        className={`timeline-point${yearClass}`}
-        onClick={(e) => showEventsGroup(e, item, eventsLength)}
-        onKeyDown={() => false}
-        role="button"
-        tabIndex={0}
-        aria-label="toggle image viewer"
-      >
-        <Label>
-          {item.date} <small>[{eventsLength}]</small>
-        </Label>
-        <div className="triangle-up" />
-        <div className="triangle-down" />
-      </div>
-    );
+    return null;
   };
 
   useEffect(() => {
-    const cancelToken = axios.CancelToken;
-    const source = cancelToken.source();
-
+    let unmounted = false;
+    const controller = new AbortController();
     const load = async () => {
       const responseData = await axios({
         method: 'get',
         url: `${APIPath}timeline`,
         crossDomain: true,
-        cancelToken: source.token,
+        signal: controller.signal,
       })
         .then((response) => response.data)
         .catch((error) => console.log(error));
-      if (typeof responseData !== 'undefined') {
-        const respData = responseData.data;
-        setItems(respData);
-        const newData = initialData(respData);
-        setItemsHTML(newData);
+      if (!unmounted) {
         setLoading(false);
+        const { data: respData = [] } = responseData;
+        if (respData.length > 0) {
+          setItems(respData);
+          const newData = initialData(respData);
+          setItemsHTML(newData);
+          setLoading(false);
+        }
       }
     };
     if (loading) {
       load();
     }
     return () => {
-      source.cancel('api request cancelled');
+      unmounted = true;
+      controller.abort();
     };
   }, [loading]);
 
@@ -483,10 +315,12 @@ const Timeline = () => {
       }
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        const container = timelineContainer.current;
-        const containerBbox = container.getBoundingClientRect();
-        const elemWidth = containerBbox.width - eventsContainerLeft;
-        setEventsContainerWidth(elemWidth);
+        const { current: container = null } = timelineContainer;
+        if (container !== null) {
+          const containerBbox = container.getBoundingClientRect();
+          const elemWidth = containerBbox.width - eventsContainerLeft;
+          setEventsContainerWidth(elemWidth);
+        }
       }, 250);
       return false;
     };
@@ -501,6 +335,7 @@ const Timeline = () => {
     const source = cancelToken.source();
 
     const loadEvent = async () => {
+      setSelectedEventVisible(true);
       const responseData = await axios({
         method: 'get',
         url: `${APIPath}ui-event`,
@@ -510,31 +345,9 @@ const Timeline = () => {
       })
         .then((response) => response.data)
         .catch((error) => console.log(error));
-      if (typeof responseData !== 'undefined') {
-        setSelectedEvent(responseData.data);
-        setSelectedEventVisible(true);
-        const visible = {
-          events: true,
-          organisations: true,
-          people: true,
-          resources: true,
-        };
-        if (responseData.data.events.length > 0) {
-          visible.events = true;
-        }
-        if (responseData.data.organisations.length > 0) {
-          visible.organisations = true;
-        }
-        if (responseData.data.people.length > 0) {
-          visible.people = true;
-        }
-        if (responseData.data.resources.length > 0) {
-          visible.resources = true;
-        }
-        if (responseData.data.classpieces.length > 0) {
-          visible.classpieces = true;
-        }
-        setRelatedVisible(visible);
+      const { data: respData = null } = responseData;
+      if (respData !== null) {
+        setSelectedEvent(respData);
         setLoadingEvent(false);
       }
     };
@@ -556,19 +369,29 @@ const Timeline = () => {
     setLoadingEvent(true);
   };
 
-  const renderEventHTML = (item) => (
-    <div
-      className="timeline-event-item"
-      key={item.i}
-      onClick={() => loadEvent(item._id)}
-      onKeyDown={() => false}
-      role="button"
-      tabIndex={0}
-      aria-label="load event"
-    >
-      {item.label} <small>[{item.dateLabel}]</small>
-    </div>
-  );
+  const renderEventHTML = (item = null) => {
+    if (item !== null) {
+      const {
+        _id: iId = '',
+        label: iLabel = '',
+        dateLabel: iDateLabel = '',
+      } = item;
+      return (
+        <div
+          className="timeline-event-item"
+          key={iId}
+          onClick={() => loadEvent(iId)}
+          onKeyDown={() => false}
+          role="button"
+          tabIndex={0}
+          aria-label="load event"
+        >
+          {iLabel} <small>[{iDateLabel}]</small>
+        </div>
+      );
+    }
+    return null;
+  };
 
   const toggleRelatedOpen = (name) => {
     const value = !relatedOpen[name];
@@ -578,6 +401,7 @@ const Timeline = () => {
   };
 
   const toggleSelectedEvent = (val = null) => {
+    setSelectedEvent(null);
     const visible = val || !selectedEventVisible;
     setSelectedEventVisible(visible);
   };
@@ -599,7 +423,8 @@ const Timeline = () => {
     }
     const closestDate = getClosestDate(newStartDate, compareDates);
     const newIndex = compareDates.indexOf(closestDate);
-    setScrollIndex(newIndex);
+    const newScrollIndex = newIndex > 20 ? newIndex - 10 : newIndex;
+    setScrollIndex(newScrollIndex);
 
     // highlight found dom element
     setTimeout(() => {
@@ -617,45 +442,124 @@ const Timeline = () => {
   };
 
   const updateZoom = (val = null) => {
-    if (val === null) {
-      return false;
+    if (val !== null) {
+      let newVal;
+      if (val === '+') {
+        newVal = zoomVal + 1;
+      }
+      if (val === '-') {
+        newVal = zoomVal - 1;
+      }
+      const newIndex = newVal - 1;
+      if (newIndex < 0 || newVal > zoomValues.length) {
+        return false;
+      }
+      const newZoom = zoomValues[newIndex];
+      setZoomVal(newVal);
+      setZoom(newZoom);
+      let newItems = null;
+      switch (newZoom) {
+        case 'day':
+          newItems = groupByDay(items);
+          break;
+        case 'year':
+          newItems = groupByYear();
+          break;
+        case '10':
+          newItems = groupBy10();
+          break;
+        case '50':
+          newItems = groupBy50();
+          break;
+        case '100':
+          newItems = groupBy100();
+          break;
+        default:
+          newItems = null;
+          break;
+      }
+      setItemsHTML(newItems);
     }
-    let newVal;
-    if (val === '+') {
-      newVal = zoomVal + 1;
-    }
-    if (val === '-') {
-      newVal = zoomVal - 1;
-    }
-    const newIndex = newVal - 1;
-    if (newIndex < 0 || newVal > zoomValues.length) {
-      return false;
-    }
-    const newZoom = zoomValues[newIndex];
-    setZoomVal(newVal);
-    setZoom(newZoom);
-    let newItems = [];
-    if (newZoom === 'day') {
-      newItems = groupByDay(items);
-    }
-    if (newZoom === 'year') {
-      newItems = groupByYear();
-    }
-    if (newZoom === '10') {
-      newItems = groupBy10();
-    }
-    if (newZoom === '50') {
-      newItems = groupBy50();
-    }
-    if (newZoom === '100') {
-      newItems = groupBy100();
-    }
-    setItemsHTML(newItems);
-    return false;
+    return null;
   };
 
   const toggleHelp = () => {
     setHelpVisible(!helpVisible);
+  };
+
+  const renderEventsContainer = () => {
+    // events container size and position
+    const ecstyle = {
+      left: eventsContainerLeft,
+      top: eventsContainerTop,
+      width: eventsContainerWidth,
+    };
+    // events container visibility
+    const echidden = eventsContainerVisible ? '' : ' hidden';
+    let eventsContainerContent = (
+      <>
+        <div
+          className="graph-details-card-close"
+          onClick={() => toggleEventsContainer()}
+          onKeyDown={() => false}
+          role="button"
+          tabIndex={0}
+          aria-label="toggle events container"
+        >
+          <i className="fa fa-times" />
+        </div>
+        <div style={{ padding: '40pt', textAlign: 'center' }}>
+          <Spinner type="grow" color="info" /> <i>loading...</i>
+        </div>
+      </>
+    );
+    if (selectedItem !== null) {
+      const eventsListVisible = selectedEventVisible ? ' hidden' : '';
+      // selectedItem data
+      const { label: sLabel = '' } = selectedItem;
+      const eventsContainerHeading = (
+        <>
+          {sLabel} <small>[{eventsNum}]</small>
+        </>
+      );
+      eventsContainerContent = (
+        <>
+          <div className="heading">
+            <h4>{eventsContainerHeading}</h4>
+          </div>
+          <div
+            className="graph-details-card-close"
+            onClick={() => toggleEventsContainer()}
+            onKeyDown={() => false}
+            role="button"
+            tabIndex={0}
+            aria-label="toggle events container"
+          >
+            <i className="fa fa-times" />
+          </div>
+          <LazyList
+            limit={30}
+            range={15}
+            items={eventsHTML}
+            renderItem={renderEventHTML}
+            containerClass={`events-list-container ${eventsListVisible}`}
+          />
+          <TimelineEventView
+            relatedOpen={relatedOpen}
+            selectedEvent={selectedEvent}
+            toggle={toggleSelectedEvent}
+            toggleRelated={toggleRelatedOpen}
+            visible={selectedEventVisible}
+          />
+        </>
+      );
+    }
+
+    return (
+      <div className={`timeline-events-container${echidden}`} style={ecstyle}>
+        {eventsContainerContent}
+      </div>
+    );
   };
 
   const heading = 'Events timeline';
@@ -674,320 +578,7 @@ const Timeline = () => {
   );
 
   if (!loading && itemsHTML.length > 0) {
-    const ecstyle = {
-      left: eventsContainerLeft,
-      top: eventsContainerTop,
-      width: eventsContainerWidth,
-    };
-    let echidden = ' hidden';
-    if (eventsContainerVisible) {
-      echidden = '';
-    }
-    let eventsContainerHeading = '';
-    if (selectedItem !== null) {
-      eventsContainerHeading = (
-        <div>
-          {selectedItem.label} <small>[{eventsNum}]</small>
-        </div>
-      );
-    }
-    let eventsListVisible = '';
-    let eventDetailsVisible = ' hidden';
-    if (selectedEventVisible) {
-      eventsListVisible = ' hidden';
-      eventDetailsVisible = '';
-    }
-    let selectedEventLabel = '';
-    if (selectedEvent !== null) {
-      let selectedEventDateLabel = '';
-      let selectedEventDate = '';
-      if (
-        typeof selectedEvent.temporal !== 'undefined' &&
-        selectedEvent.temporal.length > 0
-      ) {
-        const selectedEventTemporal = selectedEvent.temporal[0].ref;
-        selectedEventDateLabel = outputDate(selectedEventTemporal.startDate);
-        if (
-          typeof selectedEventTemporal.endDate !== 'undefined' &&
-          selectedEventTemporal.endDate !== '' &&
-          selectedEventTemporal.endDate !== selectedEventTemporal.startDate
-        ) {
-          selectedEventDateLabel += ` - ${outputDate(
-            selectedEventTemporal.endDate
-          )}`;
-        }
-        selectedEventDate = (
-          <small key="date"> [{selectedEventDateLabel}]</small>
-        );
-      }
-      selectedEventLabel = [
-        <span key="label">{selectedEvent.label}</span>,
-        selectedEventDate,
-      ];
-    }
-
-    let relatedEvents = [];
-    let relatedEventsOpen = '';
-    let relatedEventsVisible = 'hidden';
-    let relatedOrganisations = [];
-    let relatedOrganisationsOpen = '';
-    let relatedOrganisationsVisible = 'hidden';
-    let relatedPeople = [];
-    let relatedPeopleOpen = '';
-    let relatedPeopleVisible = 'hidden';
-    let relatedResources = [];
-    let relatedResourcesOpen = '';
-    let relatedResourcesVisible = 'hidden';
-    let relatedClasspieces = [];
-    let relatedClasspiecesOpen = '';
-    let relatedClasspiecesVisible = 'hidden';
-    if (
-      selectedEvent !== null &&
-      selectedEvent.events.length > 0 &&
-      relatedVisible.events
-    ) {
-      relatedEventsOpen = ' active';
-      relatedEventsVisible = '';
-      relatedEvents = selectedEvent.events.map((e) => (
-        <Link
-          href={`/event/${e.ref._id}`}
-          to={`/event/${e.ref._id}`}
-          key={e.ref._id}
-        >
-          <Badge className="related-event badge-event" color="warning">
-            {e.ref.label}
-          </Badge>
-        </Link>
-      ));
-    }
-    if (
-      selectedEvent !== null &&
-      selectedEvent.organisations.length > 0 &&
-      relatedVisible.organisations
-    ) {
-      relatedOrganisationsVisible = '';
-      relatedOrganisations = selectedEvent.organisations.map((e) => (
-        <Link
-          href={`/organisation/${e.ref._id}`}
-          to={`/organisation/${e.ref._id}`}
-          key={e.ref._id}
-        >
-          <Badge className="related-organisation badge-organisation">
-            {e.ref.label}
-          </Badge>
-        </Link>
-      ));
-    }
-    if (
-      selectedEvent !== null &&
-      selectedEvent.people.length > 0 &&
-      relatedVisible.people
-    ) {
-      relatedPeopleVisible = '';
-      relatedPeople = selectedEvent.people.map((e) => (
-        <Link
-          href={`/person/${e.ref._id}`}
-          to={`/person/${e.ref._id}`}
-          key={e.ref._id}
-        >
-          <Badge className="related-person">{e.ref.label}</Badge>
-        </Link>
-      ));
-    }
-    if (
-      selectedEvent !== null &&
-      selectedEvent.resources.length > 0 &&
-      relatedVisible.resources
-    ) {
-      relatedResourcesVisible = '';
-      relatedResources = selectedEvent.resources.map((e) => {
-        const thumbnailPath = getResourceThumbnailURL(e.ref);
-        let thumbnailImage = [];
-        if (thumbnailPath !== null) {
-          thumbnailImage = <img src={thumbnailPath} alt={e.ref.label} />;
-        }
-        return (
-          <Link
-            href={`/resource/${e.ref._id}`}
-            to={`/resource/${e.ref._id}`}
-            key={e.ref._id}
-          >
-            <Badge className="related-resource badge-resource">
-              {thumbnailImage}
-              {e.ref.label}
-            </Badge>
-          </Link>
-        );
-      });
-    }
-    if (
-      selectedEvent !== null &&
-      selectedEvent.classpieces.length > 0 &&
-      relatedVisible.classpieces
-    ) {
-      relatedClasspiecesVisible = '';
-      relatedClasspieces = selectedEvent.classpieces.map((e) => {
-        const thumbnailPath = getResourceThumbnailURL(e.ref);
-        let thumbnailImage = [];
-        if (thumbnailPath !== null) {
-          thumbnailImage = <img src={thumbnailPath} alt={e.ref.label} />;
-        }
-        return (
-          <Link
-            href={`/classpiece/${e.ref._id}`}
-            to={`/classpiece/${e.ref._id}`}
-            key={e.ref._id}
-          >
-            <Badge className="related-classpiece badge-resource">
-              {thumbnailImage}
-              {e.ref.label}
-            </Badge>
-          </Link>
-        );
-      });
-    }
-    if (relatedOpen.events) {
-      relatedEventsOpen = ' active';
-    }
-    if (relatedOpen.organisations) {
-      relatedOrganisationsOpen = ' active';
-    }
-    if (relatedOpen.people) {
-      relatedPeopleOpen = ' active';
-    }
-    if (relatedOpen.resources) {
-      relatedResourcesOpen = ' active';
-    }
-    if (relatedOpen.classpieces) {
-      relatedClasspiecesOpen = ' active';
-    }
-    let description = [];
-    if (selectedEvent !== null && selectedEvent.description !== '') {
-      description = selectedEvent.description;
-    }
-
-    const eventsContainer = (
-      <div className={`timeline-events-container${echidden}`} style={ecstyle}>
-        <div className="heading">
-          <h4>{eventsContainerHeading}</h4>
-        </div>
-        <div
-          className="graph-details-card-close"
-          onClick={() => toggleEventsContainer()}
-          onKeyDown={() => false}
-          role="button"
-          tabIndex={0}
-          aria-label="toggle events container"
-        >
-          <i className="fa fa-times" />
-        </div>
-        <LazyList
-          limit={30}
-          range={15}
-          items={eventsHTML}
-          renderItem={renderEventHTML}
-          containerClass={`events-list-container ${eventsListVisible}`}
-        />
-        <div className={`event-details${eventDetailsVisible}`}>
-          <h4>
-            <div className="event-details-back">
-              <i
-                className="fa fa-chevron-left"
-                onClick={() => toggleSelectedEvent()}
-                onKeyDown={() => false}
-                role="button"
-                tabIndex={0}
-                aria-label="toggle selected event"
-              />
-            </div>
-            <span>{selectedEventLabel}</span>
-          </h4>
-          <div className="event-details-body">
-            <div className="event-details-description">{description}</div>
-            <div className={`event-details-related ${relatedEventsVisible}`}>
-              <div
-                className={`toggle-event-details-related ${relatedEventsOpen}`}
-                onClick={() => toggleRelatedOpen('events')}
-                onKeyDown={() => false}
-                role="button"
-                tabIndex={0}
-                aria-label="toggle related events"
-              >
-                Events <small>[{relatedEvents.length}]</small>:{' '}
-                <i className="fa fa-angle-down" />
-              </div>
-              <Collapse isOpen={relatedOpen.events}>{relatedEvents}</Collapse>
-            </div>
-            <div
-              className={`event-details-related ${relatedOrganisationsVisible}`}
-            >
-              <div
-                className={`toggle-event-details-related ${relatedOrganisationsOpen}`}
-                onClick={() => toggleRelatedOpen('organisations')}
-                onKeyDown={() => false}
-                role="button"
-                tabIndex={0}
-                aria-label="toggle related organisations"
-              >
-                Organisations <small>[{relatedOrganisations.length}]</small>:{' '}
-                <i className="fa fa-angle-down" />
-              </div>
-              <Collapse isOpen={relatedOpen.organisations}>
-                {relatedOrganisations}
-              </Collapse>
-            </div>
-            <div className={`event-details-related ${relatedPeopleVisible}`}>
-              <div
-                className={`toggle-event-details-related ${relatedPeopleOpen}`}
-                onClick={() => toggleRelatedOpen('people')}
-                onKeyDown={() => false}
-                role="button"
-                tabIndex={0}
-                aria-label="toggle related people"
-              >
-                People <small>[{relatedPeople.length}]</small>:{' '}
-                <i className="fa fa-angle-down" />
-              </div>
-              <Collapse isOpen={relatedOpen.people}>{relatedPeople}</Collapse>
-            </div>
-            <div className={`event-details-related ${relatedResourcesVisible}`}>
-              <div
-                className={`toggle-event-details-related ${relatedResourcesOpen}`}
-                onClick={() => toggleRelatedOpen('resources')}
-                onKeyDown={() => false}
-                role="button"
-                tabIndex={0}
-                aria-label="toggle related resources"
-              >
-                Resources <small>[{relatedResources.length}]</small>:{' '}
-                <i className="fa fa-angle-down" />
-              </div>
-              <Collapse isOpen={relatedOpen.resources}>
-                {relatedResources}
-              </Collapse>
-            </div>
-            <div
-              className={`event-details-related ${relatedClasspiecesVisible}`}
-            >
-              <div
-                className={`toggle-event-details-related ${relatedClasspiecesOpen}`}
-                onClick={() => toggleRelatedOpen('classpieces')}
-                onKeyDown={() => false}
-                role="button"
-                tabIndex={0}
-                aria-label="toggle related classpieces"
-              >
-                Classpieces <small>[{relatedClasspieces.length}]</small>:{' '}
-                <i className="fa fa-angle-down" />
-              </div>
-              <Collapse isOpen={relatedOpen.classpieces}>
-                {relatedClasspieces}
-              </Collapse>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    const eventsContainer = renderEventsContainer();
 
     const searchIcon = (
       <div
@@ -1016,10 +607,8 @@ const Timeline = () => {
       </div>
     );
 
-    let scVisibleClass = ' hidden';
-    if (searchContainerVisible) {
-      scVisibleClass = '';
-    }
+    const scVisibleClass = !searchContainerVisible ? ' hidden' : '';
+
     const searchContainer = (
       <div className={`events-timeline-search-container${scVisibleClass}`}>
         <div
@@ -1100,11 +689,13 @@ const Timeline = () => {
             </CardBody>
           </Card>
         </div>
-        <HelpArticle
-          permalink="timeline-help"
-          visible={helpVisible}
-          toggle={toggleHelp}
-        />
+        <Suspense fallback={null}>
+          <HelpArticle
+            permalink="classpieces-help"
+            visible={helpVisible}
+            toggle={toggleHelp}
+          />
+        </Suspense>
       </div>
     );
   }
@@ -1117,6 +708,6 @@ const Timeline = () => {
       {content}
     </div>
   );
-};
+}
 
 export default Timeline;

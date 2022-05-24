@@ -1,21 +1,17 @@
+/* globals describe, it */
 import React from 'react';
-import {
-  act,
-  render,
-  screen,
-  cleanup,
-  waitForElementToBeRemoved,
-  waitFor,
-} from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { BrowserRouter as Router } from 'react-router-dom';
 
 import NotFound from '../views/404';
 
-const NotFoundWrapper = (props) => (
-  <Router>
-    <NotFound />
-  </Router>
-);
+function NotFoundWrapper() {
+  return (
+    <Router>
+      <NotFound />
+    </Router>
+  );
+}
 describe('404 error not found view', () => {
   it('renders 404 error not found view', async () => {
     await act(async () => {

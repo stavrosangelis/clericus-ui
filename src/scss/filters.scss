@@ -1,0 +1,79 @@
+.filter-item {
+  width: 100%;
+  display: block;
+  position: relative;
+}
+.filter-item.mb-3 {
+  margin-bottom: 0 !important;
+}
+.filter-item > label {
+  display: block;
+}
+.filter-item .title {
+  display: none;
+  position: fixed;
+  background: #fff;
+  color: #333;
+  white-space: nowrap;
+  z-index: 999;
+  border-radius: 4px;
+}
+.filter-item:hover .title {
+  display: block;
+  margin-left: 3px;
+  background-color: #fff;
+}
+.filter-item.sep:hover .title, .filter-item.sep-1:hover .title{
+  margin-left: 15px;
+}
+.filter-item.sep-2:hover .title {
+  margin-left: 20px;
+}
+.filter-item.sep-3:hover .title {
+  margin-left: 25px;
+}
+.filter-item.sep-4:hover .title {
+  margin-left: 30px;
+}
+.filter-item.sep-5:hover .title {
+  margin-left: 35px;
+}
+.filter-type-dropdown {
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+.filter-label{
+  margin-left: 10px;
+}
+.filter-body .filter-span-type{
+  padding-left: 10px;
+}
+.filter-span {
+  vertical-align: top;
+  line-height: normal;
+  color: #333;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  width: calc(100% - 20px);
+  display: inline-block;
+  left: 4px;
+  position: relative;
+}
+.filter-separator-container {
+  display: inline-block;
+}
+.filter-separator {
+  display: inline-block;
+}
+.filter-separator:first-child {
+  margin-left: 7px;
+}
+.filter-separator:before {
+  display: inline-block;
+  width: 5px;
+  line-height: 12px;
+  content: "-";
+  text-align: center;
+  vertical-align: top;
+}

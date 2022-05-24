@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import '../scss/breadcrumbs.scss';
 
-const Breadcrumbs = (props) => {
+function Breadcrumbs(props) {
   const { items } = props;
   const breadcrumbItems = [];
   let homeItem = (
@@ -46,7 +46,7 @@ const Breadcrumbs = (props) => {
     breadcrumbItems.push(breadcrumbItem);
   }
   return <Breadcrumb>{breadcrumbItems}</Breadcrumb>;
-};
+}
 export default Breadcrumbs;
 Breadcrumbs.defaultProps = {
   items: [],

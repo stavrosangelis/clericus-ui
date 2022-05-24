@@ -1,64 +1,67 @@
-import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import React, { useEffect, useState, useRef, Suspense, lazy } from 'react';
 import axios from 'axios';
 import { Spinner, Card, CardBody } from 'reactstrap';
 import { useSelector } from 'react-redux';
-import PropTypes from 'prop-types';
 import dompurify from 'dompurify';
+import { useParams } from 'react-router-dom';
 import { updateDocumentTitle } from '../helpers';
 
 import '../scss/article.scss';
 
-const APIPath = process.env.REACT_APP_APIPATH;
-const Breadcrumbs = lazy(() => import('../components/breadcrumbs'));
+const { REACT_APP_APIPATH: APIPath } = process.env;
+const Breadcrumbs = lazy(() => import('../components/Breadcrumbs'));
 
-const Article = (props) => {
-  // props
-  const { match } = props;
+function Article() {
+  const { permalink } = useParams();
 
   // state
   const [loading, setLoading] = useState(true);
   const [article, setArticle] = useState(null);
 
-  const prevPermalink = useRef(match.params.permalink);
   const genericStats = useSelector((state) => state.genericStats);
   const [articleContent, setArticleContent] = useState(null);
   const prevGenericStats = useRef(null);
+  const prevPermalink = useRef(null);
 
   useEffect(() => {
-    const cancelToken = axios.CancelToken;
-    const source = cancelToken.source();
-
-    const { permalink } = match.params;
-    if (prevPermalink.current !== permalink) {
-      prevPermalink.current = permalink;
-      setLoading(true);
-    }
+    let unmounted = false;
+    const controller = new AbortController();
     const load = async () => {
-      setLoading(false);
+      prevPermalink.current = permalink;
       const responseData = await axios({
         method: 'get',
         url: `${APIPath}content-article`,
         crossDomain: true,
         params: { permalink },
-        cancelToken: source.token,
+        signal: controller.signal,
       })
         .then((response) => response.data)
         .catch((error) => console.log(error));
-      if (typeof responseData !== 'undefined' && responseData.status) {
-        const newArticle = responseData.data;
-        setArticle(newArticle);
-        setArticleContent(newArticle.content);
+      if (!unmounted) {
+        setLoading(false);
+        const { data = null } = responseData;
+        if (data !== null) {
+          setArticle(data);
+          setArticleContent(data.content);
+        }
       }
     };
     if (loading) {
       load();
     }
     return () => {
-      if (!loading) {
-        source.cancel('api request cancelled');
-      }
+      unmounted = true;
+      controller.abort();
     };
-  }, [loading, match.params]);
+  }, [loading, permalink]);
+
+  useEffect(() => {
+    if (!loading && prevPermalink.current !== permalink) {
+      prevPermalink.current = permalink;
+      setLoading(true);
+      setArticle(null);
+    }
+  }, [permalink, loading]);
 
   useEffect(() => {
     const updateArticleContent = () => {
@@ -174,13 +177,6 @@ const Article = (props) => {
       {content}
     </div>
   );
-};
-
-Article.defaultProps = {
-  match: null,
-};
-Article.propTypes = {
-  match: PropTypes.object,
-};
+}
 
 export default Article;

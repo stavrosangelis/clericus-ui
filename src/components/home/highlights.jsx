@@ -5,9 +5,9 @@ import { Card, CardBody } from 'reactstrap';
 
 import '../../scss/highlights.scss';
 
-const APIPath = process.env.REACT_APP_APIPATH;
+const { REACT_APP_APIPATH: APIPath } = process.env;
 
-const HighLights = () => {
+function HighLights() {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
   const [width, setWidth] = useState('100%');
@@ -41,8 +41,8 @@ const HighLights = () => {
   }, [items.length]);
 
   useEffect(() => {
-    const cancelToken = axios.CancelToken;
-    const source = cancelToken.source();
+    let unmounted = false;
+    const controller = new AbortController();
     const load = async () => {
       const params = {
         page: 1,
@@ -53,20 +53,24 @@ const HighLights = () => {
         url: `${APIPath}ui-highlights`,
         crossDomain: true,
         params,
-        cancelToken: source.token,
+        signal: controller.signal,
       })
-        .then((response) => response.data.data)
+        .then((response) => response.data)
         .catch((error) => console.log(error));
-      if (typeof responseData !== 'undefined') {
-        setItems(responseData);
+      if (!unmounted) {
         setLoading(false);
+        const { data = [] } = responseData;
+        if (data.length > 0) {
+          setItems(data);
+        }
       }
     };
     if (loading) {
       load();
     }
     return () => {
-      source.cancel('api request cancelled');
+      unmounted = true;
+      controller.abort();
     };
   }, [loading]);
 
@@ -207,33 +211,34 @@ const HighLights = () => {
         <span>
           <span>H</span>ighlights
         </span>
+        <div className="highlights-controls">
+          <div
+            className="left"
+            onClick={() => {
+              flipItems('left');
+            }}
+            onKeyDown={() => false}
+            role="button"
+            tabIndex={0}
+            aria-label="flip items left"
+          >
+            <i className="fa fa-chevron-left" />
+          </div>
+          <div
+            className="right"
+            onClick={() => {
+              flipItems('right');
+            }}
+            onKeyDown={() => false}
+            role="button"
+            tabIndex={0}
+            aria-label="flip items right"
+          >
+            <i className="fa fa-chevron-right" />
+          </div>
+        </div>
       </h3>
-      <div className="highlights-controls">
-        <div
-          className="left"
-          onClick={() => {
-            flipItems('left');
-          }}
-          onKeyDown={() => false}
-          role="button"
-          tabIndex={0}
-          aria-label="flip items left"
-        >
-          <i className="fa fa-chevron-left" />
-        </div>
-        <div
-          className="right"
-          onClick={() => {
-            flipItems('right');
-          }}
-          onKeyDown={() => false}
-          role="button"
-          tabIndex={0}
-          aria-label="flip items right"
-        >
-          <i className="fa fa-chevron-right" />
-        </div>
-      </div>
+
       <div className="highlights-container" ref={container}>
         <div
           className="highlights-container-inner"
@@ -245,6 +250,6 @@ const HighLights = () => {
       </div>
     </div>
   );
-};
+}
 
 export default HighLights;

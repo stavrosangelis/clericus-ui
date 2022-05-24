@@ -1,4 +1,45 @@
 
+.highlights-controls {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 13px;
+}
+.highlights-controls > div {
+  background-color: rgba(0,0,0,0.1);
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  line-height: 28px;
+  text-align: center;
+  color: #fff;
+  border: 1px solid #d9d9d9;
+  margin: 2px;
+  cursor: pointer;
+  transition: background-color 0.4s;
+}
+.highlights-controls > div:hover {
+  background-color: rgba(0,0,0,0.2);
+}
+.highlights-controls > div:active {
+  background-color: rgba(0,0,0,0.3);
+}
+.highlights-container {
+  width: 100%;
+  display: block;
+  position: relative;
+  overflow-x: hidden;
+  height: 280px;
+}
+.highlights-container-inner {
+  position: absolute;
+  overflow: hidden;
+  height: 280px;
+  display: block;
+  transition:left 0.3s;
+  white-space: nowrap;
+}
 .home-highlight {
   position: relative;
   display: block;

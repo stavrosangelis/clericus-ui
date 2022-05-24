@@ -7,34 +7,30 @@ import {
 } from '../redux/actions';
 import { renderLoader } from '../helpers';
 
-const Filter = lazy(() => import('./filter'));
-const FilterTemporal = lazy(() => import('./filter-temporal'));
+import '../scss/filters.scss';
 
-const Filters = (props) => {
+const Filter = lazy(() => import('./Filter'));
+const FilterTemporal = lazy(() => import('./Filter.temporal'));
+
+function Filters(props) {
   // redux
   const dispatch = useDispatch();
   const loadingOrganisationsType = useSelector(
     (state) => state.loadingOrganisationsType
   );
-  const organisationsType = useSelector((state) => state.organisationsType);
-  const propsOrganisations = useSelector((state) => state.organisations);
-
-  const loadingEventsType = useSelector((state) => state.loadingEventsType);
-  const eventsType = useSelector((state) => state.eventsType);
-
-  const loadingPersonType = useSelector((state) => state.loadingPersonType);
-  const personType = useSelector((state) => state.personType);
-
-  const loadingResourcesType = useSelector(
-    (state) => state.loadingResourcesType
-  );
-  const propsResourcesType = useSelector((state) => state.resourcesType);
-
-  const loadingPeopleSources = useSelector(
-    (state) => state.loadingPeopleSources
-  );
-  const peopleSources = useSelector((state) => state.peopleSources);
-  const propsTemporals = useSelector((state) => state.temporals);
+  const {
+    organisationsType,
+    organisations: propsOrganisations,
+    loadingEventsType,
+    eventsType,
+    loadingPersonType,
+    personType,
+    loadingResourcesType,
+    resourcesType: propsResourcesType,
+    loadingPeopleSources,
+    peopleSources,
+    temporals: propsTemporals,
+  } = useSelector((state) => state);
 
   // props
   const {
@@ -61,18 +57,23 @@ const Filters = (props) => {
 
   const clearAllFilters = () => {
     dispatch(clearFiltersFn(propsName));
+    setTimeout(() => {
+      updatedata();
+    }, 20);
   };
+
   // render
-  const classpiecesOut = [];
-  let eventsOut = [];
-  let organisationsOut = [];
-  let personTypeOut = [];
-  let resourcesOut = [];
-  const peopleOut = [];
-  let temporalsOut = [];
-  const spatialsOut = [];
-  const dataTypes = [];
-  for (let i = 0; i < propsFilterType.length; i += 1) {
+  let eventsOut = null;
+  let organisationsOut = null;
+  let eventTypeOut = null;
+  let personTypeOut = null;
+  let resourcesOut = null;
+  let sourcesOut = null;
+  let temporalsOut = null;
+  const spatialsOut = null;
+  const dataTypes = null;
+  const { length } = propsFilterType;
+  for (let i = 0; i < length; i += 1) {
     const filterType = propsFilterType[i];
     if (filterType === 'events') {
       const eventsFiltersSet = filtersSet.events || [];
@@ -124,7 +125,7 @@ const Filters = (props) => {
       );
     }
     if (filterType === 'eventType') {
-      organisationsOut = (
+      eventTypeOut = (
         <Suspense fallback={renderLoader()} key="eventType">
           <Filter
             loading={loadingEventsType}
@@ -157,19 +158,19 @@ const Filters = (props) => {
         </Suspense>
       );
     }
-    if (filterType === 'resourcesTypes') {
-      const resourcesType = propsResourcesType.filter(
-        (r) => r.labelId !== 'Classpiece'
-      );
+    if (filterType === 'resourcesType') {
+      const resourcesTypes =
+        propsResourcesType.filter((r) => r.labelId !== 'Classpiece') || [];
+
       resourcesOut = (
         <Suspense fallback={renderLoader()} key="resourcesTypes">
           <Filter
             loading={loadingResourcesType}
             relationshipSet={[]}
             filtersSet={filtersSet}
-            filtersType="resourcesTypes"
-            // itemsType={propsResourcesType}
-            items={resourcesType}
+            filtersType="resourcesType"
+            items={[]}
+            itemsType={resourcesTypes}
             label="Resources type"
             updateFilters={updateFilters}
             updateType={updateType}
@@ -178,11 +179,11 @@ const Filters = (props) => {
       );
     }
     if (filterType === 'sources') {
-      organisationsOut = (
+      sourcesOut = (
         <Suspense fallback={renderLoader()} key="sources">
           <Filter
             loading={loadingPeopleSources}
-            relationshipSet={[]}
+            relationshipSet={relationshipSet.sources}
             filtersSet={filtersSet.sources}
             filtersType="sources"
             items={peopleSources}
@@ -210,7 +211,7 @@ const Filters = (props) => {
   }
 
   return (
-    <div>
+    <>
       <h4>
         Filters
         <small
@@ -226,18 +227,18 @@ const Filters = (props) => {
           clear all <i className="fa fa-times-circle" />
         </small>
       </h4>
-      {classpiecesOut}
       {eventsOut}
       {organisationsOut}
+      {eventTypeOut}
+      {sourcesOut}
       {personTypeOut}
       {resourcesOut}
-      {peopleOut}
       {temporalsOut}
       {spatialsOut}
       {dataTypes}
-    </div>
+    </>
   );
-};
+}
 
 Filters.defaultProps = {
   name: '',
@@ -278,10 +279,9 @@ Filters.propTypes = {
       }),
       PropTypes.array,
     ]),
-    organisations: PropTypes.shape({
-      organisationType: PropTypes.string,
-    }),
-    sources: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+    organisations: PropTypes.array,
+    resourcesType: PropTypes.string,
+    sources: PropTypes.array,
     temporals: PropTypes.object,
   }),
   relationshipSet: PropTypes.object,

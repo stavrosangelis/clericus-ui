@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-const Twitter = () => {
+function Twitter() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,6 +30,6 @@ const Twitter = () => {
       Tweets by ClericusDH
     </a>
   );
-};
+}
 
 export default Twitter;

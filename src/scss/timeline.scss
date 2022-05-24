@@ -1,0 +1,190 @@
+@import 'colors';
+
+.timeline-container {
+  height: 500px;
+}
+.timeline-container > ul {
+  margin: 0;
+  padding: 5px 15px;
+  list-style-type: none;
+}
+.timeline-container > ul > li {
+  padding: 0;
+  margin: 0;
+  vertical-align: middle;
+}
+@keyframes blinkingBg{
+    0%{ background-color: $timeline-teal; }
+    49%{ background-color: $timeline-teal; }
+    60%{ background-color: #fff; }
+    99%{ background-color: #fff; }
+    100%{ background-color: $timeline-teal; }
+}
+@keyframes blinkingText{
+    0%{ color: #fff; }
+    49%{ color: #fff; }
+    60%{ color: #666; }
+    99%{ color: #666; }
+    100%{ color: #fff; }
+}
+.timeline-container > div > ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+.timeline-container > .lazylist {
+  height: 500px;
+  margin-right: -20px;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.timeline-container > .lazylist::-webkit-scrollbar {
+  display: none;
+}
+.timeline-container > div > ul > li > .timeline-point {
+  display: inline-block;
+  margin: 3px 0;
+  border-top: 1px solid $teal;
+  border-bottom: 1px solid $teal;
+  border-left: 1px solid $teal;
+  padding: 0 36px 0 5px;
+  position: relative;
+  font-size: 12px;
+  line-height: 16px;
+  vertical-align: middle;
+  cursor: default;
+  transition: 0.4s background-color;
+  background-color: #fff;
+}
+.timeline-container > div > ul > li > .timeline-point > label {
+  color: #666;
+  font-weight: bold;
+}
+.timeline-container > div > ul > li.found > .timeline-point {
+  animation:blinkingBg 0.75s infinite;
+}
+.timeline-container > div > ul > li.found > .timeline-point > label {
+  animation: blinkingText 0.75s infinite;
+}
+.timeline-container > div > ul > li > .timeline-point:hover {
+  background-color: $teal;
+}
+.timeline-container > div > ul > li > .timeline-point:hover > label {
+  color: #fff;
+}
+.timeline-container > div > ul > li > .timeline-point:active {
+  background-color: $dark-teal1;
+}
+
+.timeline-container > div > ul > li > .timeline-point > label {
+  padding: 0;
+  margin: 0;
+  white-space: nowrap;
+}
+.timeline-container > div > ul > li > .timeline-point > .triangle-up {
+  width: 15px;
+  height: 8px;
+  transform: rotate(40deg);
+  border-bottom: 1px solid $teal;
+  background-color: #fff;
+  display: block;
+  position: absolute;
+  right: -5px;
+  top: -3px;
+  z-index: 2;
+}
+.timeline-container > div > ul > li > .timeline-point > .triangle-down {
+  width: 15px;
+  height: 8px;
+  transform: rotate(-40deg);
+  border-top: 1px solid $teal;
+  background-color: #fff;
+  display: block;
+  position: absolute;
+  right: -5px;
+  bottom: -3px;
+  z-index: 2;
+}
+
+.timeline-container > div > ul > li > .timeline-point.decade {
+  font-size: 13px;
+  padding: 0 50px 0 5px;
+  background-color: $light-teal;
+}
+.timeline-container > div > ul > li > .timeline-point.decade:hover {
+  background-color: $light-teal2;
+}
+.timeline-container > div > ul > li > .timeline-point.decade:active {
+  background-color: $light-teal;
+}
+.timeline-container > div > ul > li > .timeline-point.decade:hover > label {
+  color: #666;
+}
+.timeline-container > div > ul > li > .timeline-point.decade > .triangle-up,
+.timeline-container > div > ul > li > .timeline-point.decade > .triangle-down {
+  border-color: $teal;
+}
+.timeline-container > div > ul > li > .timeline-point.fifty {
+  font-size: 15px;
+  padding: 0 64px 0 5px;
+  background-color: $teal;
+}
+.timeline-container > div > ul > li > .timeline-point.fifty:hover {
+  background-color: $light-teal;
+}
+.timeline-container > div > ul > li > .timeline-point.fifty:active {
+  background-color: $teal;
+}
+.timeline-container > div > ul > li > .timeline-point.fifty:hover > label {
+  color: #666;
+}
+.timeline-container > div > ul > li > .timeline-point.fifty > .triangle-up,
+.timeline-container > div > ul > li > .timeline-point.fifty > .triangle-down {
+  border-color: $teal;
+}
+.timeline-container > div > ul > li > .timeline-point.century {
+  font-size: 16px;
+  padding: 0 78px 0 5px;
+  background-color: $dark-teal1;
+}
+.timeline-container > div > ul > li > .timeline-point.century > label {
+  color: #fff;
+}
+.timeline-container > div > ul > li > .timeline-point.century:hover {
+  background-color: $teal;
+}
+.timeline-container > div > ul > li > .timeline-point.century:active {
+  background-color: $dark-teal1;
+}
+.timeline-container > div > ul > li > .timeline-point.century > .triangle-up,
+.timeline-container > div > ul > li > .timeline-point.century > .triangle-down {
+  border-color: $dark-teal1;
+}
+.timeline-events-container {
+  position: absolute;
+  width: 400px;
+  min-height: 100px;
+  max-height: 400px;
+  overflow-y: auto;
+  border-radius: 4px;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+  z-index:9;
+  background-color: #fff;
+}
+.timeline-events-container .heading > h4 {
+  font-size: 18px;
+  padding: 10px 10px 5px 10px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 0;
+}
+.timeline-event-item {
+  padding: 5px 10px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+  transition: 0.4s background-color;
+}
+.timeline-event-item:hover {
+  background-color: $timeline-teal;
+  color: #fff;
+}

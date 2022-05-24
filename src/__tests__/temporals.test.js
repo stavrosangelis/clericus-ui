@@ -1,18 +1,12 @@
+/* globals afterAll, afterEach, beforeAll, describe, it */
 import React from 'react';
-import {
-  act,
-  render,
-  screen,
-  cleanup,
-  waitForElementToBeRemoved,
-  waitFor,
-} from '@testing-library/react';
+import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import store from '../redux/store';
 import server from '../__mocks/mock-server';
 
-import Temporals from '../views/temporals';
+import Temporals from '../views/Temporals';
 
 // Enable API mocking before tests.
 beforeAll(() => server.listen());
@@ -26,13 +20,16 @@ afterEach(() => {
 // Disable API mocking after the tests are done.
 afterAll(() => server.close());
 
-const Wrapper = (props) => (
-  <Provider store={store()}>
-    <Router>
-      <Temporals {...props} />
-    </Router>
-  </Provider>
-);
+function Wrapper(props) {
+  return (
+    <Provider store={store()}>
+      <Router>
+        {/* eslint-disable-next-line */}
+        <Temporals {...props}/>
+      </Router>
+    </Provider>
+  );
+}
 describe('Temporals view', () => {
   it('renders temporals view', async () => {
     await act(async () => {

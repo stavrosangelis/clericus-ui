@@ -1,18 +1,12 @@
+/* globals afterAll, afterEach, beforeAll, describe, it */
 import React from 'react';
-import {
-  act,
-  render,
-  screen,
-  cleanup,
-  waitForElementToBeRemoved,
-  waitFor,
-} from '@testing-library/react';
+import { act, render, screen, cleanup, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import store from '../redux/store';
 import server from '../__mocks/mock-server';
 
-import Person from '../views/person';
+import Person from '../views/Person';
 
 // Enable API mocking before tests.
 beforeAll(() => server.listen());
@@ -33,13 +27,16 @@ const defaultProps = {
     },
   },
 };
-const Wrapper = (props) => (
-  <Provider store={store()}>
-    <Router>
-      <Person {...defaultProps} {...props} />
-    </Router>
-  </Provider>
-);
+function Wrapper(props) {
+  return (
+    <Provider store={store()}>
+      <Router>
+        {/* eslint-disable-next-line */}
+        <Person {...defaultProps} {...props}/>
+      </Router>
+    </Provider>
+  );
+}
 describe('Person view', () => {
   it('renders an person view', async () => {
     await act(async () => {
@@ -47,28 +44,30 @@ describe('Person view', () => {
       await waitFor(() => screen.findAllByText(`Patrick Adams`));
     });
   });
-  it('renders an person\'s alternate appellations', async () => {
+  it("renders an person's alternate appellations", async () => {
     await act(async () => {
       render(<Wrapper />);
       await waitFor(() => screen.findAllByText('Pádraigh MacAdam'));
     });
   });
-  it('renders an person\'s events', async () => {
+  it("renders an person's events", async () => {
     await act(async () => {
       render(<Wrapper />);
       await waitFor(() => screen.findByText(`Events`));
       await waitFor(() => screen.findAllByText(`participated in`));
-      await waitFor(() => screen.findAllByText(`Matriculation into 1st Arts and Philosophy`));
+      await waitFor(() =>
+        screen.findAllByText(`Matriculation into 1st Arts and Philosophy`)
+      );
     });
   });
-  it('renders an person\'s organisations', async () => {
+  it("renders an person's organisations", async () => {
     await act(async () => {
       render(<Wrapper />);
       await waitFor(() => screen.findByText(`Organisations`));
       await waitFor(() => screen.findAllByText(`has affiliation`));
     });
   });
-  it('renders an person\'s classpieces', async () => {
+  it("renders an person's classpieces", async () => {
     await act(async () => {
       render(<Wrapper />);
       await waitFor(() => screen.findByText(`Classpieces`));
@@ -76,7 +75,7 @@ describe('Person view', () => {
       await waitFor(() => screen.findByText(`SPCM 1936-1937`));
     });
   });
-  it('renders an person\'s resources', async () => {
+  it("renders an person's resources", async () => {
     await act(async () => {
       render(<Wrapper />);
       await waitFor(() => screen.findByText(`Resources`));
