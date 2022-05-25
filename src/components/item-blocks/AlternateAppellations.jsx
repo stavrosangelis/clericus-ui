@@ -25,7 +25,9 @@ function Block(props) {
       visibleIcon = ' closed';
     }
 
-    const appellations = items.map((a, i) => {
+    const appellations = [];
+    for (let i = 0; i < length; i += 1) {
+      const a = items[i];
       const obj = jsonStringToObject(a);
       const {
         appelation = '',
@@ -50,36 +52,38 @@ function Block(props) {
         noteText = <i>{` ${note}`}</i>;
       }
       const key = `a${i}`;
-      const appellationOutput = (
-        <div key={key}>
-          {label}
-          {lang}
-          {noteText}
-        </div>
-      );
-      return appellationOutput;
-    });
-
-    output = (
-      <>
-        <h5>
-          Alternate appellations
-          <div
-            className="btn btn-default btn-xs pull-right toggle-info-btn"
-            onClick={toggleVisible}
-            onKeyDown={() => false}
-            role="button"
-            tabIndex={0}
-            aria-label="toggle description visibility"
-          >
-            <i className={`fa fa-angle-down${visibleIcon}`} />
+      if (label !== '') {
+        appellations.push(
+          <div key={key}>
+            {label}
+            {lang}
+            {noteText}
           </div>
-        </h5>
-        <div className={`item-block${visibleClass}`}>
-          <div style={{ marginBottom: '10px' }}>{appellations}</div>
-        </div>
-      </>
-    );
+        );
+      }
+    }
+    if (appellations.length > 0) {
+      output = (
+        <>
+          <h5>
+            Alternate appellations
+            <div
+              className="btn btn-default btn-xs pull-right toggle-info-btn"
+              onClick={toggleVisible}
+              onKeyDown={() => false}
+              role="button"
+              tabIndex={0}
+              aria-label="toggle description visibility"
+            >
+              <i className={`fa fa-angle-down${visibleIcon}`} />
+            </div>
+          </h5>
+          <div className={`item-block${visibleClass}`}>
+            <div style={{ marginBottom: '10px' }}>{appellations}</div>
+          </div>
+        </>
+      );
+    }
   }
 
   return output;

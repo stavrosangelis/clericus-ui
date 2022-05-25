@@ -283,27 +283,71 @@ function Person() {
         ) || null;
       if (isinICP) {
         thumbnailImage = (
-          <img
-            src={icpThumbnail}
-            className="people-thumbnail img-fluid img-thumbnail person-thumbnailImage"
-            alt={label}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              return false;
-            }}
-          />
+          <div
+            onClick={() => toggleViewer()}
+            onKeyDown={() => false}
+            role="button"
+            tabIndex={0}
+            aria-label="toggle image viewer"
+            className="person-thumbnail-container"
+          >
+            <img
+              src={icpThumbnail}
+              className="people-thumbnail img-fluid img-thumbnail person-thumbnailImage"
+              alt={label}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                return false;
+              }}
+            />
+          </div>
+        );
+        imgViewer = (
+          <Suspense fallback={renderLoader()}>
+            <Viewer
+              visible={viewerVisible}
+              label={label}
+              toggle={toggleViewer}
+              path={icpThumbnail}
+              length={fLength}
+              index={thumbnailVisible}
+              setIndex={showThumbnail}
+            />
+          </Suspense>
         );
       } else {
         thumbnailImage = (
-          <img
-            src={defaultThumbnail}
-            className="people-thumbnail img-fluid img-thumbnail person-thumbnailImage"
-            alt={label}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              return false;
-            }}
-          />
+          <div
+            onClick={() => toggleViewer()}
+            onKeyDown={() => false}
+            role="button"
+            tabIndex={0}
+            aria-label="toggle image viewer"
+            className="person-thumbnail-container"
+          >
+            <img
+              src={defaultThumbnail}
+              className="people-thumbnail img-fluid img-thumbnail person-thumbnailImage"
+              alt={label}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                return false;
+              }}
+            />
+          </div>
+        );
+        imgViewer = (
+          <Suspense fallback={renderLoader()}>
+            <Viewer
+              visible={viewerVisible}
+              label={label}
+              toggle={toggleViewer}
+              path={defaultThumbnail}
+              length={fLength}
+              index={thumbnailVisible}
+              setIndex={showThumbnail}
+            />
+          </Suspense>
         );
       }
     }
