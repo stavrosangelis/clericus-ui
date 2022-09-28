@@ -3,7 +3,7 @@ import { updateDocumentTitle, renderLoader } from '../../helpers';
 
 const Breadcrumbs = lazy(() => import('../../components/Breadcrumbs'));
 const GraphNetwork = lazy(() =>
-  import('../../components/visualisations/Graph.network.pixi')
+  import('../../components/visualisations/Graph.network/Graph.network.pixi')
 );
 
 function NetworkGraph() {
@@ -15,7 +15,7 @@ function NetworkGraph() {
   const content = (
     <div className="graph-container" id="graph-container">
       <Suspense fallback={renderLoader()}>
-        <GraphNetwork relatedLinks={[]} relatedNodes={[]} />
+        <GraphNetwork />
       </Suspense>
     </div>
   );

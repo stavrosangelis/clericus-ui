@@ -222,7 +222,7 @@ h1, h2, h3, h4, h5 {
 }
 .navbar-nav > li.dropdown.nav-item > ul.dropdown-menu > li.dropdown.nav-item > div.nav-item-wc > a::after {
   content: "\f105";
-  font-family: 'FontAwesome';
+  font-family: 'Font Awesome 5 Free';
   position: absolute;
   right: 6px;
 }
@@ -989,7 +989,7 @@ section {
   border: 1px solid #ddd;
   border-radius: 4px;
   background-color: #fff;
-  height: 400px;
+  height: 600px;
   position: relative;
   overflow: hidden;
 }
@@ -997,10 +997,10 @@ section {
   position: absolute;
   top: 10px;
   left: 10px;
-  max-height: 350px;
+  max-height: 370px;
   overflow: hidden;
   box-shadow: 0 0 10px rgba(0,0,0,0.2);
-  width: 450px;
+  width: 320px;
   max-width: 100%;
   z-index:99;
 }
@@ -1061,7 +1061,7 @@ section {
 }
 .graph-details-card .card-content {
   overflow: auto;
-  max-height: 200px;
+  max-height: 222px;
   padding-right: 10px;
   margin-right: -10px;
 }
@@ -1079,16 +1079,27 @@ section {
   padding: 0;
   list-style-type: none;
 }
-.graph-details-card .card-content .entries-list > li:before {
-  content: "-";
-  color: #999;
-  padding: 0 5px;
+.graph-details-card .card-content .entries-list > li {
+  padding: 2px 0;
+  border-bottom: 1px solid #ddd;
 }
-.graph-details-card .card-content .entries-list > li > div {
-  display: inline;
+.graph-details-card .card-content .entries-list > li:last-child {
+  border-bottom: 0 none;
 }
-.graph-details-card .card-content .entries-list li, .graph-details-card .card-content .entries-list li a {
-  font-size: 13px;
+.graph-details-card .card-content .entries-list > li:hover {
+  background-color: #eee;
+}
+.graph-details-card .card-content .entries-list > li .details {
+  display: block;
+}
+.graph-details-card .card-content .entries-list > li .details > .label {
+  display: flex;
+}
+.graph-details-card .card-content .entries-list > li .details > .label > div {
+  flex-grow: 1;
+}
+.graph-details-card .card-content .entries-list > li .details > .actions {
+  display: block;
 }
 .graph-details-card .card-content .entries-list li .graph-link-rel {
   font-size: 11px;
@@ -1098,6 +1109,18 @@ section {
   font-size: 11px;
   color: #555;
   padding: 0 5px;
+}
+.graph-details-card .card-content .entries-list > li .label > .details img {
+  max-height: 55px;
+  margin: 0 0 4px 4px;
+}
+.graph-details-card .card-content .entries-list > li .btn {
+  background-color: #fff;
+  color: #6c757d;
+  text-decoration: none;
+}
+.graph-details-card .card-content .entries-list > li .active {
+  background-color: #ddd;
 }
 .graph-details-card .card-footer {
   padding: 10px 0 0 0;
@@ -1121,6 +1144,27 @@ section {
   box-shadow: 0 1px 3px rgba(0,0,0,0.5);
   border-radius: 6px;
   width: 40px;
+}
+.graph-statistics-button {  
+  width: 40px;
+  height: 40px;
+  margin: 10px auto 15px auto;
+  border-radius: 50%;
+  background-color: #fff;
+  position: relative;
+  right: 0;
+  z-index: 3;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  text-align: center;
+  line-height: 40px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.graph-statistics-button:hover {
+  background-color: #eee;
+}
+.graph-statistics-button:active {
+  background-color: #d0d0d0;
 }
 .zoom-action {
   cursor: pointer;
@@ -1380,8 +1424,6 @@ section {
   font-size: 8px;
   vertical-align: middle;
 }
-.related-nodes-paths > li {
-}
 .related-nodes-paths > li > div {
   display: inline-block;
 }
@@ -1527,9 +1569,6 @@ section {
   border-radius: 4px;
   line-height: 32px;
   color: #555;
-}
-
-.item-container {
 }
 .item-title-container {
   padding-bottom: 2%;
@@ -2093,4 +2132,233 @@ section {
 }
 .technical-metadata div {
   padding-left: 15px;
+}
+.original-location {
+  padding-bottom: 10px;
+}
+.tabs-container {
+  display: block;
+  position: relative;
+}
+.tabs-header {
+  display: flex;
+  align-items: flex-start;
+  overflow-x: auto;
+  transform: rotateX(180deg);
+  padding-bottom: 10px;
+}
+.tab-header {
+  border: 1px solid $blue;
+  padding: 4px 8px;
+  transition: all 0.1s;
+  cursor: pointer;
+  white-space: nowrap;
+  transform: rotateX(180deg);
+}
+.tab-header.active {
+  padding: 6px 8px;
+  color: #fff;
+  background-color: $light-blue;
+}
+.tab-header:hover {
+  color: #fff;
+  background-color: $blue;
+}
+.tabs-header.small > .tab-header {
+  font-size: 12px;
+  padding: 2px;
+}
+.tabs-header.small > .tab-header.active {
+  font-size: 12px;
+  padding: 4px 2px;
+}
+.tab-content {
+  margin-top: -1px;
+  padding: 4px;
+  border: 1px solid $blue;
+  display: none;
+}
+.tab-content.active {
+  display: block;
+}
+.graph-search-checkboxes > label {
+  padding-right: 12px;
+  font-size: 13px;
+  position: relative;
+}
+.graph-search-checkboxes > label:last-of-type {
+  padding-right: 0;
+}
+.graph-search-checkboxes > label > input {
+  z-index: 1;
+  position: relative;
+}
+.flex {
+  display: flex;
+}
+.radio-color-code {
+  position: absolute;
+  display: block;
+  width: 20px;
+  height: 20px;
+  top: 0;
+  left: -4px;
+  z-index: 0;
+}
+.graph-search-results-container {
+  display: flex;
+  margin: 4px 0;
+  align-items: flex-start;
+}
+.graph-search-results-container .toggle-info-btn {
+  margin-left: 8px;
+}
+.graph-search-results {
+  padding: 0 10px;
+  margin: 5px 0 0 -10px;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  list-style-type: none;
+  max-height: 300px;
+  overflow-y: auto;
+  transition: max-height 0.4s;
+}
+.graph-search-results.item-hidden {
+  max-height: 0;
+}
+.graph-search-results > li {
+  padding: 4px 4px 4px 0;
+  border-bottom: 1px solid #ddd;
+}
+.graph-search-results > li:last-child {
+  border-bottom: 0 none;
+}
+.graph-search-results > li:hover {
+  background-color: #eee;
+}
+.graph-search-results > li.selected {
+  background-color: $light-green;
+}
+.graph-search-results .details {
+  display: flex;
+  align-items: flex-start;
+  justify-content: stretch;
+}
+.graph-search-results .img-fluid, .graph-search-results .img-thumbnail {
+  max-width: 40px;
+  margin-right: 6px;
+}
+.graph-search-results .details > .color-code {
+  width: 8px;
+  align-self: stretch;
+}
+.graph-search-results .details > .label {
+  padding-left: 4px;
+  flex-grow: 1;
+}
+.graph-search-results .details > .actions {
+  min-width: 110px;
+}
+.graph-search-results .details > .actions .btn {
+  background-color: #fff;
+}
+.graph-search-results .details > .actions .btn:hover, 
+.graph-search-results .details > .actions .btn:active, 
+.graph-search-results .details > .actions .btn:focus {
+  background-color: #858482;
+}
+.graph-search-results .details > .actions > button {
+  display: block;
+  margin-bottom: 4px;
+}
+.graph-search-results-node-details {
+  position: absolute;
+  right: 10px;
+  bottom: 0;
+  left: 10px;
+  max-height: 0%;
+  background-color: #fff;
+  box-shadow: 0 -4px 8px rgba(0,0,0,0.2);
+  overflow: hidden;
+  transition: max-height 0.4s;
+}
+.graph-search-results-node-details.visible {
+  max-height: 75%;
+  border-top: 1px solid #ddd;
+}
+.graph-search-results-node-details-inner {
+  padding: 15px;
+  max-height: calc(100% - 62px);
+  overflow-y: auto;
+}
+.graph-search-results-node-details-inner .item-details {
+  max-width: 150px;
+  float: right;
+}
+.graph-search-spinner {
+  position: absolute;
+  right: 70px;
+  top: 10px;
+  border-radius: 50% !important;
+  z-index: 99;
+}
+.graph-search-paths-selected {
+  padding: 5px;
+}
+.graph-search-paths-footer {
+  display: flex;
+  margin: 5px;
+  justify-content: space-between;
+}
+.graph-progress {
+  width: 230px;
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  margin-left: -115px;
+  padding: 10px 15px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+  border-radius: 4px;
+  background-color: #fff;
+}
+.graph-search-block {
+  max-height: 60px;
+  overflow-y: auto;
+  display: block;
+  font-size: small;
+}
+.graph-paths {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+.graph-path {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+}
+.graph-path-rel {
+  font-style: italic;
+  font-size: small;
+  white-space: nowrap;
+}
+.graph-path .badge {
+  cursor: pointer;
+  white-space: normal !important;
+}
+.graph-classpiece {
+  background-color: #1e9dd8 !important;
+}
+.graph-event {
+  background-color: #c9730a !important;
+}
+.graph-organisation {
+  background-color: #5343b7 !important;
+}
+.graph-person {
+  background-color: #519b1b !important;
+}
+.graph-resource {
+  background-color: #0982a0 !important;
 }

@@ -95,11 +95,7 @@ function Header() {
               className="navbar-toggler navbar-toggler-nopadding"
               onClick={() => toggle()}
               aria-label="Toggle navigation"
-            >
-              <span className="navbar-toggler-icon">
-                <i className="fa fa-navicon" />
-              </span>
-            </button>
+            />
             <Collapse isOpen={isOpen} navbar>
               <TopMenu toggle={closeMenu} />
               <div className="search-trigger">

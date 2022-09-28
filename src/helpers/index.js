@@ -1,8 +1,10 @@
 import React from 'react';
 import { Spinner } from 'reactstrap';
 import moment from 'moment';
+import icpThumbnail from '../assets/images/icp-logo.jpg';
+import defaultThumbnail from '../assets/images/spcc.jpg';
 
-const domain = process.env.REACT_APP_DOMAIN;
+const { REACT_APP_DOMAIN: domain } = process.env;
 
 export const jsonStringToObject = (strParam) => {
   let str = strParam;
@@ -54,14 +56,13 @@ export const getItemThumbnailsURL = (item) => {
 
 export const getResourceThumbnailURL = (resourceParam = null) => {
   const { paths = [] } = resourceParam;
-  if (paths.length > 0) {
-    const parsedPaths =
-      typeof paths[0].path === 'undefined'
-        ? paths.map((path) => {
-            const newPath = JSON.parse(path);
-            return newPath;
-          })
-        : paths;
+  const { length } = paths;
+  if (length > 0) {
+    const parsedPaths = [];
+    for (let i = 0; i < length; i += 1) {
+      const path = jsonStringToObject(paths[i]);
+      parsedPaths.push(path);
+    }
     const thumbnail = parsedPaths.filter(
       (item) => item.pathType === 'thumbnail'
     );
@@ -409,4 +410,479 @@ export const groupItemsByYears = (items, yearParam = 1850, modulus = 10) => {
   }
   const returnItems = groupedYearItems(yearItems);
   return returnItems;
+};
+
+export const outputPerson = (n = null) => {
+  if (n === null) {
+    return null;
+  }
+  const {
+    affiliations: iAffiliations = [],
+    firstName = '',
+    _id,
+    middleName = '',
+    lastName = '',
+    honorificPrefix = [],
+    resources = [],
+  } = n;
+  const affiliations =
+    iAffiliations.map((a) => {
+      const { ref = null } = a;
+      if (ref !== null) {
+        const { _id: aId = null, label = '' } = ref;
+        if (aId !== null) {
+          return (
+            <div className="affiliation-block" key={aId}>
+              {' '}
+              [{label.trim()}]
+            </div>
+          );
+        }
+      }
+      return null;
+    }) || null;
+  let label = firstName;
+  if (middleName !== '') {
+    label += ` ${middleName}`;
+  }
+  if (lastName !== '') {
+    label += ` ${lastName}`;
+  }
+
+  if (honorificPrefix.length > 0) {
+    let labelHP = honorificPrefix
+      .filter((ih) => typeof ih !== 'undefined' && ih !== '')
+      .join(', ');
+    if (labelHP !== '') {
+      labelHP = `(${labelHP})`;
+    }
+    label = `${labelHP} ${label}`;
+  }
+
+  let thumbnailImage = [];
+  const { thumbnails = [] } = getItemThumbnailsURL(n);
+  if (thumbnails.length > 0) {
+    thumbnailImage = (
+      <img
+        src={thumbnails[0]}
+        className="people-list-thumbnail img-fluid img-thumbnail"
+        alt={label}
+      />
+    );
+  } else {
+    const isinICP =
+      resources.find((ir) =>
+        ir.ref.label.includes('Liam Chambers and Sarah Frank')
+      ) || null;
+    if (isinICP) {
+      thumbnailImage = (
+        <img
+          src={icpThumbnail}
+          className="img-fluid img-thumbnail"
+          alt={label}
+        />
+      );
+    } else {
+      thumbnailImage = (
+        <img
+          src={defaultThumbnail}
+          className="img-fluid img-thumbnail"
+          alt={label}
+        />
+      );
+    }
+  }
+  return (
+    <div className="details">
+      <div className="thumbnail-container">{thumbnailImage}</div>
+      <div>
+        <div>
+          <small>{_id}. </small>
+          {label}
+        </div>
+        <div>{affiliations}</div>
+        <div>
+          <small>[Person]</small>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const outputResource = (n = null) => {
+  if (n === null) {
+    return null;
+  }
+  const { _id, label, systemLabel = '' } = n;
+  let thumbnailImage = (
+    <img className="img-fluid" src={defaultThumbnail} alt={label} />
+  );
+  const thumbnailPath = getResourceThumbnailURL(n);
+  if (thumbnailPath !== null) {
+    thumbnailImage = (
+      <img className="img-fluid" src={thumbnailPath} alt={label} />
+    );
+  }
+  return (
+    <div className="details">
+      <div className="thumbnail-container">{thumbnailImage}</div>
+      <div>
+        <div>
+          <small>{_id}. </small>
+          {label}
+        </div>
+        <div>
+          <small>[{systemLabel}]</small>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const outputEvent = (n = null) => {
+  if (n === null) {
+    return null;
+  }
+  const {
+    _id = '',
+    label = '',
+    people = [],
+    organisations = [],
+    temporal = [],
+    spatial = [],
+  } = n;
+  const description = [];
+  if (people.length > 0) {
+    const peopleLabels = people.map((o, oi) => {
+      const { _id: pId = '', term = null, ref = null } = o;
+      if (ref !== null && term !== null) {
+        const personTermLabel = outputRelationTypes(term.label);
+        const br =
+          oi > 0 ? (
+            <small>
+              ,
+              <br />
+            </small>
+          ) : (
+            []
+          );
+        const personOutput = (
+          <small key={pId}>
+            {br}
+            <i>{personTermLabel}</i> <span style={{ width: '10px' }} />{' '}
+            <b>{ref.label}</b>
+          </small>
+        );
+        return personOutput;
+      }
+      return null;
+    });
+    if (peopleLabels.length > 0) {
+      description.push(
+        <div key="people" className="graph-search-block">
+          {peopleLabels}
+        </div>
+      );
+    }
+  }
+  if (organisations.length > 0) {
+    const organisationLabels = organisations.map((o) => {
+      const { _id: oId = '', term = null, ref = null } = o;
+      if (ref !== null && term !== null) {
+        const orgTermLabel = outputRelationTypes(term.label);
+        const organisationType =
+          ref.organisationType !== '' ? ` [${ref.organisationType}]` : '';
+        return (
+          <small key={oId}>
+            <i>{orgTermLabel}</i> <b>{ref.label}</b>
+            {organisationType}
+          </small>
+        );
+      }
+      return null;
+    });
+    if (organisationLabels.length > 0) {
+      description.push(
+        <div key="organisations" className="graph-search-block">
+          {organisationLabels}
+        </div>
+      );
+    }
+  }
+  if (temporal.length > 0) {
+    const temporalLabels = temporal.map((t) => {
+      const { ref = null } = t;
+      if (ref !== null) {
+        const { startDate = '', endDate = '' } = ref;
+        let tLabel = '';
+        if (startDate !== '') {
+          tLabel = outputDate(startDate);
+        }
+        if (endDate !== '' && endDate !== startDate) {
+          tLabel += ` - ${outputDate(endDate)}`;
+        }
+        return tLabel;
+      }
+      return null;
+    });
+    if (temporalLabels.length > 0) {
+      const temporalLabel = temporalLabels.join(' | ');
+      description.push(
+        <div key="temp" className="graph-search-block">
+          <i className="fa fa-calendar-o" />{' '}
+          <small key="dates">{temporalLabel}</small>
+        </div>
+      );
+    }
+  }
+  if (spatial.length > 0) {
+    const spatialLabels = spatial.map((s) => {
+      const { ref = null } = s;
+      if (ref !== null) {
+        return ref.label;
+      }
+      return null;
+    });
+    if (spatialLabels.length > 0) {
+      const spatialLabel = spatialLabels.join(' | ');
+      description.push(
+        <div key="spatial" className="graph-search-block">
+          <i className="fa fa-map" /> {spatialLabel}
+        </div>
+      );
+    }
+  }
+  return (
+    <div className="details">
+      <div style={{ width: '100%' }}>
+        <small>{_id}. </small>
+        {label}
+        {description}
+      </div>
+    </div>
+  );
+};
+
+export const outputOrganisation = (n = null) => {
+  if (n === null) {
+    return null;
+  }
+  const { _id = '', label = '', organisationType = '' } = n;
+  return (
+    <div className="details">
+      <div>
+        <div>
+          <small>{_id}. </small>
+          {label}
+        </div>
+        <div>
+          <small>[{organisationType}]</small>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const outputPersonSmall = (n = null) => {
+  if (n === null) {
+    return null;
+  }
+  const {
+    affiliations: iAffiliations = [],
+    firstName = '',
+    _id,
+    middleName = '',
+    lastName = '',
+    honorificPrefix = [],
+  } = n;
+  const affiliations =
+    iAffiliations.map((a) => {
+      const { ref = null } = a;
+      if (ref !== null) {
+        const { _id: aId = null, label = '' } = ref;
+        if (aId !== null) {
+          return (
+            <div className="affiliation-block" key={aId}>
+              {' '}
+              [{label.trim()}]
+            </div>
+          );
+        }
+      }
+      return null;
+    }) || null;
+  let label = firstName;
+  if (middleName !== '') {
+    label += ` ${middleName}`;
+  }
+  if (lastName !== '') {
+    label += ` ${lastName}`;
+  }
+
+  if (honorificPrefix.length > 0) {
+    let labelHP = honorificPrefix
+      .filter((ih) => typeof ih !== 'undefined' && ih !== '')
+      .join(', ');
+    if (labelHP !== '') {
+      labelHP = `(${labelHP})`;
+    }
+    label = `${labelHP} ${label}`;
+  }
+  return (
+    <div className="details">
+      <small>{_id}. </small>
+      {label}
+      <div>{affiliations}</div>
+    </div>
+  );
+};
+
+export const outputResourceSmall = (n = null) => {
+  if (n === null) {
+    return null;
+  }
+  const { _id, label } = n;
+  return (
+    <div className="details">
+      <div>
+        <small>{_id}. </small>
+        {label}
+      </div>
+    </div>
+  );
+};
+
+export const outputEventSmall = (n = null) => {
+  if (n === null) {
+    return null;
+  }
+  const {
+    _id = '',
+    label = '',
+    people = [],
+    organisations = [],
+    temporal = [],
+    spatial = [],
+  } = n;
+  const description = [];
+  if (people.length > 0) {
+    const peopleLabels = people.map((o, oi) => {
+      const { _id: pId = '', term = null, ref = null } = o;
+      if (ref !== null && term !== null) {
+        const personTermLabel = outputRelationTypes(term.label);
+        const br =
+          oi > 0 ? (
+            <small>
+              ,
+              <br />
+            </small>
+          ) : (
+            []
+          );
+        const personOutput = (
+          <small key={pId}>
+            {br}
+            <i>{personTermLabel}</i> <span style={{ width: '10px' }} />{' '}
+            <b>{ref.label}</b>
+          </small>
+        );
+        return personOutput;
+      }
+      return null;
+    });
+    if (peopleLabels.length > 0) {
+      description.push(
+        <div key="people" className="graph-search-block">
+          {peopleLabels}
+        </div>
+      );
+    }
+  }
+  if (organisations.length > 0) {
+    const organisationLabels = organisations.map((o) => {
+      const { _id: oId = '', term = null, ref = null } = o;
+      if (ref !== null && term !== null) {
+        const orgTermLabel = outputRelationTypes(term.label);
+        const organisationType =
+          ref.organisationType !== '' ? ` [${ref.organisationType}]` : '';
+        return (
+          <small key={oId}>
+            <i>{orgTermLabel}</i> <b>{ref.label}</b>
+            {organisationType}
+          </small>
+        );
+      }
+      return null;
+    });
+    if (organisationLabels.length > 0) {
+      description.push(
+        <div key="organisations" className="graph-search-block">
+          {organisationLabels}
+        </div>
+      );
+    }
+  }
+  if (temporal.length > 0) {
+    const temporalLabels = temporal.map((t) => {
+      const { ref = null } = t;
+      if (ref !== null) {
+        const { startDate = '', endDate = '' } = ref;
+        let tLabel = '';
+        if (startDate !== '') {
+          tLabel = outputDate(startDate);
+        }
+        if (endDate !== '' && endDate !== startDate) {
+          tLabel += ` - ${outputDate(endDate)}`;
+        }
+        return tLabel;
+      }
+      return null;
+    });
+    if (temporalLabels.length > 0) {
+      const temporalLabel = temporalLabels.join(' | ');
+      description.push(
+        <div key="temp" className="graph-search-block">
+          <i className="fa fa-calendar-o" />{' '}
+          <small key="dates">{temporalLabel}</small>
+        </div>
+      );
+    }
+  }
+  if (spatial.length > 0) {
+    const spatialLabels = spatial.map((s) => {
+      const { ref = null } = s;
+      if (ref !== null) {
+        return ref.label;
+      }
+      return null;
+    });
+    if (spatialLabels.length > 0) {
+      const spatialLabel = spatialLabels.join(' | ');
+      description.push(
+        <div key="spatial" className="graph-search-block">
+          <i className="fa fa-map" /> {spatialLabel}
+        </div>
+      );
+    }
+  }
+  return (
+    <div className="details">
+      <small>{_id}. </small>
+      {label}
+      {description}
+    </div>
+  );
+};
+
+export const outputOrganisationSmall = (n = null) => {
+  if (n === null) {
+    return null;
+  }
+  const { _id = '', label = '', organisationType = '' } = n;
+  return (
+    <div className="details">
+      <small>{_id}. </small>
+      {label} <small>[{organisationType}]</small>
+    </div>
+  );
 };
