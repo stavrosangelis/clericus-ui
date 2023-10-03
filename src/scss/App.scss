@@ -985,6 +985,16 @@ section {
 .filter-block {
   margin-bottom: 15px;
 }
+.filter-block h4 {
+  position: relative;
+}
+.clear-filters {
+  cursor: pointer;
+  font-size: 13px;
+  position: absolute;
+  right: 5px;
+  top: 5px;
+}
 .graph-container {
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -2361,4 +2371,24 @@ section {
 }
 .graph-resource {
   background-color: #0982a0 !important;
+}
+.item-block-heading {
+  display: flex;
+  gap: 4px;
+}
+.item-block-heading > span {
+  flex: 1 1;
+}
+.events-divider {
+  border-bottom: 1px solid #eee;
+  width: 100%;
+  padding: 14px 0;
+  position: relative;
+  font-size: 1.1rem;
+}
+.events-divider > span {
+  bottom: -2px;
+  left: 8px;
+  position: absolute;
+  display: block;
 }

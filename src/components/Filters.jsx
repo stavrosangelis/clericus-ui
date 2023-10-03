@@ -212,7 +212,7 @@ function Filters(props) {
 
   return (
     <>
-      <h4>
+      <h4 style={{ position: 'relative' }}>
         Filters
         <small
           className="pull-right clear-filters"

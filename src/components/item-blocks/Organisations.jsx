@@ -167,10 +167,12 @@ const Block = (props) => {
 
     organisationsRow = (
       <>
-        <h5>
-          Organisations <small>[{length}]</small>
+        <h5 className="item-block-heading">
+          <span>
+            Organisations <small>[{length}]</small>
+          </span>
           <div
-            className="btn btn-default btn-xs pull-right toggle-info-btn pull-icon-middle"
+            className="btn btn-default btn-xs pull-icon-middle toggle-info-btn pull-icon-middle"
             onClick={toggleVisible}
             onKeyDown={() => false}
             role="button"

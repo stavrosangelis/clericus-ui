@@ -21,10 +21,10 @@ function Block(props) {
   const output =
     description === '' ? null : (
       <>
-        <h5>
-          Description
+        <h5 className="item-block-heading">
+          <span>Description</span>
           <div
-            className="btn btn-default btn-xs pull-right toggle-info-btn"
+            className="btn btn-default btn-xs pull-icon-middle toggle-info-btn"
             onClick={toggleVisible}
             onKeyDown={() => false}
             role="button"

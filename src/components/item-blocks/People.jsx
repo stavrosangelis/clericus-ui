@@ -159,10 +159,12 @@ const Block = (props) => {
 
     peopleRow = (
       <>
-        <h5>
-          People <small>[{length}]</small>
+        <h5 className="item-block-heading">
+          <span>
+            People <small>[{length}]</small>
+          </span>
           <div
-            className="btn btn-default btn-xs pull-right toggle-info-btn pull-icon-middle"
+            className="btn btn-default btn-xs pull-icon-middle toggle-info-btn pull-icon-middle"
             onClick={toggleVisible}
             onKeyDown={() => false}
             role="button"

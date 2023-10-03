@@ -50,10 +50,12 @@ function Block(props) {
   const output =
     length > 0 ? (
       <>
-        <h5>
-          Dates <small>[{length}]</small>
+        <h5 className="item-block-heading">
+          <span>
+            Dates <small>[{length}]</small>
+          </span>
           <div
-            className="btn btn-default btn-xs pull-right toggle-info-btn"
+            className="btn btn-default btn-xs pull-icon-middle toggle-info-btn"
             onClick={toggleVisible}
             onKeyDown={() => false}
             role="button"

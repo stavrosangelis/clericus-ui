@@ -24,10 +24,10 @@ function Block(props) {
   const output =
     image === null ? null : (
       <>
-        <h5>
-          Technical metadata
+        <h5 className="item-block-heading">
+          <span>Technical metadata</span>
           <div
-            className="btn btn-default btn-xs pull-right toggle-info-btn"
+            className="btn btn-default btn-xs pull-icon-middle toggle-info-btn"
             onClick={toggleVisible}
             onKeyDown={() => false}
             role="button"

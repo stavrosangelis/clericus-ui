@@ -65,10 +65,10 @@ function Block(props) {
     if (appellations.length > 0) {
       output = (
         <>
-          <h5>
-            Alternate appellations
+          <h5 className="item-block-heading">
+            <span>Alternate appellations</span>
             <div
-              className="btn btn-default btn-xs pull-right toggle-info-btn"
+              className="btn btn-default btn-xs pull-icon-middle toggle-info-btn"
               onClick={toggleVisible}
               onKeyDown={() => false}
               role="button"

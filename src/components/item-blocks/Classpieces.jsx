@@ -157,10 +157,12 @@ const Block = (props) => {
 
     classpiecesRow = (
       <>
-        <h5>
-          Classpieces <small>[{length}]</small>
+        <h5 className="item-block-heading">
+          <span>
+            Classpieces <small>[{length}]</small>
+          </span>
           <div
-            className="btn btn-default btn-xs pull-right toggle-info-btn pull-icon-middle"
+            className="btn btn-default btn-xs toggle-info-btn pull-icon-middle"
             onClick={toggleVisible}
             onKeyDown={() => false}
             role="button"

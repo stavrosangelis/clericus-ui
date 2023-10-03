@@ -71,10 +71,12 @@ const Block = (props) => {
 
     spatialRow = (
       <>
-        <h5>
-          Locations <small>[{length}]</small>
+        <h5 className="item-block-heading">
+          <span>
+            Locations <small>[{length}]</small>
+          </span>
           <div
-            className="btn btn-default btn-xs pull-right toggle-info-btn"
+            className="btn btn-default btn-xs pull-icon-middle toggle-info-btn"
             onClick={toggleVisible}
             onKeyDown={() => false}
             role="button"

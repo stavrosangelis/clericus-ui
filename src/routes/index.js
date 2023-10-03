@@ -22,6 +22,7 @@ import Resources from '../views/Resources';
 
 // visualisations
 import Heatmap from '../views/visualisations/Heatmap';
+import DeceasedColumbansMap from '../views/visualisations/Deceased.columbans.map';
 import GraphNetwork from '../views/visualisations/Graph.network';
 import Timeline from '../views/visualisations/Timeline';
 import ItemTimeline from '../views/visualisations/Item.timeline';
@@ -136,6 +137,11 @@ const routes = [
     path: '/heatmap/',
     component: Heatmap,
     name: 'Heatmap',
+  },
+  {
+    path: '/deceased-columbans-map/',
+    component: DeceasedColumbansMap,
+    name: 'DeceasedColumbansMap',
   },
   {
     path: '/network-graph/',
